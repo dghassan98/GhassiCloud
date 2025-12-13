@@ -129,17 +129,24 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
                 })}
               </div>
             )}
-            {formData.useFavicon && formData.url && (
-              <div className="favicon-preview" style={{ marginTop: '0.75rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Preview:</span>
-                <img 
-                  src={`${new URL(formData.url).origin}/favicon.ico`}
-                  alt="Favicon preview"
-                  style={{ width: 24, height: 24, marginLeft: '0.5rem' }}
-                  onError={(e) => e.target.style.display = 'none'}
-                />
-              </div>
-            )}
+            {formData.useFavicon && formData.url && (() => {
+              try {
+                const url = new URL(formData.url)
+                return (
+                  <div className="favicon-preview" style={{ marginTop: '0.75rem' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Preview:</span>
+                    <img 
+                      src={`${url.origin}/favicon.ico`}
+                      alt="Favicon preview"
+                      style={{ width: 24, height: 24, marginLeft: '0.5rem' }}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  </div>
+                )
+              } catch {
+                return null
+              }
+            })()}
           </div>
 
           <div className="form-group">
