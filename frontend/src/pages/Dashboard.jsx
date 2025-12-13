@@ -223,9 +223,32 @@ export default function Dashboard() {
 
   const getGreeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
+    const locale = navigator.language || 'en'
+    const lang = locale.split('-')[0]
+    
+    const greetings = {
+      en: ['Good morning', 'Good afternoon', 'Good evening', 'Good night'],
+      es: ['Buenos días', 'Buenas tardes', 'Buenas tardes', 'Buenas noches'],
+      fr: ['Bonjour', 'Bon après-midi', 'Bonsoir', 'Bonne nuit'],
+      de: ['Guten Morgen', 'Guten Tag', 'Guten Abend', 'Gute Nacht'],
+      it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera', 'Buonanotte'],
+      pt: ['Bom dia', 'Boa tarde', 'Boa noite', 'Boa noite'],
+      nl: ['Goedemorgen', 'Goedemiddag', 'Goedenavond', 'Goedenacht'],
+      ar: ['صباح الخير', 'مساء الخير', 'مساء الخير', 'تصبح على خير'],
+      zh: ['早上好', '下午好', '晚上好', '晚安'],
+      ja: ['おはようございます', 'こんにちは', 'こんばんは', 'おやすみなさい'],
+      ko: ['좋은 아침이에요', '좋은 오후에요', '좋은 저녁이에요', '좋은 밤이에요'],
+      ru: ['Доброе утро', 'Добрый день', 'Добрый вечер', 'Доброй ночи'],
+      hi: ['सुप्रभात', 'नमस्ते', 'शुभ संध्या', 'शुभ रात्रि'],
+      tr: ['Günaydın', 'İyi günler', 'İyi akşamlar', 'İyi geceler']
+    }
+    
+    const msgs = greetings[lang] || greetings.en
+    
+    if (hour < 12) return msgs[0]
+    if (hour < 18) return msgs[1]
+    if (hour < 22) return msgs[2]
+    return msgs[3]
   }
 
   return (

@@ -83,8 +83,8 @@ npm start
 
 1. Click "Add Service" on the dashboard
 2. Enter service details:
-   - Name (e.g., "Nextcloud")
-   - Description (e.g., "File sync & share")
+   - Name (e.g., "Jellyfin")
+   - Description (e.g., "Video and Audio Streaming")
    - URL (e.g., "https://cloud.example.com")
    - Choose an icon and color
 

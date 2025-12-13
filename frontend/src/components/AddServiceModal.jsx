@@ -59,7 +59,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
             <label>Service Name</label>
             <input
               type="text"
-              placeholder="e.g., Nextcloud"
+              placeholder="e.g., Jellyfin"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
@@ -70,7 +70,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
             <label>Description</label>
             <input
               type="text"
-              placeholder="e.g., File sync & share"
+              placeholder="e.g., Media streaming server"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
