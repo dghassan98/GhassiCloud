@@ -74,7 +74,7 @@ export default function Login() {
               </motion.h1>
             )}
           </AnimatePresence>
-          <p>Your personal cloud, one click away</p>
+          <p>Embrace Digital Sovereignty.</p>
         </motion.div>
 
         {/* Login Form */}

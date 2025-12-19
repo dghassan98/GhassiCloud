@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
+import Reporting from './pages/Reporting'
 import Layout from './components/Layout'
 
 function ProtectedRoute({ children }) {
@@ -34,6 +35,7 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="reporting" element={<Reporting />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -4,7 +4,7 @@ import {
   Plus, Search, Grid, List, ExternalLink, 
   Server, Database, Cloud, HardDrive, Shield, 
   Monitor, Film, Music, FileText, Image,
-  Home, Cpu, Activity, MoreVertical, Edit2, Trash2
+  Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone
 } from 'lucide-react'
 import ServiceCard from '../components/ServiceCard'
 import StatsCard from '../components/StatsCard'
@@ -253,6 +253,17 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+      <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget">
+        <img 
+          src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://ghassi.cloud&bgcolor=1a1f2e&color=ffffff" 
+          alt="Scan to open mobile app"
+        />
+        <div className="qr-code-text">
+          <Smartphone size={14} />
+          <span>Scan me</span>
+        </div>
+      </a>
+      
       {/* Hero Section */}
       <motion.section 
         className="dashboard-hero"
@@ -261,7 +272,7 @@ export default function Dashboard() {
       >
         <div className="hero-content">
           <h1>{getGreeting()}</h1>
-          <p>Welcome to your cloud. Everything in one place.</p>
+          <p>Welcome to GhassiCloud. Embrace Digital Sovereignty.</p>
         </div>
         <div className="hero-stats">
           {stats.map((stat, i) => (

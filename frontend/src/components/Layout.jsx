@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   LayoutDashboard, Settings, LogOut, 
-  Moon, Sun, Menu, X, Bell
+  Moon, Sun, Menu, X, Bell, CloudSun, BarChart3
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
@@ -101,6 +101,14 @@ export default function Layout() {
             <span>Dashboard</span>
           </NavLink>
           <NavLink 
+            to="/reporting" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <BarChart3 size={20} />
+            <span>Reporting</span>
+          </NavLink>
+          <NavLink 
             to="/settings" 
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             onClick={() => setSidebarOpen(false)}
@@ -111,6 +119,14 @@ export default function Layout() {
         </nav>
 
         <div className="sidebar-footer">
+          {/* <div className="weather-card">
+            <CloudSun size={24} />
+            <div className="weather-info">
+              <span className="weather-temp">18°C</span>
+              <span className="weather-desc">Partly Cloudy</span>
+            </div>
+          </div> */}
+
           <div className="user-info">
             <div className="avatar">
               {user?.username?.charAt(0).toUpperCase() || 'U'}
