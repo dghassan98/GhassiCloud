@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import db from '../db/index.js'
+import { getDb } from '../db/index.js'
 import { v4 as uuidv4 } from 'uuid'
 
 const router = Router()
@@ -7,6 +7,7 @@ const router = Router()
 // Get all services
 router.get('/', (req, res) => {
   try {
+    const db = getDb()
     const services = db.prepare('SELECT * FROM services ORDER BY sort_order, created_at DESC').all()
     
     res.json(services.map(s => ({
@@ -29,6 +30,7 @@ router.get('/', (req, res) => {
 // Get single service
 router.get('/:id', (req, res) => {
   try {
+    const db = getDb()
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
     
     if (!service) {
@@ -55,6 +57,7 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const { name, description, url, icon, color, status, category, useFavicon } = req.body
+    const db = getDb()
     
     if (!name || !url) {
       return res.status(400).json({ message: 'Name and URL are required' })
@@ -100,6 +103,7 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const { name, description, url, icon, color, status, category, sortOrder, useFavicon } = req.body
+    const db = getDb()
     
     const existing = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
     
@@ -146,6 +150,7 @@ router.put('/:id', (req, res) => {
 // Delete service
 router.delete('/:id', (req, res) => {
   try {
+    const db = getDb()
     const existing = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
     
     if (!existing) {
@@ -165,20 +170,16 @@ router.delete('/:id', (req, res) => {
 router.put('/order/bulk', (req, res) => {
   try {
     const { services } = req.body
+    const db = getDb()
     
     if (!Array.isArray(services)) {
       return res.status(400).json({ message: 'Services array required' })
     }
     
-    const updateStmt = db.prepare('UPDATE services SET sort_order = ? WHERE id = ?')
-    
-    const updateMany = db.transaction((items) => {
-      for (const item of items) {
-        updateStmt.run(item.sortOrder, item.id)
-      }
-    })
-    
-    updateMany(services)
+    // Update each service's sort order
+    for (const item of services) {
+      db.prepare('UPDATE services SET sort_order = ? WHERE id = ?').run(item.sortOrder, item.id)
+    }
     
     res.json({ message: 'Order updated successfully' })
   } catch (err) {

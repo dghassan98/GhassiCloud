@@ -1,8 +1,8 @@
-import Database from 'better-sqlite3'
+import initSqlJs from 'sql.js'
 import bcrypt from 'bcryptjs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { mkdirSync, existsSync } from 'fs'
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -15,11 +15,76 @@ if (!existsSync(dataDir)) {
   mkdirSync(dataDir, { recursive: true })
 }
 
-const db = new Database(dbPath)
+let db = null
 
-export function initDatabase() {
+// Save database to file
+function saveDatabase() {
+  if (db) {
+    const data = db.export()
+    const buffer = Buffer.from(data)
+    writeFileSync(dbPath, buffer)
+  }
+}
+
+// Initialize sql.js and load/create database
+async function initSqlJsDb() {
+  const SQL = await initSqlJs()
+  
+  if (existsSync(dbPath)) {
+    const fileBuffer = readFileSync(dbPath)
+    db = new SQL.Database(fileBuffer)
+  } else {
+    db = new SQL.Database()
+  }
+  
+  return db
+}
+
+// Wrapper to make sql.js work like better-sqlite3 API
+function createDbWrapper(database) {
+  return {
+    exec: (sql) => {
+      database.run(sql)
+      saveDatabase()
+    },
+    prepare: (sql) => ({
+      run: (...params) => {
+        database.run(sql, params)
+        saveDatabase()
+      },
+      get: (...params) => {
+        const stmt = database.prepare(sql)
+        stmt.bind(params)
+        if (stmt.step()) {
+          const row = stmt.getAsObject()
+          stmt.free()
+          return row
+        }
+        stmt.free()
+        return undefined
+      },
+      all: (...params) => {
+        const stmt = database.prepare(sql)
+        stmt.bind(params)
+        const results = []
+        while (stmt.step()) {
+          results.push(stmt.getAsObject())
+        }
+        stmt.free()
+        return results
+      }
+    })
+  }
+}
+
+let dbWrapper = null
+
+export async function initDatabase() {
+  const database = await initSqlJsDb()
+  dbWrapper = createDbWrapper(database)
+  
   // Create users table
-  db.exec(`
+  dbWrapper.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -33,7 +98,7 @@ export function initDatabase() {
   `)
 
   // Create services table
-  db.exec(`
+  dbWrapper.exec(`
     CREATE TABLE IF NOT EXISTS services (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -52,13 +117,13 @@ export function initDatabase() {
   
   // Add use_favicon column if it doesn't exist (migration for existing DBs)
   try {
-    db.exec(`ALTER TABLE services ADD COLUMN use_favicon INTEGER DEFAULT 1`)
+    dbWrapper.exec(`ALTER TABLE services ADD COLUMN use_favicon INTEGER DEFAULT 1`)
   } catch (e) {
     // Column already exists, ignore
   }
 
   // Create settings table
-  db.exec(`
+  dbWrapper.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT,
@@ -67,7 +132,7 @@ export function initDatabase() {
   `)
 
   // Create default admin user if not exists
-  const adminUser = db.prepare('SELECT * FROM users WHERE username = ?').get(
+  const adminUser = dbWrapper.prepare('SELECT * FROM users WHERE username = ?').get(
     process.env.DEFAULT_ADMIN_USER || 'admin'
   )
 
@@ -76,7 +141,7 @@ export function initDatabase() {
       process.env.DEFAULT_ADMIN_PASS || 'admin',
       10
     )
-    db.prepare(`
+    dbWrapper.prepare(`
       INSERT INTO users (id, username, password, role, display_name)
       VALUES (?, ?, ?, 'admin', 'Administrator')
     `).run(
@@ -88,6 +153,12 @@ export function initDatabase() {
   }
 
   console.log('✅ Database initialized')
+  
+  return dbWrapper
 }
 
-export default db
+export function getDb() {
+  return dbWrapper
+}
+
+export default { initDatabase, getDb }

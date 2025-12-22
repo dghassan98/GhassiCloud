@@ -21,33 +21,37 @@ const PORT = process.env.PORT || 3001
 app.use(cors())
 app.use(express.json())
 
-// Initialize database
-initDatabase()
+// Initialize database and start server
+async function startServer() {
+  await initDatabase()
 
-// Routes
-app.use('/api/auth', authRoutes)
-app.use('/api/services', authenticateToken, servicesRoutes)
+  // Routes
+  app.use('/api/auth', authRoutes)
+  app.use('/api/services', authenticateToken, servicesRoutes)
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
+  // Health check
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() })
+  })
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(join(__dirname, '../../frontend/dist')))
-  
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../../frontend/dist/index.html'))
+  // Serve static files in production
+  if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(join(__dirname, '../../frontend/dist')))
+    
+    app.get('*', (req, res) => {
+      res.sendFile(join(__dirname, '../../frontend/dist/index.html'))
+    })
+  }
+
+  // Error handling
+  app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(500).json({ message: 'Something went wrong!' })
+  })
+
+  app.listen(PORT, () => {
+    console.log(`🚀 GhassiCloud API running on http://localhost:${PORT}`)
   })
 }
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).json({ message: 'Something went wrong!' })
-})
-
-app.listen(PORT, () => {
-  console.log(`🚀 GhassiCloud API running on http://localhost:${PORT}`)
-})
+startServer().catch(console.error)

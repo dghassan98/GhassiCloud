@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import db from '../db/index.js'
+import { getDb } from '../db/index.js'
 import { authenticateToken, generateToken } from '../middleware/auth.js'
 
 const router = Router()
@@ -9,6 +9,7 @@ const router = Router()
 router.post('/login', (req, res) => {
   try {
     const { username, password } = req.body
+    const db = getDb()
 
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password required' })
@@ -47,6 +48,7 @@ router.post('/login', (req, res) => {
 // Get current user
 router.get('/me', authenticateToken, (req, res) => {
   try {
+    const db = getDb()
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
 
     if (!user) {
@@ -72,6 +74,7 @@ router.get('/me', authenticateToken, (req, res) => {
 router.put('/password', authenticateToken, (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body
+    const db = getDb()
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Current and new password required' })
@@ -105,6 +108,7 @@ router.put('/password', authenticateToken, (req, res) => {
 router.put('/profile', authenticateToken, (req, res) => {
   try {
     const { email, displayName } = req.body
+    const db = getDb()
 
     db.prepare('UPDATE users SET email = ?, display_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
       .run(email || null, displayName || null, req.user.id)

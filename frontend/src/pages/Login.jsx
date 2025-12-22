@@ -151,7 +151,6 @@ export default function Login() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <p>Default: admin / admin</p>
         </motion.div>
       </motion.div>
     </div>
