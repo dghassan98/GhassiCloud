@@ -8,7 +8,7 @@ const router = Router()
 router.get('/', (req, res) => {
   try {
     const db = getDb()
-    const services = db.prepare('SELECT * FROM services ORDER BY sort_order, created_at DESC').all()
+    const services = db.prepare('SELECT * FROM services ORDER BY pinned DESC, sort_order, created_at DESC').all()
     
     res.json(services.map(s => ({
       id: s.id,
@@ -19,7 +19,8 @@ router.get('/', (req, res) => {
       color: s.color,
       status: s.status,
       category: s.category,
-      useFavicon: s.use_favicon !== 0
+      useFavicon: s.use_favicon !== 0,
+      pinned: s.pinned === 1
     })))
   } catch (err) {
     console.error('Get services error:', err)
@@ -56,7 +57,7 @@ router.get('/:id', (req, res) => {
 // Create service
 router.post('/', (req, res) => {
   try {
-    const { name, description, url, icon, color, status, category, useFavicon } = req.body
+    const { name, description, url, icon, color, status, category, useFavicon, pinned } = req.body
     const db = getDb()
     
     if (!name || !url) {
@@ -66,8 +67,8 @@ router.post('/', (req, res) => {
     const id = uuidv4()
     
     db.prepare(`
-      INSERT INTO services (id, name, description, url, icon, color, status, category, use_favicon)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO services (id, name, description, url, icon, color, status, category, use_favicon, pinned)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       name,
@@ -77,7 +78,8 @@ router.post('/', (req, res) => {
       color || '#6366f1',
       status || 'online',
       category || null,
-      useFavicon !== false ? 1 : 0
+      useFavicon !== false ? 1 : 0,
+      pinned ? 1 : 0
     )
     
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(id)
@@ -91,7 +93,8 @@ router.post('/', (req, res) => {
       color: service.color,
       status: service.status,
       category: service.category,
-      useFavicon: service.use_favicon !== 0
+      useFavicon: service.use_favicon !== 0,
+      pinned: service.pinned === 1
     })
   } catch (err) {
     console.error('Create service error:', err)
@@ -102,7 +105,7 @@ router.post('/', (req, res) => {
 // Update service
 router.put('/:id', (req, res) => {
   try {
-    const { name, description, url, icon, color, status, category, sortOrder, useFavicon } = req.body
+    const { name, description, url, icon, color, status, category, sortOrder, useFavicon, pinned } = req.body
     const db = getDb()
     
     const existing = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
@@ -113,7 +116,7 @@ router.put('/:id', (req, res) => {
     
     db.prepare(`
       UPDATE services 
-      SET name = ?, description = ?, url = ?, icon = ?, color = ?, status = ?, category = ?, sort_order = ?, use_favicon = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, description = ?, url = ?, icon = ?, color = ?, status = ?, category = ?, sort_order = ?, use_favicon = ?, pinned = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
       name || existing.name,
@@ -125,6 +128,7 @@ router.put('/:id', (req, res) => {
       category !== undefined ? category : existing.category,
       sortOrder !== undefined ? sortOrder : existing.sort_order,
       useFavicon !== undefined ? (useFavicon ? 1 : 0) : existing.use_favicon,
+      pinned !== undefined ? (pinned ? 1 : 0) : existing.pinned,
       req.params.id
     )
     
@@ -139,7 +143,8 @@ router.put('/:id', (req, res) => {
       color: service.color,
       status: service.status,
       category: service.category,
-      useFavicon: service.use_favicon !== 0
+      useFavicon: service.use_favicon !== 0,
+      pinned: service.pinned === 1
     })
   } catch (err) {
     console.error('Update service error:', err)

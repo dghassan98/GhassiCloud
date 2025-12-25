@@ -39,7 +39,8 @@ const defaultServices = [
     icon: 'cloud',
     color: '#0082c9',
     status: 'online',
-    useFavicon: true
+    useFavicon: true,
+    sortOrder: 0
   },
   {
     id: '2',
@@ -49,7 +50,8 @@ const defaultServices = [
     icon: 'photo',
     color: '#e5a00d',
     status: 'online',
-    useFavicon: true
+    useFavicon: true,
+    sortOrder: 1
   },
   {
     id: '3',
@@ -59,7 +61,8 @@ const defaultServices = [
     icon: 'music',
     color: '#41bdf5',
     status: 'online',
-    useFavicon: true
+    useFavicon: true,
+    sortOrder: 2
   },
   {
     id: '4',
@@ -69,7 +72,8 @@ const defaultServices = [
     icon: 'media',
     color: '#13b9fd',
     status: 'online',
-    useFavicon: true
+    useFavicon: true,
+    sortOrder: 3
   },
   {
     id: '5',
@@ -78,8 +82,9 @@ const defaultServices = [
     url: 'https://notes.ghassandarwish.com',
     icon: 'documents',
     color: '#f46800',
-    status: 'true',
-    useFavicon: true
+    status: 'online',
+    useFavicon: true,
+    sortOrder: 4
   },
   {
     id: '6',
@@ -89,7 +94,8 @@ const defaultServices = [
     icon: 'share-2',
     color: '#96060c',
     status: 'online',
-    useFavicon: true
+    useFavicon: true,
+    sortOrder: 5
    }//,
   // {
   //   id: '7',
@@ -197,6 +203,40 @@ export default function Dashboard() {
   const handleEditService = (service) => {
     setEditingService(service)
     setShowEditModal(true)
+  }
+
+  const handlePinService = async (id, pinned) => {
+    // Helper to sort: pinned first, then by original index
+    const sortServices = (servicesList) => {
+      return [...servicesList].sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1
+        if (!a.pinned && b.pinned) return 1
+        // If same pin status, sort by sortOrder or original index
+        return (a.sortOrder || 0) - (b.sortOrder || 0)
+      })
+    }
+
+    try {
+      const token = localStorage.getItem('ghassicloud-token')
+      const res = await fetch(`/api/services/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ pinned })
+      })
+      if (res.ok) {
+        const updatedService = await res.json()
+        setServices(prev => sortServices(prev.map(s => s.id === id ? updatedService : s)))
+      } else {
+        // API failed, update local state anyway (for default services)
+        setServices(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
+      }
+    } catch (err) {
+      console.error('Failed to pin service:', err)
+      setServices(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
+    }
   }
 
   const handleUpdateService = async (updatedService) => {
@@ -341,6 +381,7 @@ export default function Dashboard() {
                   viewMode={viewMode}
                   onDelete={() => handleDeleteService(service.id)}
                   onEdit={handleEditService}
+                  onPin={handlePinService}
                 />
               ))}
             </AnimatePresence>

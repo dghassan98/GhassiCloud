@@ -15,7 +15,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -25,14 +25,9 @@
   transition: all var(--transition-fast);
 }
 
-.qr-code-widget:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px var(--accent-glow);
-}
-
 .qr-code-widget img {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: var(--radius-md);
 }
 
@@ -156,28 +151,27 @@
 
 .search-box svg {
   position: absolute;
-  left: -10 rem;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
   z-index: 1;
-  width: 18px;
-  height: 18px;
 }
 
 .search-box input {
-  padding: 0.625rem 1rem 0.625rem 3rem;
+  padding: 0.625rem 1rem;
+  padding-left: 44px;
   width: 220px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   color: var(--text-primary);
-  text-indent: 0;
 }
 
 .search-box input::placeholder {
   color: var(--text-muted);
-  left: 15 rem;
 }
 
 .search-box input:focus {
@@ -250,9 +244,47 @@
   transition: all var(--transition-fast);
 }
 
+.service-card.pinned {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.05) 100%);
+}
+
 .service-card:hover {
   border-color: var(--accent-color, var(--accent));
   box-shadow: var(--shadow-lg);
+}
+
+/* Pin Button */
+.pin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+.service-card:hover .pin-button {
+  opacity: 1;
+}
+
+.pin-button:hover {
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.pin-button.active {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.pin-button.active:hover {
+  color: var(--error);
 }
 
 .service-card .card-glow {

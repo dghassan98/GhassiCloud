@@ -110,6 +110,13 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  
+  // Add pinned column to services if it doesn't exist
+  try {
+    dbWrapper.exec(`ALTER TABLE services ADD COLUMN pinned INTEGER DEFAULT 0`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   // Create services table
   dbWrapper.exec(`

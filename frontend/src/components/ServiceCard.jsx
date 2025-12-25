@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ExternalLink, MoreVertical, Edit2, Trash2 } from 'lucide-react'
+import { ExternalLink, MoreVertical, Edit2, Trash2, Pin } from 'lucide-react'
 import { useState } from 'react'
 
 // Common favicon paths to try
@@ -11,7 +11,7 @@ const FAVICON_PATHS = [
   '/apple-touch-icon-precomposed.png'
 ]
 
-export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit }) {
+export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin }) {
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [faviconPathIndex, setFaviconPathIndex] = useState(0)
@@ -53,7 +53,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
   }
 
   const handleClick = (e) => {
-    if (e.target.closest('.card-menu') || e.target.closest('.menu-button')) {
+    if (e.target.closest('.card-menu') || e.target.closest('.menu-button') || e.target.closest('.pin-button')) {
       return
     }
     window.open(service.url, '_blank', 'noopener,noreferrer')
@@ -61,7 +61,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
 
   return (
     <motion.div
-      className={`service-card ${viewMode}`}
+      className={`service-card ${viewMode}${service.pinned ? ' pinned' : ''}`}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -95,12 +95,25 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
         </div>
         
         <div className="card-actions">
+          <button
+            type="button"
+            className={`pin-button${service.pinned ? ' active' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              onPin(service.id, !service.pinned)
+            }}
+            title={service.pinned ? 'Unpin' : 'Pin to top'}
+          >
+            <Pin size={14} />
+          </button>
           <div 
             className="status-indicator"
             style={{ backgroundColor: statusColors[service.status] }}
             title={service.status}
           />
           <button 
+            type="button"
             className="menu-button"
             onClick={(e) => {
               e.stopPropagation()
