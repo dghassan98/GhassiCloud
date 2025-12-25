@@ -92,10 +92,24 @@ export async function initDatabase() {
       email TEXT,
       display_name TEXT,
       role TEXT DEFAULT 'user',
+      sso_provider TEXT,
+      sso_id TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
+  
+  // Add SSO columns if they don't exist (migration for existing DBs)
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN sso_provider TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN sso_id TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   // Create services table
   dbWrapper.exec(`

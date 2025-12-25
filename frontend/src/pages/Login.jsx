@@ -13,7 +13,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const [ssoLoading, setSsoLoading] = useState(false)
+  const { login, loginWithSSO } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
   const navigate = useNavigate()
@@ -33,6 +34,20 @@ export default function Login() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSSOLogin = async () => {
+    setError('')
+    setSsoLoading(true)
+    
+    try {
+      await loginWithSSO()
+      navigate('/')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSsoLoading(false)
     }
   }
 
@@ -139,6 +154,32 @@ export default function Login() {
               <>
                 Sign In
                 <ArrowRight size={20} />
+              </>
+            )}
+          </motion.button>
+
+          <div className="login-divider">
+            <span>or</span>
+          </div>
+
+          <motion.button
+            type="button"
+            className="sso-button"
+            disabled={ssoLoading}
+            onClick={handleSSOLogin}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {ssoLoading ? (
+              <div className="button-spinner" />
+            ) : (
+              <>
+                <img 
+                  src="https://drive.ghassandarwish.com/public/api/raw?files=%2F&hash=mzcI4SScFS-oPaQxHS79Ig" 
+                  alt="GhassiCloud" 
+                  className="sso-icon"
+                />
+                Sign in with GhassiCloud
               </>
             )}
           </motion.button>

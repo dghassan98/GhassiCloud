@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
+import SSOCallback from './pages/SSOCallback'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
 import Reporting from './pages/Reporting'
@@ -26,6 +27,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/sso-callback" element={<SSOCallback />} />
         <Route
           path="/"
           element={

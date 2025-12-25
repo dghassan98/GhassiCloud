@@ -33,9 +33,9 @@ const iconMap = {
 const defaultServices = [
   {
     id: '1',
-    name: 'Nextcloud',
-    description: 'File sync & share',
-    url: 'https://nextcloud.com',
+    name: 'GhassiDrive',
+    description: 'Your personal cloud storage',
+    url: 'https://drive.ghassandarwish.com',
     icon: 'cloud',
     color: '#0082c9',
     status: 'online',
@@ -43,74 +43,74 @@ const defaultServices = [
   },
   {
     id: '2',
-    name: 'Plex',
-    description: 'Media streaming',
-    url: 'https://plex.tv',
-    icon: 'media',
+    name: 'GhassiGallery',
+    description: 'Your personal cloud gallery',
+    url: 'https://gallery.ghassandarwish.com',
+    icon: 'photo',
     color: '#e5a00d',
     status: 'online',
     useFavicon: true
   },
   {
     id: '3',
-    name: 'Home Assistant',
-    description: 'Smart home control',
-    url: 'https://home-assistant.io',
-    icon: 'home',
+    name: 'GhassiMusic',
+    description: 'Your personal music library',
+    url: 'https://music.ghassandarwish.com',
+    icon: 'music',
     color: '#41bdf5',
     status: 'online',
     useFavicon: true
   },
   {
     id: '4',
-    name: 'Portainer',
-    description: 'Container management',
-    url: 'https://portainer.io',
-    icon: 'server',
+    name: 'GhassiStream',
+    description: 'Your personal streaming service',
+    url: 'https://stream.ghassandarwish.com',
+    icon: 'media',
     color: '#13b9fd',
     status: 'online',
     useFavicon: true
   },
   {
     id: '5',
-    name: 'Grafana',
-    description: 'Metrics & dashboards',
-    url: 'https://grafana.com',
-    icon: 'monitor',
+    name: 'GhassiNotes',
+    description: 'Your personal notes library',
+    url: 'https://notes.ghassandarwish.com',
+    icon: 'documents',
     color: '#f46800',
     status: 'warning',
     useFavicon: true
   },
   {
     id: '6',
-    name: 'Pi-hole',
-    description: 'Network-wide ad blocking',
-    url: 'https://pi-hole.net',
-    icon: 'security',
+    name: 'GhassiShare',
+    description: 'Your personal file sharing service',
+    url: 'https://share.ghassandarwish.com',
+    icon: 'share-2',
     color: '#96060c',
     status: 'online',
     useFavicon: true
-  },
-  {
-    id: '7',
-    name: 'Jellyfin',
-    description: 'Free media system',
-    url: 'https://jellyfin.org',
-    icon: 'media',
-    color: '#00a4dc',
-    status: 'offline',
-    useFavicon: true
-  },
-  {
-    id: '8',
-    name: 'GitHub',
-    description: 'Code repository',
-    url: 'https://github.com',
-    icon: 'documents',
-    color: '#171515',
-    status: 'online',
-    useFavicon: true
-  }
+   }//,
+  // {
+  //   id: '7',
+  //   name: 'Jellyfin',
+  //   description: 'Free media system',
+  //   url: 'https://jellyfin.org',
+  //   icon: 'media',
+  //   color: '#00a4dc',
+  //   status: 'offline',
+  //   useFavicon: true
+  // },
+  // {
+  //   id: '8',
+  //   name: 'GitHub',
+  //   description: 'Code repository',
+  //   url: 'https://github.com',
+  //   icon: 'documents',
+  //   color: '#171515',
+  //   status: 'online',
+  //   useFavicon: true
+  // }
 ]
 
 // Placeholder stats

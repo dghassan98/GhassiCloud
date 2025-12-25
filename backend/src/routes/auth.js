@@ -1,9 +1,131 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { getDb } from '../db/index.js'
 import { authenticateToken, generateToken } from '../middleware/auth.js'
 
 const router = Router()
+
+// Keycloak SSO Configuration
+const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'https://auth.ghassandarwish.com'
+const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || 'master'
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || 'ghassicloud'
+
+// Get SSO configuration for frontend
+router.get('/sso/config', (req, res) => {
+  res.json({
+    authUrl: `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth`,
+    clientId: KEYCLOAK_CLIENT_ID,
+    scope: 'openid profile email'
+  })
+})
+
+// Exchange authorization code for tokens and create/login user (PKCE flow)
+router.post('/sso/callback', async (req, res) => {
+  try {
+    const { code, redirectUri, codeVerifier } = req.body
+
+    if (!code) {
+      return res.status(400).json({ message: 'Authorization code required' })
+    }
+
+    if (!codeVerifier) {
+      return res.status(400).json({ message: 'Code verifier required for PKCE' })
+    }
+
+    // Exchange code for tokens using PKCE
+    const tokenParams = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: KEYCLOAK_CLIENT_ID,
+      code: code,
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier
+    })
+
+    const tokenResponse = await fetch(
+      `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: tokenParams
+      }
+    )
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text()
+      console.error('Token exchange failed:', errorData)
+      return res.status(401).json({ message: 'Failed to exchange authorization code' })
+    }
+
+    const tokens = await tokenResponse.json()
+
+    // Get user info from Keycloak
+    const userInfoResponse = await fetch(
+      `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo`,
+      {
+        headers: { Authorization: `Bearer ${tokens.access_token}` }
+      }
+    )
+
+    if (!userInfoResponse.ok) {
+      return res.status(401).json({ message: 'Failed to get user info' })
+    }
+
+    const userInfo = await userInfoResponse.json()
+
+    // Find or create user in database
+    const db = getDb()
+    let user = db.prepare('SELECT * FROM users WHERE email = ? OR username = ?').get(
+      userInfo.email,
+      userInfo.preferred_username || userInfo.email
+    )
+
+    if (!user) {
+      // Create new user from SSO
+      const userId = crypto.randomUUID()
+      const username = userInfo.preferred_username || userInfo.email.split('@')[0]
+      // Generate a random password for SSO users (they won't use it)
+      const randomPassword = bcrypt.hashSync(crypto.randomUUID(), 10)
+
+      db.prepare(`
+        INSERT INTO users (id, username, password, email, display_name, role, sso_provider, sso_id)
+        VALUES (?, ?, ?, ?, ?, 'user', 'keycloak', ?)
+      `).run(
+        userId,
+        username,
+        randomPassword,
+        userInfo.email,
+        userInfo.name || userInfo.preferred_username,
+        userInfo.sub
+      )
+
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId)
+    } else {
+      // Update SSO info if not set
+      if (!user.sso_provider) {
+        db.prepare('UPDATE users SET sso_provider = ?, sso_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+          .run('keycloak', userInfo.sub, user.id)
+      }
+    }
+
+    // Generate our own JWT token
+    const token = generateToken(user)
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.display_name,
+        role: user.role
+      }
+    })
+  } catch (err) {
+    console.error('SSO callback error:', err)
+    res.status(500).json({ message: 'SSO authentication failed' })
+  }
+})
 
 // Login
 router.post('/login', (req, res) => {
