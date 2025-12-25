@@ -156,23 +156,34 @@
 
 .search-box svg {
   position: absolute;
-  left: 0.875rem;
+  left: -10 rem;
   color: var(--text-muted);
   pointer-events: none;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
 }
 
 .search-box input {
-  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  padding: 0.625rem 1rem 0.625rem 3rem;
   width: 220px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
+  color: var(--text-primary);
+  text-indent: 0;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+  left: 15 rem;
 }
 
 .search-box input:focus {
   border-color: var(--accent);
   width: 280px;
+  outline: none;
 }
 
 /* View Toggle */

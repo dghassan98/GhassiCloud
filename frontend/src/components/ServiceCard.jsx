@@ -2,24 +2,49 @@ import { motion } from 'framer-motion'
 import { ExternalLink, MoreVertical, Edit2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
-// Get favicon URL from a service URL
-function getFaviconUrl(url) {
-  try {
-    const domain = new URL(url).origin
-    // Use Google's favicon service as a reliable fallback, or direct favicon
-    return `${domain}/favicon.ico`
-  } catch {
-    return null
-  }
-}
+// Common favicon paths to try
+const FAVICON_PATHS = [
+  '/favicon.ico',
+  '/favicon.png', 
+  '/favicon.svg',
+  '/apple-touch-icon.png',
+  '/apple-touch-icon-precomposed.png'
+]
 
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit }) {
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
+  const [faviconPathIndex, setFaviconPathIndex] = useState(0)
   const Icon = iconMap[service.icon] || iconMap.default
   
-  const faviconUrl = service.useFavicon !== false ? getFaviconUrl(service.url) : null
+  // Get favicon URL - try multiple paths
+  const getFaviconUrl = () => {
+    if (service.useFavicon === false) return null
+    try {
+      const origin = new URL(service.url).origin
+      if (faviconPathIndex < FAVICON_PATHS.length) {
+        return `${origin}${FAVICON_PATHS[faviconPathIndex]}`
+      }
+      // Final fallback: DuckDuckGo's favicon service
+      const domain = new URL(service.url).hostname
+      return `https://icons.duckduckgo.com/ip3/${domain}.ico`
+    } catch {
+      return null
+    }
+  }
+  
+  const faviconUrl = getFaviconUrl()
   const showFavicon = faviconUrl && !faviconError
+  
+  const handleFaviconError = () => {
+    if (faviconPathIndex < FAVICON_PATHS.length) {
+      // Try next favicon path
+      setFaviconPathIndex(prev => prev + 1)
+    } else {
+      // All paths failed, show icon
+      setFaviconError(true)
+    }
+  }
 
   const statusColors = {
     online: '#22c55e',
@@ -57,7 +82,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
             <img 
               src={faviconUrl}
               alt={`${service.name} icon`}
-              onError={() => setFaviconError(true)}
+              onError={handleFaviconError}
               style={{ 
                 width: viewMode === 'list' ? 20 : 24, 
                 height: viewMode === 'list' ? 20 : 24,
