@@ -132,7 +132,7 @@ export default function Layout() {
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="user-details">
-              <span className="username">{user?.username || 'User'}</span>
+              <span className="username">{user?.displayName || 'User'}</span>
               <span className="role">Administrator</span>
             </div>
           </div>

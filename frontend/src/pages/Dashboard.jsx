@@ -78,7 +78,7 @@ const defaultServices = [
     url: 'https://notes.ghassandarwish.com',
     icon: 'documents',
     color: '#f46800',
-    status: 'warning',
+    status: 'true',
     useFavicon: true
   },
   {

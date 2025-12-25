@@ -51,13 +51,12 @@ export function AuthProvider({ children }) {
 
   // Generate PKCE code verifier and challenge
   const generatePKCE = async () => {
-    // Generate a random code verifier (43-128 characters)
-    const array = new Uint8Array(32)
+    // Generate a random code verifier (43-128 characters, using 64 bytes for safety)
+    const array = new Uint8Array(64)
     crypto.getRandomValues(array)
-    const codeVerifier = btoa(String.fromCharCode(...array))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
+    const codeVerifier = Array.from(array, byte => 
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[byte % 66]
+    ).join('')
 
     // Generate code challenge using SHA-256
     const encoder = new TextEncoder()
@@ -146,6 +145,10 @@ export function AuthProvider({ children }) {
               // Exchange code for token with PKCE code_verifier
               const savedRedirectUri = sessionStorage.getItem('sso_redirect_uri')
               const savedCodeVerifier = sessionStorage.getItem('sso_code_verifier')
+              
+              console.log('Exchanging code for token...')
+              console.log('Code verifier length:', savedCodeVerifier?.length)
+              
               const res = await fetch('/api/auth/sso/callback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -156,12 +159,20 @@ export function AuthProvider({ children }) {
                 })
               })
 
-              if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData.message || 'SSO authentication failed')
+              const responseText = await res.text()
+              let data
+              
+              try {
+                data = responseText ? JSON.parse(responseText) : {}
+              } catch (parseError) {
+                console.error('Failed to parse response:', responseText)
+                throw new Error('Invalid response from server')
               }
 
-              const data = await res.json()
+              if (!res.ok) {
+                throw new Error(data.message || 'SSO authentication failed')
+              }
+
               localStorage.setItem('ghassicloud-token', data.token)
               setUser(data.user)
               

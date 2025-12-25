@@ -25,6 +25,12 @@ router.post('/sso/callback', async (req, res) => {
   try {
     const { code, redirectUri, codeVerifier } = req.body
 
+    console.log('SSO callback received:', { 
+      hasCode: !!code, 
+      redirectUri, 
+      codeVerifierLength: codeVerifier?.length 
+    })
+
     if (!code) {
       return res.status(400).json({ message: 'Authorization code required' })
     }
@@ -42,6 +48,8 @@ router.post('/sso/callback', async (req, res) => {
       code_verifier: codeVerifier
     })
 
+    console.log('Requesting token from:', `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`)
+
     const tokenResponse = await fetch(
       `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
       {
@@ -51,13 +59,21 @@ router.post('/sso/callback', async (req, res) => {
       }
     )
 
+    const tokenResponseText = await tokenResponse.text()
+    console.log('Token response status:', tokenResponse.status)
+    
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text()
-      console.error('Token exchange failed:', errorData)
-      return res.status(401).json({ message: 'Failed to exchange authorization code' })
+      console.error('Token exchange failed:', tokenResponseText)
+      return res.status(401).json({ message: 'Failed to exchange authorization code', details: tokenResponseText })
     }
 
-    const tokens = await tokenResponse.json()
+    let tokens
+    try {
+      tokens = JSON.parse(tokenResponseText)
+    } catch (e) {
+      console.error('Failed to parse token response:', tokenResponseText)
+      return res.status(500).json({ message: 'Invalid token response from auth server' })
+    }
 
     // Get user info from Keycloak
     const userInfoResponse = await fetch(
