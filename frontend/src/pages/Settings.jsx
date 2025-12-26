@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, Lock, Palette, Bell, Shield, Database, 
-  Save, Moon, Sun, Monitor, ChevronRight, Check
+  Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -25,6 +25,36 @@ export default function Settings() {
   const { currentAccent, setAccent } = useAccent()
   const [activeSection, setActiveSection] = useState('profile')
   const [saving, setSaving] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  const handleResetServices = async () => {
+    setResetting(true)
+    try {
+      let token = localStorage.getItem('ghassicloud-token')
+      if (token && !token.startsWith('Bearer ')) {
+        token = `Bearer ${token}`
+      }
+      const response = await fetch('/api/services/reset/all', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token
+        }
+      })
+      if (response.ok) {
+        setShowResetConfirm(false)
+        alert('All services have been reset successfully!')
+      } else {
+        const data = await response.json()
+        alert(data.message || 'Failed to reset services')
+      }
+    } catch (err) {
+      console.error('Reset services error:', err)
+      alert('Failed to reset services')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -268,8 +298,43 @@ export default function Settings() {
                     <h4>Reset All Services</h4>
                     <p>Remove all service configurations</p>
                   </div>
-                  <button className="btn-danger">Reset</button>
+                  <button 
+                    className="btn-danger" 
+                    onClick={() => setShowResetConfirm(true)}
+                  >
+                    Reset
+                  </button>
                 </div>
+
+                {showResetConfirm && (
+                  <motion.div 
+                    className="reset-confirm-modal"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <div className="reset-confirm-content">
+                      <AlertTriangle size={48} className="warning-icon" />
+                      <h3>Are you sure?</h3>
+                      <p>This will permanently delete all your services. This action cannot be undone.</p>
+                      <div className="reset-confirm-actions">
+                        <button 
+                          className="btn-secondary" 
+                          onClick={() => setShowResetConfirm(false)}
+                          disabled={resetting}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          className="btn-danger" 
+                          onClick={handleResetServices}
+                          disabled={resetting}
+                        >
+                          {resetting ? 'Resetting...' : 'Yes, Reset All'}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
                 <div className="danger-action">
                   <div>
                     <h4>Delete Account</h4>

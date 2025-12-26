@@ -1,6 +1,8 @@
+
 import { Router } from 'express'
 import { getDb } from '../db/index.js'
 import { v4 as uuidv4 } from 'uuid'
+import { authenticateToken } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -189,6 +191,18 @@ router.put('/order/bulk', (req, res) => {
     res.json({ message: 'Order updated successfully' })
   } catch (err) {
     console.error('Bulk update error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Reset all services (protected)
+router.delete('/reset/all', authenticateToken, (req, res) => {
+  try {
+    const db = getDb()
+    db.prepare('DELETE FROM services').run()
+    res.json({ message: 'All services have been reset' })
+  } catch (err) {
+    console.error('Reset services error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })

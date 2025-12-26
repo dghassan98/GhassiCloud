@@ -500,3 +500,42 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Reset Confirmation Modal */
+.reset-confirm-modal {
+  margin-top: 1rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--danger);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.reset-confirm-content {
+  text-align: center;
+}
+
+.reset-confirm-content .warning-icon {
+  color: var(--danger);
+  margin-bottom: 1rem;
+}
+
+.reset-confirm-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.reset-confirm-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.reset-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.reset-confirm-actions button {
+  min-width: 120px;
+}
