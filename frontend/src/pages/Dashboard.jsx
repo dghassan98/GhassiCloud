@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, Search, Grid, List, ExternalLink, 
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import ServiceCard from '../components/ServiceCard'
 import StatsCard from '../components/StatsCard'
+import { RefreshCw, Loader2 } from 'lucide-react'
+import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
 import '../styles/dashboard.css'
@@ -27,7 +29,8 @@ const iconMap = {
   home: Home,
   compute: Cpu,
   default: Cloud
-}
+};
+
 
 // Placeholder services - will be loaded from API
 const defaultServices = [
@@ -119,9 +122,8 @@ const defaultServices = [
   // }
 ]
 
-// Placeholder stats
+// Placeholder stats (without Services Online)
 const defaultStats = [
-  { label: 'Services Online', value: '7/8', trend: 'up', change: '+1' },
   { label: 'CPU Usage', value: '34%', trend: 'down', change: '-5%' },
   { label: 'Memory', value: '12.4 GB', trend: 'up', change: '+2.1 GB' },
   { label: 'Storage', value: '2.4 TB', trend: 'neutral', change: '78% used' }
@@ -129,13 +131,109 @@ const defaultStats = [
 
 export default function Dashboard() {
   const [services, setServices] = useState([])
+  const servicesRef = useRef([])
+  const setServicesAndRef = (value) => {
+    setServices(prev => {
+      const next = typeof value === 'function' ? value(prev) : value
+      servicesRef.current = next
+      return next
+    })
+  }
   const [stats, setStats] = useState(defaultStats)
+  const [servicesOnline, setServicesOnline] = useState({ value: '', trend: 'neutral', change: '' })
+  const [servicesOnlineLoading, setServicesOnlineLoading] = useState(false)
+  const [servicesStatus, setServicesStatus] = useState({ total: 0, online: 0, offline: 0 })
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState('grid')
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingService, setEditingService] = useState(null)
   const [loading, setLoading] = useState(true)
+  const token = localStorage.getItem('ghassicloud-token')
+  // Fetch real-time services online status
+  // Real-time Services Online with manual refresh
+  const fetchServicesOnline = async () => {
+    setServicesOnlineLoading(true);
+    try {
+      const payloadServices = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : defaultServices
+      console.debug('[DEBUG] fetchServicesOnline payloadServices count:', payloadServices.length, payloadServices.map(p => p.id))
+      // send minimal fields
+      const toCheck = payloadServices.map(s => ({ id: s.id, name: s.name, url: s.url }))
+      const res = await fetch('/api/services/status/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services: toCheck })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        console.debug('[DEBUG] fetchServicesOnline result count:', data.services.length, data.services.map(s => ({ id: s.id, online: s.online })))
+        const total = data.services.length;
+        const online = data.services.filter(s => s.online).length;
+        const offline = total - online;
+        setServicesOnline({ value: `${online}/${total}`, trend: 'neutral', change: '' });
+        setServicesStatus({ total, online, offline });
+        // Merge returned online status into the services list so each card updates
+        try {
+          const current = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : payloadServices
+          console.debug('[DEBUG] fetchServicesOnline current before merge:', current.length, current.map(s => s.id))
+          const merged = current.map(s => {
+            const found = data.services.find(ds => ds.id === s.id)
+            if (found) {
+              return { ...s, status: found.online ? 'online' : 'offline' }
+            }
+            return s
+          })
+          console.debug('[DEBUG] fetchServicesOnline merged:', merged.length, merged.map(s => ({ id: s.id, status: s.status })))
+          // only update if merge produced a list (defensive)
+          if (Array.isArray(merged) && merged.length > 0) {
+            setServicesAndRef(merged)
+          } else {
+            console.warn('Status check returned no merge results, keeping existing services')
+          }
+        } catch (e) {
+          // if merge fails, ignore — indicator will fall back to stored status
+          console.error('Merge services status error', e)
+        }
+      } else {
+        setServicesOnline({ value: 'N/A', trend: 'neutral', change: '' });
+        setServicesStatus({ total: 0, online: 0, offline: 0 });
+      }
+    } catch (err) {
+      console.error('fetchServicesOnline error', err)
+      setServicesOnline({ value: 'N/A', trend: 'neutral', change: '' });
+    } finally {
+      setServicesOnlineLoading(false);
+    }
+  };
+
+  const checkSingleService = async (service) => {
+    try {
+      // send single service to check endpoint
+      const res = await fetch('/api/services/status/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services: [{ id: service.id, name: service.name, url: service.url }] })
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      const result = Array.isArray(data.services) && data.services[0]
+      if (result) {
+        setServicesAndRef(prev => prev.map(s => s.id === result.id ? { ...s, status: result.online ? 'online' : 'offline' } : s))
+        // refresh overall counts
+        fetchServicesOnline()
+      }
+    } catch (err) {
+      console.error('checkSingleService error', err)
+    }
+  }
+
+  useEffect(() => {
+    // start checking on mount and then every interval; avoid depending on `services` to prevent loops
+    fetchServicesOnline()
+    const interval = setInterval(fetchServicesOnline, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line
+  }, [])
 
   useEffect(() => {
     fetchServices()
@@ -149,21 +247,34 @@ export default function Dashboard() {
       })
       if (res.ok) {
         const data = await res.json()
-        setServices(data.length > 0 ? data : defaultServices)
+        console.debug('[DEBUG] fetchServices fetched:', data.length, data.map(s => s.id))
+        // expose for quick console inspection during debugging
+        window.__FETCHED_SERVICES = data
+        // If backend returned very few services (e.g. only demo), merge with default placeholders
+        let finalList = data
+        if (Array.isArray(data) && data.length > 0 && data.length < defaultServices.length) {
+          const existingIds = new Set(data.map(s => s.id))
+          const missingDefaults = defaultServices.filter(d => !existingIds.has(d.id))
+          finalList = [...data, ...missingDefaults]
+          console.debug('[DEBUG] fetchServices merged with defaults:', finalList.map(s => s.id))
+        }
+        setServicesAndRef(finalList.length > 0 ? finalList : defaultServices)
+        // trigger an immediate status refresh now that we have the canonical list
+        fetchServicesOnline()
       } else {
-        setServices(defaultServices)
+        setServicesAndRef(defaultServices)
       }
     } catch (err) {
       console.error('Failed to fetch services:', err)
-      setServices(defaultServices)
+      setServicesAndRef(defaultServices)
     } finally {
       setLoading(false)
     }
   }
 
   const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (service.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (service.description || '').toLowerCase().includes((searchQuery || '').toLowerCase())
   )
 
   const handleAddService = async (newService) => {
@@ -179,7 +290,9 @@ export default function Dashboard() {
       })
       if (res.ok) {
         const service = await res.json()
-        setServices([...services, service])
+        setServicesAndRef(prev => [...prev, service])
+        // refresh services-online after adding
+        try { fetchServicesOnline() } catch (e) { console.debug('post-add refresh failed', e) }
       }
     } catch (err) {
       console.error('Failed to add service:', err)
@@ -194,7 +307,9 @@ export default function Dashboard() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
-      setServices(services.filter(s => s.id !== id))
+      setServicesAndRef(prev => prev.filter(s => s.id !== id))
+      // refresh services-online after delete
+      try { fetchServicesOnline() } catch (e) { console.debug('post-delete refresh failed', e) }
     } catch (err) {
       console.error('Failed to delete service:', err)
     }
@@ -228,14 +343,14 @@ export default function Dashboard() {
       })
       if (res.ok) {
         const updatedService = await res.json()
-        setServices(prev => sortServices(prev.map(s => s.id === id ? updatedService : s)))
+        setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? updatedService : s)))
       } else {
         // API failed, update local state anyway (for default services)
-        setServices(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
+        setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
       }
     } catch (err) {
       console.error('Failed to pin service:', err)
-      setServices(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
+      setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
     }
   }
 
@@ -252,7 +367,9 @@ export default function Dashboard() {
       })
       if (res.ok) {
         const service = await res.json()
-        setServices(services.map(s => s.id === service.id ? service : s))
+        setServicesAndRef(prev => prev.map(s => s.id === service.id ? service : s))
+        // refresh services-online after update
+        try { fetchServicesOnline() } catch (e) { console.debug('post-update refresh failed', e) }
       }
     } catch (err) {
       console.error('Failed to update service:', err)
@@ -261,11 +378,10 @@ export default function Dashboard() {
     setEditingService(null)
   }
 
-  const getGreeting = () => {
+  function getGreeting() {
     const hour = new Date().getHours()
     const locale = navigator.language || 'en'
     const lang = locale.split('-')[0]
-    
     const greetings = {
       en: ['Good morning', 'Good afternoon', 'Good evening', 'Good night'],
       es: ['Buenos días', 'Buenas tardes', 'Buenas tardes', 'Buenas noches'],
@@ -282,14 +398,24 @@ export default function Dashboard() {
       hi: ['सुप्रभात', 'नमस्ते', 'शुभ संध्या', 'शुभ रात्रि'],
       tr: ['Günaydın', 'İyi günler', 'İyi akşamlar', 'İyi geceler']
     }
-    
     const msgs = greetings[lang] || greetings.en
-    
     if (hour < 12) return msgs[0]
     if (hour < 18) return msgs[1]
     if (hour < 22) return msgs[2]
     return msgs[3]
   }
+
+  const greeting = getGreeting();
+
+  // compute status class for styling the existing top-right pill
+  const offlineCount = servicesStatus.offline || 0;
+  const statusClass = servicesStatus.total === 0
+    ? 'status-neutral'
+    : offlineCount === 0
+      ? 'status-green'
+      : offlineCount >= 3
+        ? 'status-red'
+        : 'status-orange';
 
   return (
     <div className="dashboard">
@@ -311,10 +437,29 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="hero-content">
-          <h1>{getGreeting()}</h1>
+          <h1>{greeting}</h1>
           <p>Welcome to GhassiCloud. Embrace Digital Sovereignty.</p>
         </div>
         <div className="hero-stats">
+          <motion.div className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="stats-content">
+              <span className="stats-label">Services Online</span>
+              <div className="ssc-row">
+                <span className="stats-value">{servicesOnlineLoading ? <Loader2 className="ssc-spin" size={20} /> : servicesOnline.value}</span>
+                <button
+                  className="ssc-refresh"
+                  onClick={fetchServicesOnline}
+                  disabled={servicesOnlineLoading}
+                  title="Check Now"
+                >
+                  <RefreshCw size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="stats-trend" style={{ color: '#64748b' }}>
+              {/* No trend for online count */}
+            </div>
+          </motion.div>
           {stats.map((stat, i) => (
             <StatsCard key={i} {...stat} index={i} />
           ))}
@@ -327,13 +472,27 @@ export default function Dashboard() {
           <h2>Your Services</h2>
           <div className="services-controls">
             <div className="search-box">
-              <Search size={18} />
-              <input
-                type="text"
-                placeholder="Search services..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <div className="search-input-wrap">
+                <Search className="search-icon" size={18} />
+                <input
+                  id="search-input"
+                  type="text"
+                  aria-label="Search services"
+                  placeholder="Search services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear"
+                    aria-label="Clear search"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
             <div className="view-toggle">
               <button
@@ -382,6 +541,7 @@ export default function Dashboard() {
                   onDelete={() => handleDeleteService(service.id)}
                   onEdit={handleEditService}
                   onPin={handlePinService}
+                  onCheck={checkSingleService}
                 />
               ))}
             </AnimatePresence>
@@ -430,6 +590,7 @@ export default function Dashboard() {
           />
         )}
       </AnimatePresence>
+
     </div>
-  )
+  );
 }

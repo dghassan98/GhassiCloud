@@ -3,8 +3,53 @@ import { Router } from 'express'
 import { getDb } from '../db/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { authenticateToken } from '../middleware/auth.js'
+import fetch from 'node-fetch'
 
 const router = Router()
+
+// Check online status of all services (ping)
+router.get('/status/ping', async (req, res) => {
+  try {
+    const db = getDb()
+    const services = db.prepare('SELECT id, name, url, description, icon, color FROM services').all()
+    const results = await Promise.all(services.map(async (s) => {
+      let online = false
+      try {
+        const response = await fetch(s.url, { method: 'GET', timeout: 4000 })
+        online = response.ok
+      } catch (e) {
+        online = false
+      }
+      return { id: s.id, name: s.name, url: s.url, description: s.description, icon: s.icon, color: s.color, online }
+    }))
+    res.json({ status: 'ok', checkedAt: new Date().toISOString(), services: results })
+  } catch (err) {
+    console.error('Ping services error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Check online status for provided services (body: { services: [{id,name,url,...}] })
+router.post('/status/check', async (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.services) ? req.body.services : []
+    // if nothing provided, return empty
+    const results = await Promise.all(items.map(async (s) => {
+      let online = false
+      try {
+        const response = await fetch(s.url, { method: 'GET', timeout: 4000 })
+        online = response.ok
+      } catch (e) {
+        online = false
+      }
+      return { id: s.id, name: s.name, url: s.url, online }
+    }))
+    res.json({ status: 'ok', checkedAt: new Date().toISOString(), services: results })
+  } catch (err) {
+    console.error('Check services error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
 
 // Get all services
 router.get('/', (req, res) => {

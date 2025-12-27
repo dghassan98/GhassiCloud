@@ -27,7 +27,7 @@ async function startServer() {
 
   // Routes
   app.use('/api/auth', authRoutes)
-  app.use('/api/services', authenticateToken, servicesRoutes)
+  app.use('/api/services', servicesRoutes)
 
   // Health check
   app.get('/api/health', (req, res) => {

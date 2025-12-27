@@ -1,3 +1,94 @@
+/* Loader spinner for Services Online stat */
+.ssc-spin {
+  animation: ssc-spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes ssc-spin {
+  100% { transform: rotate(360deg); }
+}
+.ssc-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* ServicesStatusCard styles */
+.services-status-card {
+  background: var(--card-bg, #181c2a);
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px 0 #0002;
+  padding: 1.2rem 1.4rem 1rem 1.4rem;
+  margin-bottom: 1rem;
+  min-width: 220px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  position: relative;
+}
+.ssc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+.ssc-refresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.ssc-refresh:active, .ssc-refresh:focus {
+  background: #222a;
+}
+.ssc-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 1.5rem;
+}
+.ssc-status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.98rem;
+  padding: 0.1rem 0;
+}
+.ssc-dot {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  margin-left: auto;
+  margin-right: 0.2em;
+  background: #64748b;
+  box-shadow: 0 0 4px #0002;
+  transition: background 0.3s;
+}
+.ssc-dot.online {
+  background: #22c55e;
+}
+.ssc-dot.offline {
+  background: #ef4444;
+}
+.ssc-name {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ssc-error {
+  color: #ef4444;
+  font-size: 0.95em;
+  margin-top: 0.2em;
+}
+.ssc-footer {
+  font-size: 0.85em;
+  color: #64748b;
+  margin-top: 0.2em;
+  text-align: right;
+}
 /* ===== Dashboard ===== */
 .dashboard {
   padding: 2rem;
@@ -102,6 +193,50 @@
   font-weight: 700;
 }
 
+/* Services online small row */
+.services-online .ssc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ssc-refresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 6px;
+}
+.ssc-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* top-right status indicator for services-online */
+.services-online { position: relative; }
+
+/* Small circular status indicator (restored) */
+.services-online::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1; /* neutral */
+  box-shadow: 0 0 6px rgba(0,0,0,0.08);
+  border: 2px solid rgba(255,255,255,0.85);
+  z-index: 50;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 160ms ease;
+}
+.services-online.status-green::after { background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.25); }
+.services-online.status-orange::after { background: #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.18); }
+.services-online.status-red::after { background: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.18); }
+.services-online.status-neutral::after { background: #cbd5e1; box-shadow: 0 0 6px rgba(0,0,0,0.06); }
+
+/* Hide any underlying card action buttons so the dot sits clean */
+.services-online .menu-button, .services-online .pin-button { display: none !important; }
+
+/* Remove the empty stats-trend pill for the Services Online card */
+.services-online .stats-trend { display: none !important; }
+
 .stats-trend {
   display: flex;
   align-items: center;
@@ -142,35 +277,70 @@
   flex-wrap: wrap;
 }
 
-/* Search Box */
 .search-box {
-  position: relative;
   display: flex;
   align-items: center;
-  padding-left: 20px;
 }
 
-.search-box svg {
+.search-box .search-input-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.search-box .search-input-wrap .search-icon {
   position: absolute;
-  left: 20px;
+  left: 18px;
   top: 50%;
-  width: 18px;
-  height: 18px;
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .search-box input {
-  padding: 1rem 2.25rem;
-  padding-left: 20px;
+  padding: 0.6rem 3.2rem 0.6rem 92px; /* ensure text starts well to the right of the icon */
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 0.95rem;
   color: var(--text-primary);
-  transition: width 0.2s;
+  min-width: 220px;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.08);
+  border-color: var(--accent);
+}
+
+.search-box .search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  z-index: 6; /* keep clear button above input text */
+}
+
+.search-box .search-clear:hover { color: var(--text-primary); background: rgba(99,102,241,0.06); }
+
+/* Responsive: shrink input on small viewports */
+@media (max-width: 640px) {
+  .search-box input { min-width: 120px; padding-left: 72px; padding-right: 56px; }
+}
+
+/* Stronger rule to prevent overrides from build output */
+.search-box .search-input-wrap input {
+  padding-left: 52px !important;
+  padding-right: 28px !important;
 }
 
 .search-box input::placeholder {
@@ -335,6 +505,12 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
+/* when used inline to the left of the title, give a little breathing room from the favicon */
+.status-indicator.left {
+  margin-left: 6px;
+  margin-right: 10px; /* keep the existing right gap */
+}
+
 @keyframes pulse {
 
   0%,
@@ -438,33 +614,182 @@
 
 /* List View Adjustments */
 .service-card.list {
-  display: flex;
+  display: grid;
+  /* icon | main | actions | external link (give the link a minimum width so it doesn't get cut off) */
+  grid-template-columns: 56px 1fr auto minmax(160px, 260px);
+  gap: 1rem;
   align-items: center;
   padding: 1rem 1.25rem;
 }
 
+/* small header area removed for list mode, children align to grid */
 .service-card.list .card-header {
-  margin-bottom: 0;
-  margin-right: 1rem;
+  margin: 0;
+  grid-column: 1 / -1;
 }
 
 .service-card.list .service-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.service-card.list .card-content {
-  flex: 1;
+/* main content sits in column 2 */
+.service-card.list .card-main {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
+
+.service-card.list .card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* typography parity with grid mode */
+.service-card.list .card-title-row h3,
+.service-card.list .card-main h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.service-card.list .muted-desc {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.9rem; /* match grid mode paragraph size */
+  align-self: flex-start;
+  /* indent the description so it lines up under the service name (after the status dot + pin)
+     reduced from 48px to 32px to match the stacked indicator+pin width */
+  margin-left: 32px;
+}
+
+/* stack the status indicator and small pin under each other in list mode */
+.service-card.list .status-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 28px; /* reserve a small column for the vertical stack */
+  margin-right: 6px;
+}
+
+/* make sure the small pin has no extra right margin when stacked */
+.service-card.list .pin-button.small {
+  margin-right: 0;
+  padding: 0.15rem;
+}
+
+/* slight tweak for the indicator when inside the stacked layout */
+.service-card.list .status-indicator.left {
+  margin-left: 0; /* avoid shifting inside the small column */
+  margin-right: 0;
+  margin-bottom: 0;
+}
+
+/* actions sit in column 3, keep them compact */
+.service-card.list .card-actions.list-actions {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-self: end;
+}
+
+.service-card.list .card-actions.list-actions .check-text {
+  padding: 0.32rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+/* external link sits in column 4 */
+.service-link-right {
+  grid-column: 4;
+  justify-self: end; /* align to the card edge */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding-right: 8px; /* provide breathing room from the card edge */
+}
+
+.service-link-right .service-url-right {
+  max-width: 220px;
+  font-size: 0.9rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 
 .service-card.list .card-content h3 {
   font-size: 1rem;
 }
 
+
 .service-card.list .card-footer {
   margin: 0;
   padding: 0;
   border: none;
+}
+
+/* List-mode actions: align actions to the right, show Check Health icon and prevent it from being cut off */
+.service-card.list .card-actions.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto; /* push actions to the far right of the list row */
+}
+
+.service-card.list .card-actions.list-actions .check-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--gradient-1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius-md);
+  transition: all 150ms ease;
+  box-shadow: 0 6px 20px var(--accent-glow);
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+.service-card.list .card-actions.list-actions .check-text svg {
+  display: block;
+  color: white; /* ensure icon is visible */
+  width: 16px;
+  height: 16px;
+}
+
+/* External link placed to the right of the actions and ellipsized if too long */
+.service-link-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-left: 8px;
+}
+.service-link-right .service-url-right {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
 }
 
 /* Loading & Empty States */

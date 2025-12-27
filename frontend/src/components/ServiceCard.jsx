@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { ExternalLink, MoreVertical, Edit2, Trash2, Pin } from 'lucide-react'
-import { useState } from 'react'
+import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 
 // Common favicon paths to try
 const FAVICON_PATHS = [
@@ -11,10 +11,11 @@ const FAVICON_PATHS = [
   '/apple-touch-icon-precomposed.png'
 ]
 
-export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin }) {
+export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [faviconPathIndex, setFaviconPathIndex] = useState(0)
+  const rootRef = useRef(null)
   const Icon = iconMap[service.icon] || iconMap.default
   
   // Get favicon URL - try multiple paths
@@ -59,108 +60,259 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     window.open(service.url, '_blank', 'noopener,noreferrer')
   }
 
+  // Close the menu when clicking outside the card
+  useEffect(() => {
+    const onDocClick = (ev) => {
+      if (!showMenu) return
+      if (rootRef.current && !rootRef.current.contains(ev.target)) {
+        setShowMenu(false)
+      }
+    }
+    const onEsc = (ev) => {
+      if (ev.key === 'Escape') setShowMenu(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('touchstart', onDocClick)
+    document.addEventListener('keydown', onEsc)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('touchstart', onDocClick)
+      document.removeEventListener('keydown', onEsc)
+    }
+  }, [showMenu])
+
   return (
     <motion.div
+      ref={rootRef}
       className={`service-card ${viewMode}${service.pinned ? ' pinned' : ''}`}
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ delay: index * 0.05 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={handleClick}
       style={{ '--accent-color': service.color }}
     >
       <div className="card-glow" style={{ backgroundColor: service.color }} />
       
-      <div className="card-header">
-        <div 
-          className="service-icon"
-          style={{ backgroundColor: `${service.color}20`, color: service.color }}
-        >
-          {showFavicon ? (
-            <img 
-              src={faviconUrl}
-              alt={`${service.name} icon`}
-              onError={handleFaviconError}
-              style={{ 
-                width: viewMode === 'list' ? 20 : 24, 
-                height: viewMode === 'list' ? 20 : 24,
-                objectFit: 'contain'
-              }}
-            />
-          ) : (
-            <Icon size={viewMode === 'list' ? 20 : 24} />
-          )}
-        </div>
-        
-        <div className="card-actions">
-          <button
-            type="button"
-            className={`pin-button${service.pinned ? ' active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              onPin(service.id, !service.pinned)
-            }}
-            title={service.pinned ? 'Unpin' : 'Pin to top'}
-          >
-            <Pin size={14} />
-          </button>
+      {viewMode === 'list' ? (
+        <div className="card-header list-mode">
           <div 
-            className="status-indicator"
-            style={{ backgroundColor: statusColors[service.status] }}
-            title={service.status}
-          />
-          <button 
-            type="button"
-            className="menu-button"
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowMenu(!showMenu)
-            }}
+            className="service-icon"
+            style={{ backgroundColor: `${service.color}20`, color: service.color }}
           >
-            <MoreVertical size={16} />
-          </button>
-          
-          {showMenu && (
-            <motion.div 
-              className="card-menu"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-            >
-              <button onClick={(e) => { 
-                e.stopPropagation()
-                setShowMenu(false)
-                onEdit(service)
-              }}>
-                <Edit2 size={14} />
-                Edit
-              </button>
-              <button 
-                className="danger"
-                onClick={(e) => { 
+            {showFavicon ? (
+              <img 
+                src={faviconUrl}
+                alt={`${service.name} icon`}
+                onError={handleFaviconError}
+                style={{ width: 20, height: 20, objectFit: 'contain' }}
+              />
+            ) : (
+              <Icon size={20} />
+            )}
+          </div>
+
+          <div className="card-main">
+            <div className="card-title-row">
+              <div className="status-pin">
+                <div className="status-indicator left" style={{ backgroundColor: statusColors[service.status] }} title={service.status} />
+                <button
+                  type="button"
+                  className={`pin-button small${service.pinned ? ' active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onPin(service.id, !service.pinned)
+                  }}
+                  title={service.pinned ? 'Unpin' : 'Pin to top'}
+                >
+                  <Pin size={12} />
+                </button>
+              </div>
+              <h3>{service.name}</h3>
+            </div>
+            <div className="muted-desc">{service.description}</div>
+          </div>
+
+          <div className="card-actions list-actions">
+
+            {onCheck && (
+              <button
+                type="button"
+                className="check-text"
+                onClick={(e) => {
                   e.stopPropagation()
-                  setShowMenu(false)
+                  e.preventDefault()
+                  onCheck(service)
+                }}
+                title="Check Health"
+                aria-label="Check Health"
+              >
+                <RefreshCw size={16} />
+                <span style={{ marginLeft: 8 }}>Check Health</span>
+              </button>
+            )}
+
+            {onEdit && (
+              <button
+                type="button"
+                className="check-text list-action"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  onEdit(service)
+                }}
+                title="Edit"
+              >
+                <Edit2 size={14} />
+                <span style={{ marginLeft: 8 }}>Edit</span>
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                type="button"
+                className="check-text list-action"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
                   onDelete()
                 }}
+                title="Delete"
               >
                 <Trash2 size={14} />
-                Delete
+                <span style={{ marginLeft: 8 }}>Delete</span>
               </button>
-            </motion.div>
-          )}
-        </div>
-      </div>
+            )}
 
-      <div className="card-content">
-        <h3>{service.name}</h3>
-        <p>{service.description}</p>
-      </div>
+            {service.url && (
+              <a
+                className="service-link-right"
+                href={service.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Open"
+              >
+                <span className="service-url-right">{new URL(service.url).hostname}</span>
+                <ExternalLink size={14} />
+              </a>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="card-header">
+            <div 
+              className="service-icon"
+              style={{ backgroundColor: `${service.color}20`, color: service.color }}
+            >
+              {showFavicon ? (
+                <img 
+                  src={faviconUrl}
+                  alt={`${service.name} icon`}
+                  onError={handleFaviconError}
+                  style={{ width: 24, height: 24, objectFit: 'contain' }}
+                />
+              ) : (
+                <Icon size={24} />
+              )}
+            </div>
+
+            <div className="card-actions">
+              <button
+                type="button"
+                className={`pin-button${service.pinned ? ' active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  onPin(service.id, !service.pinned)
+                }}
+                title={service.pinned ? 'Unpin' : 'Pin to top'}
+              >
+                <Pin size={14} />
+              </button>
+              <div 
+                className="status-indicator"
+                style={{ backgroundColor: statusColors[service.status] }}
+                title={service.status}
+              />
+              <button 
+                type="button"
+                className="menu-button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowMenu(!showMenu)
+                }}
+              >
+                <MoreVertical size={16} />
+              </button>
+
+              {showMenu && (
+                <motion.div 
+                  className="card-menu"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  {onCheck && (
+                    <button onClick={(e) => { 
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      onCheck(service)
+                    }}>
+                      <RefreshCw size={14} />
+                      Check
+                    </button>
+                  )}
+                  <button onClick={(e) => { 
+                    e.stopPropagation()
+                    setShowMenu(false)
+                    onEdit(service)
+                  }}>
+                    <Edit2 size={14} />
+                    Edit
+                  </button>
+                  <button 
+                    className="danger"
+                    onClick={(e) => { 
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      onDelete()
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          <div className="card-content">
+            <h3>{service.name}</h3>
+            <p>{service.description}</p>
+          </div>
+        </>
+      )}
 
       <div className="card-footer">
-        <span className="service-url">{new URL(service.url).hostname}</span>
-        <ExternalLink size={14} />
+        <div className="footer-left">
+          {viewMode !== 'list' && (
+            <a
+              className="service-link"
+              href={service.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title="Open"
+            >
+              <span className="service-url">{new URL(service.url).hostname}</span>
+              <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
+        <div className="footer-right" />
       </div>
     </motion.div>
   )
