@@ -1,0 +1,153 @@
+/* Now Playing card — uses server accent via --np-accent (fallback provided) */
+.nowplaying-card{
+  --np-accent: #4fb0ff; /* fallback accent (not Spotify green) */
+  display:flex;
+  gap:16px;
+  align-items:center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px) saturate(120%);
+  padding:12px;
+  border-radius:12px;
+  box-shadow: 0 6px 18px rgba(10,12,20,0.45);
+  max-width:520px;
+  width:100%;
+}
+
+.np-art-wrap{
+  width:86px;
+  height:86px;
+  flex: 0 0 86px;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.45);
+  background: linear-gradient(135deg, var(--np-accent), rgba(10,10,10,0.08));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.np-art{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.np-art-fallback{
+  font-size:28px;
+  filter: drop-shadow(0 4px 8px rgba(3,7,18,0.5));
+}
+
+.np-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.np-meta{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.np-title{
+  font-weight:700;
+  font-size:15px;
+  color:#e6eef8;
+  line-height:1.15;
+  display:-webkit-box;
+  -webkit-line-clamp:2; /* show up to 2 lines and truncate */
+  line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.np-artist-album{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  color:#9fb0c9;
+  font-size:13px;
+  flex-wrap:wrap;
+}
+
+.np-artist{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.np-album{opacity:0.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+.np-controls{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+}
+
+.btn-icon{
+  border: none;
+  background: transparent;
+  color:#cfe7ff;
+  padding:6px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.btn-icon:hover{background: rgba(255,255,255,0.02)}
+
+.btn-play{
+  border: none;
+  background: linear-gradient(90deg, var(--np-accent), #7ad3ff);
+  color: rgba(0,0,0,0.75);
+  padding:10px 14px;
+  border-radius:999px;
+  box-shadow: 0 6px 18px rgba(14,90,120,0.12);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.btn-play:hover{transform:translateY(-1px)}
+
+/* disabled state */
+.btn-icon[disabled], .btn-play[disabled]{opacity:0.5;cursor:default}
+
+/* like button */
+.btn-like.liked{color:var(--np-accent);transform:scale(1.05)}
+
+.np-volume{margin-left:8px;color:#a8c6e8}
+
+.np-progress-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.np-time{font-size:12px;color:#9fb0c9;width:36px;text-align:center}
+.np-time-right{text-align:center}
+
+.np-progress{flex:1;height:8px;background:rgba(255,255,255,0.03);border-radius:999px;position:relative;overflow:hidden}
+
+.np-progress-bar{height:100%;background:linear-gradient(90deg,var(--np-accent), #79f2b7);border-radius:999px;box-shadow: inset 0 -6px 16px rgba(2,6,6,0.14)}
+
+.np-info-row{margin-top:8px;display:flex;gap:12px;align-items:center}
+.np-info{font-size:12px;color:#a8c6e8;background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;font-weight:600}
+.np-player{font-size:13px;color:#cfe7ff;opacity:0.95;padding:4px 8px;border-radius:8px;background:transparent;font-weight:600}
+.np-info-placeholder{font-size:12px;color:#7f9bb3}
+
+/* playing indicator (3 bars) */
+.np-playing-indicator{display:flex;gap:4px;align-items:end;width:28px}
+.np-playing-indicator .bar{width:4px;height:8px;background:var(--np-accent);border-radius:2px;transform-origin:bottom;opacity:0.85}
+.np-playing-indicator .b1{animation:np-wave 900ms infinite ease-in-out}
+.np-playing-indicator .b2{animation:np-wave 900ms infinite ease-in-out;animation-delay:120ms}
+.np-playing-indicator .b3{animation:np-wave 900ms infinite ease-in-out;animation-delay:240ms}
+.np-playing-indicator:not(.active) .bar{animation:none;opacity:0.5;transform:scaleY(0.6)}
+
+@keyframes np-wave{0%{transform:scaleY(0.45)}50%{transform:scaleY(1.15)}100%{transform:scaleY(0.6)}}
+
+/* Small responsive tweaks */
+@media (max-width:640px){
+  .nowplaying-card{gap:12px;padding:10px}
+  .np-art-wrap{width:66px;height:66px}
+}

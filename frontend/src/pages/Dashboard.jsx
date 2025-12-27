@@ -12,6 +12,7 @@ import { RefreshCw, Loader2 } from 'lucide-react'
 import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
+import NowPlayingCard from '../components/NowPlayingCard'
 import '../styles/dashboard.css'
 
 // Icon mapping for services
@@ -417,6 +418,8 @@ export default function Dashboard() {
         ? 'status-red'
         : 'status-orange';
 
+  const musicAccent = (services.find(s => s.url && s.url.includes('music.ghassandarwish.com')) || services.find(s => s.icon === 'music'))?.color
+
   return (
     <div className="dashboard">
       <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget">
@@ -441,6 +444,12 @@ export default function Dashboard() {
           <p>Welcome to GhassiCloud. Embrace Digital Sovereignty.</p>
         </div>
         <div className="hero-stats">
+          <div style={{marginBottom:8, width: '100%', display: 'flex', justifyContent:'center'}}>
+            <NowPlayingCard
+              endpoint={"https://music.ghassandarwish.com/rest/getNowPlaying.view?u=root&t=807d88c2a912ca3aed81593b323b6212&s=&v=1.16.&c=app&f=json"}
+              accent={musicAccent}
+            />
+          </div>
           <motion.div className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="stats-content">
               <span className="stats-label">Services Online</span>
