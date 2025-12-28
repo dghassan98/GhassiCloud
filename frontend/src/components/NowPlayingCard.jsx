@@ -73,7 +73,9 @@ export default function NowPlayingCard({ endpoint, accent }) {
   }, [showModal])
 
   // fetch function pulled out so control handlers can trigger a refresh
-  const fetchNowPlaying = async () => {
+  // `force` bypasses the connected check (used after a successful login)
+  const fetchNowPlaying = async (force = false) => {
+    if (!force && !connected) return
     try {
       setLoading(true)
       setLoginError(null)
@@ -106,7 +108,34 @@ export default function NowPlayingCard({ endpoint, accent }) {
     }
   }
 
+  // Check connection on mount; only start polling when connected
   useEffect(() => {
+    let mounted = true
+    const checkConnected = async () => {
+      try {
+        const res = await fetch('/api/navidrome/check')
+        if (res.ok) {
+          setConnected(true)
+        } else {
+          setConnected(false)
+          setLoading(false)
+        }
+      } catch (e) {
+        setConnected(false)
+        setLoading(false)
+      }
+    }
+    checkConnected()
+    return () => { mounted = false }
+  }, [])
+
+  useEffect(() => {
+    if (!connected) {
+      setTrack(null)
+      setNeedsLogin(true)
+      return
+    }
+
     let mounted = true
     fetchNowPlaying()
     // poll every 8 seconds
@@ -115,7 +144,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
       mounted = false
       clearInterval(poll)
     }
-  }, [])
+  }, [connected])
 
   // login handler
   const handleLogin = async (e) => {
@@ -133,8 +162,9 @@ export default function NowPlayingCard({ endpoint, accent }) {
         setLoginError(json?.message || 'Login failed')
         return
       }
-      // success: re-fetch now playing
-      await fetchNowPlaying()
+      // success: mark connected and re-fetch now playing
+      setConnected(true)
+      await fetchNowPlaying(true)
       setShowModal(false)
       setPassword('')
     } catch (err) {
