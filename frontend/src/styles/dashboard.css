@@ -575,7 +575,7 @@
   margin-bottom: 1rem;
 }
 
-..service-icon {
+.service-icon {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
