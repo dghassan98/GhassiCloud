@@ -220,67 +220,28 @@ router.post('/login', async (req, res) => {
 
     const hashed = bcrypt.hashSync(password, 10)
 
-    // Upsert single credential row (keep single creds)
-    const existing = getCred(db)
+    // Overwrite existing credential(s) with the new successful login
+    try {
+      db.prepare('DELETE FROM navidrome_credentials').run()
+    } catch (e) {
+      // ignore
+    }
 
     if (attempt.method === 'direct') {
-      // store encrypted passwordToUse and mark auth_method as direct
       const enc = encryptText(attempt.passwordToUse)
-      const idColumn = columnExists(db, 'id')
-      if (!existing) {
-        if (idColumn) {
-          db.prepare(`INSERT INTO navidrome_credentials (id, username, password_hashed, password_encrypted, password_type, auth_method) VALUES (?, ?, ?, ?, ?, ?)`)
-            .run(crypto.randomUUID(), username, hashed, enc, attempt.passwordType, 'direct')
-        } else {
-          db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, password_encrypted, password_type, auth_method) VALUES (?, ?, ?, ?, ?)`)
-            .run(username, hashed, enc, attempt.passwordType, 'direct')
-        }
-      } else {
-        // Update without relying on id column (single-row table)
-        try {
-          if (columnExists(db, 'password_encrypted')) {
-            db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, password_encrypted = ?, password_type = ?, auth_method = ?, updated_at = CURRENT_TIMESTAMP`).run(username, hashed, enc, attempt.passwordType, 'direct')
-          } else {
-            db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, updated_at = CURRENT_TIMESTAMP`).run(username, hashed)
-          }
-        } catch (e) {
-          // Fallback: try simple update
-          db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, updated_at = CURRENT_TIMESTAMP`).run(username, hashed)
-        }
-      }
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, password_encrypted, password_type, auth_method) VALUES (?, ?, ?, ?, ?)`)
+        .run(username, hashed, enc, attempt.passwordType, 'direct')
+      console.log('✅ Navidrome credentials saved (direct) for', username)
     } else if (attempt.method === 'token-md5') {
-      // store token and salt
       const token = attempt.token
       const salt = attempt.salt
-      if (!existing) {
-        db.prepare(`INSERT INTO navidrome_credentials (id, username, password_hashed, token, salt, auth_method) VALUES (?, ?, ?, ?, ?, ?)`)
-          .run(crypto.randomUUID(), username, hashed, token, salt, 'token-md5')
-      } else {
-        try {
-          db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, token = ?, salt = ?, auth_method = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(username, hashed, token, salt, 'token-md5', existing.id)
-        } catch (e) {
-          db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(username, hashed, existing.id)
-        }
-      }
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, token, salt, auth_method) VALUES (?, ?, ?, ?, ?)`)
+        .run(username, hashed, token, salt, 'token-md5')
+      console.log('✅ Navidrome credentials saved (token-md5) for', username)
     } else {
-      // Token-based login (server-provided token)
-      const idColumn = columnExists(db, 'id')
-      if (!existing) {
-        if (idColumn) {
-          db.prepare(`INSERT INTO navidrome_credentials (id, username, password_hashed, token, auth_method) VALUES (?, ?, ?, ?, ?)`)
-            .run(crypto.randomUUID(), username, hashed, attempt.token, 'token')
-        } else {
-          db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, token, auth_method) VALUES (?, ?, ?, ?)`)
-            .run(username, hashed, attempt.token, 'token')
-        }
-      } else {
-        // update without WHERE
-        try {
-          db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, token = ?, auth_method = ?, updated_at = CURRENT_TIMESTAMP`).run(username, hashed, attempt.token, 'token')
-        } catch (e) {
-          db.prepare(`UPDATE navidrome_credentials SET username = ?, password_hashed = ?, updated_at = CURRENT_TIMESTAMP`).run(username, hashed)
-        }
-      }
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, token, auth_method) VALUES (?, ?, ?, ?)`)
+        .run(username, hashed, attempt.token, 'token')
+      console.log('✅ Navidrome credentials saved (token) for', username)
     }
 
     res.json({ status: 'ok', username, method: attempt.method })

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, Search, Grid, List, ExternalLink, 
@@ -144,6 +145,12 @@ export default function Dashboard() {
   const [servicesOnline, setServicesOnline] = useState({ value: '', trend: 'neutral', change: '' })
   const [servicesOnlineLoading, setServicesOnlineLoading] = useState(false)
   const [servicesStatus, setServicesStatus] = useState({ total: 0, online: 0, offline: 0 })
+  // small history for sparkline (keeps last 12 samples)
+  const [servicesOnlineHistory, setServicesOnlineHistory] = useState([])
+  const [showServicesPopover, setShowServicesPopover] = useState(false)
+  // ref to the services card so we can position the popover outside stacking contexts
+  const servicesCardRef = useRef(null)
+  const [popoverStyle, setPopoverStyle] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState('grid')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -171,8 +178,25 @@ export default function Dashboard() {
         const total = data.services.length;
         const online = data.services.filter(s => s.online).length;
         const offline = total - online;
-        setServicesOnline({ value: `${online}/${total}`, trend: 'neutral', change: '' });
+
+        // compute simple trend based on the most recent history point
+        const prevCount = servicesOnlineHistory.length > 0 ? servicesOnlineHistory[servicesOnlineHistory.length - 1] : null
+        const diff = prevCount === null ? 0 : (online - prevCount)
+        let trend = 'neutral'
+        let changeText = ''
+        if (diff > 0) { trend = 'up'; changeText = `+${diff}` }
+        else if (diff < 0) { trend = 'down'; changeText = `${diff}` }
+
+        setServicesOnline({ value: `${online}/${total}`, trend, change: changeText });
         setServicesStatus({ total, online, offline });
+
+        // push to short history for sparkline (max 12)
+        setServicesOnlineHistory(h => {
+          const next = [...h, online]
+          if (next.length > 12) next.shift()
+          return next
+        })
+
         // Merge returned online status into the services list so each card updates
         try {
           const current = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : payloadServices
@@ -236,9 +260,78 @@ export default function Dashboard() {
     // eslint-disable-next-line
   }, [])
 
+  // Percent + delta component (shows percent and a small delta pill)
+  function PercentDelta({ online = 0, total = 0, trend = 'neutral', change = '' }) {
+    const pct = total ? Math.round((online / total) * 100) : null
+    return (
+      <div className="percent-delta-wrap" title={total ? `${online}/${total} online` : 'No data'}>
+        <div className="percent-number">{pct === null ? '–' : `${pct}%`}</div>
+        <div className={`delta-pill ${trend} ${statusClass}`}>{trend === 'up' ? '▲' : trend === 'down' ? '▼' : '–'} {change}</div>
+      </div>
+    )
+  }
+
+  // compute and set popover position based on the services card bounding box (places popover in fixed layer)
+  function computePopoverStyle() {
+    if (!servicesCardRef.current) return {}
+    const rect = servicesCardRef.current.getBoundingClientRect()
+    // prefer a popover width close to the card width, clamp to reasonable size
+    const popWidth = Math.min(360, Math.max(260, rect.width + 20))
+    const popHeight = 280 // rough estimate used for flipping logic
+
+    // Center the popover horizontally over the card
+    let left = rect.left + window.scrollX + (rect.width - popWidth) / 2
+    const minLeft = 12 + window.scrollX
+    const maxLeft = window.innerWidth - popWidth - 12 + window.scrollX
+    if (left < minLeft) left = minLeft
+    if (left > maxLeft) left = maxLeft
+
+    // Prefer placing below the card; flip above if there's not enough space
+    let top
+    if (rect.bottom + popHeight + 16 > window.innerHeight) {
+      top = rect.top + window.scrollY - popHeight - 8
+      if (top < 12 + window.scrollY) top = 12 + window.scrollY
+    } else {
+      top = rect.bottom + window.scrollY + 8
+    }
+
+    return { position: 'fixed', top: `${Math.round(top)}px`, left: `${Math.round(left)}px`, width: `${popWidth}px`, zIndex: 999999 }
+  }
+
+  function toggleServicesPopover() {
+    if (showServicesPopover) {
+      setShowServicesPopover(false)
+      return
+    }
+    setPopoverStyle(computePopoverStyle())
+    setShowServicesPopover(true)
+  }
+
+  // reposition popover on resize/scroll while it's open
+  useEffect(() => {
+    if (!showServicesPopover) return
+    const update = () => setPopoverStyle(computePopoverStyle())
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, { passive: true })
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', update)
+    }
+  }, [showServicesPopover])
+
   useEffect(() => {
     fetchServices()
   }, [])
+
+  // close services popover when clicking outside
+  useEffect(() => {
+    if (!showServicesPopover) return
+    const onDoc = (e) => {
+      if (!e.target.closest('.stats-card.services-online')) setShowServicesPopover(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [showServicesPopover])
 
   const fetchServices = async () => {
     try {
@@ -449,7 +542,7 @@ export default function Dashboard() {
               accent={musicAccent}
             />
           </div>
-          <motion.div className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div ref={servicesCardRef} className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="stats-content">
               <span className="stats-label">Services Online</span>
               <div className="ssc-row">
@@ -464,8 +557,48 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="stats-trend" style={{ color: '#64748b' }}>
-              {/* No trend for online count */}
+            <div className="stats-trend" style={{ color: '#64748b', position: 'relative' }}>
+              {/* progress bar & trend pill */}
+              <div
+                className="services-sparkline"
+                onClick={toggleServicesPopover}
+                role="button"
+                tabIndex={0}
+                aria-label="Show services details"
+              >
+                {!servicesOnlineLoading && (
+                  <>
+                    <div className="services-trend-wrap">
+                      <PercentDelta online={servicesStatus.online} total={servicesStatus.total} trend={servicesOnline.trend} change={servicesOnline.change} />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {showServicesPopover && createPortal(
+                <AnimatePresence>
+                  <motion.div className="services-popover" style={popoverStyle} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                    <div className="popover-list">
+                      {servicesRef.current && servicesRef.current.length > 0 ? servicesRef.current.slice().sort((a, b) => {
+                        if (a.status === 'offline' && b.status !== 'offline') return -1
+                        if (b.status === 'offline' && a.status !== 'offline') return 1
+                        return 0
+                      }).map(s => (
+                        <div className="popover-item" key={s.id}>
+                          <span className={`dot ${s.status === 'online' ? 'online' : 'offline'}`}></span>
+                          <a className="service-link" href={s.url} target="_blank" rel="noreferrer">{s.name}</a>
+                          <div className="item-actions">
+                            <button className="btn-icon" title="Check" onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
+                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title="Open"><ExternalLink size={14} /></a>
+                          </div>
+                        </div>
+                      )) : <div className="popover-empty">No services</div>}
+                      <div className="popover-footer">Last checked: {servicesOnlineLoading ? 'Checking...' : (servicesStatus.total ? `${servicesStatus.online}/${servicesStatus.total}` : 'Never')}</div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>,
+                document.body
+              )}
             </div>
           </motion.div>
           {stats.map((stat, i) => (

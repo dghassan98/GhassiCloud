@@ -97,6 +97,67 @@
   position: relative;
 }
 
+/* Services Online enhancements: sparkline, trend pill and popover */
+.services-sparkline{display:flex;align-items:center;gap:8px;cursor:pointer;margin-right:18px}
+/* services count + pill */
+.services-trend-wrap{display:flex;align-items:center;gap:18px}
+.percent-delta-wrap{display:flex;align-items:center;gap:10px;transform:translateY(10px)}
+.percent-number{font-weight:900;color:#e6eef8;font-size:20px;letter-spacing:0.2px}
+.delta-pill{font-size:14px;padding:10px 18px;border-radius:14px;background:rgba(255,255,255,0.04);color:#ffffff;display:inline-flex;align-items:center;gap:10px;justify-content:center;border:1px solid rgba(255,255,255,0.06);min-width:56px;height:40px;font-weight:800;box-shadow: 0 10px 30px rgba(2,6,23,0.45);transition:transform .12s ease, box-shadow .12s ease}
+.delta-pill:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(2,6,23,0.55)}
+.delta-pill.status-green{background:linear-gradient(90deg, rgba(16,185,129,0.18), rgba(20,184,166,0.06));color:#ffffff;border:1px solid rgba(34,197,94,0.14)}
+.delta-pill.status-orange{background:linear-gradient(90deg, rgba(245,158,11,0.2), rgba(245,178,72,0.06));color:#ffffff;border:1px solid rgba(245,158,11,0.09)}
+.delta-pill.status-red{background:linear-gradient(90deg, rgba(219,39,119,0.18), rgba(239,68,68,0.06));color:#ffffff;border:1px solid rgba(239,68,68,0.12)}
+.delta-pill.neutral{opacity:0.99}
+
+/* Light theme overrides for better contrast */
+[data-theme="light"] .percent-number{color:#07121a;font-weight:800}
+[data-theme="light"] .delta-pill{background:rgba(255,255,255,0.92);color:#07121a;border:1px solid rgba(2,6,23,0.06);box-shadow:none}
+[data-theme="light"] .delta-pill.status-green{background:linear-gradient(90deg,#e6fff2,#e6fff2);color:#08331f;border:1px solid rgba(34,197,94,0.12)}
+[data-theme="light"] .delta-pill.status-orange{background:linear-gradient(90deg,#fff6e6,#fff6e6);color:#5a3800;border:1px solid rgba(245,158,11,0.08)}
+[data-theme="light"] .delta-pill.status-red{background:linear-gradient(90deg,#ffeef2,#ffeef2);color:#6b0f0f;border:1px solid rgba(239,68,68,0.08)}
+
+/* Remove donut styles (no longer used) */
+.donut-wrap{display:none}
+.donut-center{display:none}
+
+/* nudge the trend area left on Services Online so it doesn't collide with the green dot (extra spacing) */
+.services-online .stats-trend{ margin-right:64px }
+
+/* Light theme specific tweaks */
+[data-theme="light"] .services-trend{ background:rgba(2,6,23,0.04); color:var(--text-secondary); border:1px solid rgba(2,6,23,0.06) }
+
+.services-popover{position:fixed;min-width:260px;width:320px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;box-shadow:var(--shadow-lg);padding:10px;z-index:99999;pointer-events:auto}
+.popover-list{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto;padding-right:6px}
+.popover-item{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;background:transparent;transition:background 0.12s}
+.popover-item:hover{background:rgba(255,255,255,0.02)}
+.dot{width:10px;height:10px;border-radius:50%;margin-right:6px;flex:0 0 auto}
+.dot.online{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.12)}
+.dot.offline{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.08)}
+.service-link{flex:1;color:var(--text-secondary);font-weight:600;text-decoration:none}
+.item-actions{display:flex;gap:6px}
+.popover-footer{font-size:12px;color:var(--text-secondary);text-align:left;margin-top:6px}
+
+/* Progress bar used in Services Online */
+.progress-wrap{display:inline-block;vertical-align:middle;margin-right:8px}
+.progress-bg{background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;width:110px}
+.progress-fill{height:100%;border-radius:999px;transition:width .28s ease;background:linear-gradient(90deg,var(--np-accent,#4fb0ff), #7ad3ff)}
+.progress-label{font-size:12px;color:#cfe7ff;margin-left:8px;min-width:36px;display:inline-block;text-align:center}
+.progress-empty{display:block;width:64px;height:4px;margin:auto;background:rgba(255,255,255,0.06);border-radius:999px}
+
+/* lighter progress for neutral state */
+.trend-pill.neutral + .progress-wrap .progress-fill{background:linear-gradient(90deg,#b6dff7,#9fd7ff)}
+
+/* Ensure popover sits on top */
+.services-popover{box-shadow:0 24px 60px rgba(2,6,23,0.9)}
+[data-theme="light"] .popover-item:hover{background:rgba(2,6,23,0.03)}
+[data-theme="light"] .service-link{color:var(--text-primary)}
+/* light theme overrides */
+[data-theme="light"] .services-popover{background:#ffffff;border:1px solid rgba(2,6,23,0.06);box-shadow:0 10px 30px rgba(15,23,42,0.06)}
+[data-theme="light"] .popover-item:hover{background:rgba(2,6,23,0.03)}
+[data-theme="light"] .service-link{color:var(--text-primary)}
+[data-theme="light"] .trend-pill{background:rgba(2,6,23,0.03);color:var(--text-secondary)}
+
 /* ===== QR Code Widget ===== */
 .qr-code-widget {
   position: absolute;
@@ -162,19 +223,23 @@
 }
 
 .stats-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  /* share NowPlaying look & feel */
+  --np-accent: var(--np-accent, #4fb0ff);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   transition: all var(--transition-fast);
+  backdrop-filter: blur(6px) saturate(120%);
+  box-shadow: 0 6px 18px rgba(10,12,20,0.45);
 }
 
 .stats-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px var(--accent-glow);
+  border-color: var(--np-accent);
+  box-shadow: 0 10px 30px rgba(79,176,255,0.08);
 }
 
 .stats-content {
@@ -185,12 +250,13 @@
 
 .stats-label {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: #9fb0c9; /* match NowPlaying muted text */
 }
 
 .stats-value {
   font-size: 1.5rem;
   font-weight: 700;
+  color: #e6eef8; /* match NowPlaying title color for contrast */
 }
 
 /* Services online small row */
@@ -234,8 +300,8 @@
 /* Hide any underlying card action buttons so the dot sits clean */
 .services-online .menu-button, .services-online .pin-button { display: none !important; }
 
-/* Remove the empty stats-trend pill for the Services Online card */
-.services-online .stats-trend { display: none !important; }
+/* Hide the stats-trend only when it's empty — otherwise show sparkline/trend */
+.services-online .stats-trend:empty { display: none; }
 
 .stats-trend {
   display: flex;
@@ -243,10 +309,17 @@
   gap: 0.25rem;
   font-size: 0.8rem;
   font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
+  /* Remove boxed background for services card; defaults are transparent */
+  background: transparent;
+  padding: 0; /* remove internal padding so content sits flush */
+  border-radius: 0;
 }
+
+/* Move the services trend area slightly lower inside the Services Online card */
+.services-online .stats-trend { margin-top: 12px }
+
+/* Nudge the percent/delta down a touch for a balanced look */
+.percent-delta-wrap { transform: translateY(10px) }
 
 /* ===== Services Section ===== */
 .services-section {
@@ -408,23 +481,42 @@
 /* Service Card */
 .service-card {
   position: relative;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  /* match NowPlaying visual language */
+  --np-accent: var(--np-accent, #4fb0ff);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   cursor: pointer;
   overflow: hidden;
   transition: all var(--transition-fast);
+  backdrop-filter: blur(6px) saturate(120%);
+  box-shadow: 0 6px 18px rgba(10,12,20,0.45);
 }
 
 .service-card.pinned {
-  border-color: var(--accent);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(99, 102, 241, 0.05) 100%);
+  border-color: var(--np-accent);
+  background: linear-gradient(135deg, rgba(79,176,255,0.06), rgba(79,176,255,0.02));
 }
 
 .service-card:hover {
-  border-color: var(--accent-color, var(--accent));
-  box-shadow: var(--shadow-lg);
+  border-color: var(--np-accent);
+  box-shadow: 0 10px 30px rgba(79,176,255,0.08);
+}
+
+/* Keep existing pin button behavior */
+.pin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  opacity: 0;
+  cursor: pointer;
+  background: transparent;
+  border: none;
 }
 
 /* Pin Button */
@@ -447,8 +539,8 @@
 }
 
 .pin-button:hover {
-  color: var(--accent);
-  background: rgba(99, 102, 241, 0.1);
+  color: var(--np-accent, var(--accent));
+  background: rgba(79,176,255,0.08);
 }
 
 .pin-button.active {
@@ -465,9 +557,10 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   opacity: 0;
   transition: opacity var(--transition-fast);
+  background: linear-gradient(90deg, var(--np-accent, #4fb0ff), rgba(122,211,255,0.12));
 }
 
 .service-card:hover .card-glow {
@@ -482,13 +575,60 @@
   margin-bottom: 1rem;
 }
 
-.service-icon {
+..service-icon {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, var(--np-accent, #4fb0ff), rgba(10,10,10,0.06));
+  box-shadow: 0 8px 20px rgba(2,6,23,0.25);
+}
+
+/* Light theme overrides to improve contrast for readability */
+[data-theme="light"] .service-card,
+[data-theme="light"] .stats-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border: 1px solid rgba(2,6,23,0.06);
+  color: var(--text-primary);
+  box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+}
+
+[data-theme="light"] .service-card .service-icon {
+  background: linear-gradient(135deg, var(--np-accent, #4fb0ff), rgba(10,20,30,0.04));
+  box-shadow: 0 12px 30px rgba(11,60,80,0.06);
+}
+
+[data-theme="light"] .service-card .card-glow {
+  background: linear-gradient(90deg, var(--np-accent, #4fb0ff), rgba(122,211,255,0.08));
+}
+
+[data-theme="light"] .pin-button {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .service-card .pin-button:hover {
+  background: rgba(15,23,42,0.04);
+  color: var(--np-accent);
+}
+
+[data-theme="light"] .stats-label {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .stats-value {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .service-card h3,
+[data-theme="light"] .service-card .service-name {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .service-card p,
+[data-theme="light"] .service-card .muted {
+  color: var(--text-secondary);
 }
 
 .card-actions {
