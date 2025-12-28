@@ -446,7 +446,6 @@ export default function Dashboard() {
         <div className="hero-stats">
           <div style={{marginBottom:8, width: '100%', display: 'flex', justifyContent:'center'}}>
             <NowPlayingCard
-              endpoint={"https://music.ghassandarwish.com/rest/getNowPlaying.view?u=root&t=807d88c2a912ca3aed81593b323b6212&s=&v=1.16.&c=app&f=json"}
               accent={musicAccent}
             />
           </div>

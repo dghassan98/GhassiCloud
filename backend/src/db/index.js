@@ -152,6 +152,54 @@ export async function initDatabase() {
     )
   `)
 
+  // Create navidrome credentials table (single credential storage for Now Playing)
+  dbWrapper.exec(`
+    CREATE TABLE IF NOT EXISTS navidrome_credentials (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      password_hashed TEXT,
+      password_encrypted TEXT,
+      auth_method TEXT DEFAULT 'token',
+      password_type TEXT,
+      token TEXT,
+      salt TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // Add new columns if migrating from older DB (safe to run on existing DB)
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_hashed TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_encrypted TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN auth_method TEXT DEFAULT 'token'`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_type TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN token TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN salt TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
   // Create default admin user if not exists
   const adminUser = dbWrapper.prepare('SELECT * FROM users WHERE username = ?').get(
     process.env.DEFAULT_ADMIN_USER || 'admin'
