@@ -97,6 +97,78 @@
   margin-bottom: 0.5rem;
 }
 
+/* Profile layout & avatar */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.profile-avatar {
+  text-align: center;
+}
+
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 0.75rem;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-color);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-file input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Theme Selector */
 .theme-selector {
   display: flex;
@@ -493,6 +565,22 @@
   align-items: center;
   justify-content: center;
   color: white;
+}
+
+/* Disabled field style used when values come from SSO */
+.disabled-field {
+  opacity: 0.65;
+  filter: grayscale(20%);
+}
+
+.disabled-field input[disabled],
+.disabled-field select[disabled] {
+  background: var(--bg-secondary);
+  cursor: not-allowed;
+}
+
+.disabled-field .form-hint {
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

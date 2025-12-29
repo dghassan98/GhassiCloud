@@ -208,13 +208,38 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
+  const updateUser = async (updates) => {
+    // Optimistically update local state
+    setUser(prev => ({ ...prev, ...updates }))
+    try {
+      const token = localStorage.getItem('ghassicloud-token')
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = token && token.startsWith('Bearer ') ? token : `Bearer ${token}`
+      // Persist changes server-side
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(updates)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data && data.user) setUser(data.user)
+      } else {
+        const text = await res.text()
+        console.error('Profile update failed:', text)
+      }
+    } catch (err) {
+      console.error('Failed to update user on server:', err)
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem('ghassicloud-token')
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithSSO, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithSSO, logout, checkAuth, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

@@ -102,25 +102,48 @@ router.post('/sso/callback', async (req, res) => {
       const username = userInfo.preferred_username || userInfo.email.split('@')[0]
       // Generate a random password for SSO users (they won't use it)
       const randomPassword = bcrypt.hashSync(crypto.randomUUID(), 10)
+      const firstName = userInfo.given_name || null
+      const lastName = userInfo.family_name || null
+      const avatar = userInfo.picture || null
+      const language = userInfo.locale || userInfo.preferred_locale || userInfo.lang || null
 
       db.prepare(`
-        INSERT INTO users (id, username, password, email, display_name, role, sso_provider, sso_id)
-        VALUES (?, ?, ?, ?, ?, 'user', 'keycloak', ?)
+        INSERT INTO users (id, username, password, email, display_name, role, sso_provider, sso_id, first_name, last_name, avatar, language)
+        VALUES (?, ?, ?, ?, ?, 'user', 'keycloak', ?, ?, ?, ?, ?)
       `).run(
         userId,
         username,
         randomPassword,
         userInfo.email,
         userInfo.name || userInfo.preferred_username,
-        userInfo.sub
+        userInfo.sub,
+        firstName,
+        lastName,
+        avatar,
+        language
       )
 
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId)
     } else {
-      // Update SSO info if not set
+      // Update SSO info if not set and fill missing profile info
+      const updates = {}
       if (!user.sso_provider) {
-        db.prepare('UPDATE users SET sso_provider = ?, sso_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-          .run('keycloak', userInfo.sub, user.id)
+        updates.sso_provider = 'keycloak'
+        updates.sso_id = userInfo.sub
+      }
+      if (!user.first_name && userInfo.given_name) updates.first_name = userInfo.given_name
+      if (!user.last_name && userInfo.family_name) updates.last_name = userInfo.family_name
+      // Always update avatar from SSO if provided and different from existing — prefer the provider's image
+      if (userInfo.picture && user.avatar !== userInfo.picture) updates.avatar = userInfo.picture
+      if (!user.language && (userInfo.locale || userInfo.preferred_locale || userInfo.lang)) updates.language = userInfo.locale || userInfo.preferred_locale || userInfo.lang
+
+      if (Object.keys(updates).length > 0) {
+        const params = []
+        const sets = []
+        Object.entries(updates).forEach(([k,v]) => { sets.push(`${k} = ?`); params.push(v) })
+        params.push(user.id)
+        db.prepare(`UPDATE users SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(...params)
+        user = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)
       }
     }
 
@@ -134,7 +157,12 @@ router.post('/sso/callback', async (req, res) => {
         username: user.username,
         email: user.email,
         displayName: user.display_name,
-        role: user.role
+        firstName: user.first_name || null,
+        lastName: user.last_name || null,
+        avatar: user.avatar || null,
+        language: user.language || null,
+        role: user.role,
+        ssoProvider: user.sso_provider || null
       }
     })
   } catch (err) {
@@ -174,7 +202,12 @@ router.post('/login', (req, res) => {
         username: user.username,
         email: user.email,
         displayName: user.display_name,
-        role: user.role
+        firstName: user.first_name || null,
+        lastName: user.last_name || null,
+        avatar: user.avatar || null,
+        language: user.language || null,
+        role: user.role,
+        ssoProvider: user.sso_provider || null
       }
     })
   } catch (err) {
@@ -199,7 +232,12 @@ router.get('/me', authenticateToken, (req, res) => {
         username: user.username,
         email: user.email,
         displayName: user.display_name,
-        role: user.role
+        firstName: user.first_name || null,
+        lastName: user.last_name || null,
+        avatar: user.avatar || null,
+        language: user.language || null,
+        role: user.role,
+        ssoProvider: user.sso_provider || null
       }
     })
   } catch (err) {
@@ -245,21 +283,40 @@ router.put('/password', authenticateToken, (req, res) => {
 // Update profile
 router.put('/profile', authenticateToken, (req, res) => {
   try {
-    const { email, displayName } = req.body
+    const { email, displayName, firstName, lastName, avatar, language } = req.body
     const db = getDb()
-
-    db.prepare('UPDATE users SET email = ?, display_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .run(email || null, displayName || null, req.user.id)
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
 
+    // Prevent changing email (and username) for SSO users
+    if (user.sso_provider && email && email !== user.email) {
+      return res.status(400).json({ message: 'Email cannot be changed for SSO users' })
+    }
+
+    const finalEmail = user.sso_provider ? user.email : (email || user.email)
+    const finalDisplay = (typeof displayName === 'undefined') ? user.display_name : displayName || null
+    const finalFirst = (typeof firstName === 'undefined') ? user.first_name : (firstName || null)
+    const finalLast = (typeof lastName === 'undefined') ? user.last_name : (lastName || null)
+    const finalAvatar = (typeof avatar === 'undefined') ? user.avatar : (avatar || null)
+    const finalLanguage = (typeof language === 'undefined') ? user.language : (language || null)
+
+    db.prepare('UPDATE users SET email = ?, display_name = ?, first_name = ?, last_name = ?, avatar = ?, language = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .run(finalEmail, finalDisplay, finalFirst, finalLast, finalAvatar, finalLanguage, req.user.id)
+
+    const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+
     res.json({
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        displayName: user.display_name,
-        role: user.role
+        id: updated.id,
+        username: updated.username,
+        email: updated.email,
+        displayName: updated.display_name,
+        firstName: updated.first_name || null,
+        lastName: updated.last_name || null,
+        avatar: updated.avatar || null,
+        language: updated.language || null,
+        role: updated.role,
+        ssoProvider: updated.sso_provider || null
       }
     })
   } catch (err) {

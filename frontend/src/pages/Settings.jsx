@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, Lock, Palette, Bell, Shield, Database, 
@@ -19,7 +19,7 @@ const settingsSections = [
 ]
 
 export default function Settings() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateUser } = useAuth()
   const { theme, setTheme } = useTheme()
   const { currentLogo, setLogo } = useLogo()
   const { currentAccent, setAccent } = useAccent()
@@ -27,6 +27,16 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  // Profile form state
+  const [usernameVal, setUsernameVal] = useState(user?.username || '')
+  const [emailVal, setEmailVal] = useState(user?.email || '')
+  const [displayNameVal, setDisplayNameVal] = useState(user?.displayName || user?.username || '')
+  const [firstName, setFirstName] = useState(user?.firstName || '')
+  const [lastName, setLastName] = useState(user?.lastName || '')
+  const [language, setLanguage] = useState(user?.language || (navigator.language || 'en').split('-')[0])
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null)
+  const [avatarFile, setAvatarFile] = useState(null)
 
   const handleResetServices = async () => {
     setResetting(true)
@@ -56,11 +66,60 @@ export default function Settings() {
     }
   }
 
+  // Sync user into form state when loaded
+  useEffect(() => {
+    if (!user) return
+    setUsernameVal(user.username || '')
+    setEmailVal(user.email || '')
+    setDisplayNameVal(user.displayName || user.username || '')
+    setFirstName(user.firstName || '')
+    setLastName(user.lastName || '')
+    setLanguage(user.language || (navigator.language || 'en').split('-')[0])
+    setAvatarPreview(user.avatar || null)
+    setAvatarFile(null)
+  }, [user])
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Avatar must be less than 2 MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => setAvatarPreview(reader.result)
+    reader.readAsDataURL(file)
+    setAvatarFile(file)
+  }
+
+  const handleRemoveAvatar = () => {
+    setAvatarPreview(null)
+    setAvatarFile(null)
+  }
+
   const handleSave = async () => {
     setSaving(true)
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSaving(false)
+    try {
+      const updates = {
+        displayName: displayNameVal,
+        firstName,
+        lastName,
+        language,
+        avatar: avatarPreview // data URL or existing URL
+      }
+      // Don't allow changing username/email for SSO users
+      if (!user?.ssoProvider && !user?.sso_provider) {
+        updates.username = usernameVal
+        updates.email = emailVal
+      }
+      await updateUser(updates)
+      alert('Profile saved')
+    } catch (err) {
+      console.error('Save profile error:', err)
+      alert('Failed to save profile')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -105,17 +164,66 @@ export default function Settings() {
           {activeSection === 'profile' && (
             <div className="settings-section">
               <h2>Profile Settings</h2>
-              <div className="form-group">
-                <label>Username</label>
-                <input type="text" defaultValue={user?.username} />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input type="email" defaultValue={user?.email || ''} placeholder="your@email.com" />
-              </div>
-              <div className="form-group">
-                <label>Display Name</label>
-                <input type="text" defaultValue={user?.displayName || user?.username} />
+              <div className="profile-grid">
+                <div className="profile-avatar">
+                  <div className="avatar-preview">
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt="Avatar" />
+                    ) : (
+                      <div className="avatar-placeholder"><User size={36} /></div>
+                    )}
+                  </div>
+                  <div className="avatar-actions">
+                    <label className="btn-secondary btn-file">
+                      Upload Avatar
+                      <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                    </label>
+                    {avatarPreview && <button className="btn-secondary" onClick={handleRemoveAvatar}>Remove</button>}
+                  </div>
+                  <p className="form-hint">Recommended: PNG/JPG up to 2MB.</p>
+                </div>
+
+                <div className="profile-fields">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>First Name</label>
+                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Display Name</label>
+                    <input type="text" value={displayNameVal} onChange={(e) => setDisplayNameVal(e.target.value)} />
+                  </div>
+
+                  <div className={`form-group ${user?.ssoProvider || user?.sso_provider ? 'disabled-field' : ''}`}>
+                    <label>Username</label>
+                    <input type="text" value={usernameVal} onChange={(e) => setUsernameVal(e.target.value)} disabled={!!user?.ssoProvider || !!user?.sso_provider} />
+                    {user?.ssoProvider || user?.sso_provider ? <p className="form-hint">Username is provided by your SSO provider and cannot be changed here.</p> : null}
+                  </div>
+
+                  <div className={`form-group ${user?.ssoProvider || user?.sso_provider ? 'disabled-field' : ''}`}>
+                    <label>Email</label>
+                    <input type="email" value={emailVal} onChange={(e) => setEmailVal(e.target.value)} placeholder="you@example.com" disabled={!!user?.ssoProvider || !!user?.sso_provider} />
+                    {user?.ssoProvider || user?.sso_provider ? <p className="form-hint">Email is provided by your SSO provider and cannot be changed here.</p> : null}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Language</label>
+                    <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+                      <option value="en">English</option>
+                      <option value="es">Español</option>
+                      <option value="fr">Français</option>
+                      <option value="de">Deutsch</option>
+                      <option value="pt">Português</option>
+                    </select>
+                    <p className="form-hint">Choose your preferred UI language</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

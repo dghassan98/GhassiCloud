@@ -327,7 +327,12 @@ export default function Dashboard() {
   useEffect(() => {
     if (!showServicesPopover) return
     const onDoc = (e) => {
-      if (!e.target.closest('.stats-card.services-online')) setShowServicesPopover(false)
+      // If the mousedown happened inside the services card OR the portaled popover,
+      // don't close it. This prevents the popover from being closed on mousedown
+      // before button click handlers (which run on click) can fire.
+      if (!e.target.closest('.stats-card.services-online') && !e.target.closest('.services-popover')) {
+        setShowServicesPopover(false)
+      }
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)

@@ -127,13 +127,20 @@ export default function Layout() {
             </div>
           </div> */}
 
-          <div className="user-info">
+          <div
+            className="user-info clickable"
+            role="button"
+            tabIndex={0}
+            onClick={() => { navigate('/settings'); setSidebarOpen(false) }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/settings'); setSidebarOpen(false) } }}
+            aria-label="Open profile settings"
+          >
             <div className="avatar">
-              {user?.username?.charAt(0).toUpperCase() || 'U'}
+              {user?.avatar ? <img src={user.avatar} alt={user.displayName || user.username || 'Avatar'} /> : (user?.username?.charAt(0).toUpperCase() || 'U')}
             </div>
             <div className="user-details">
               <span className="username">{user?.displayName || 'User'}</span>
-              <span className="role">Administrator</span>
+              <span className="role">{user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Member'}</span>
             </div>
           </div>
           

@@ -110,6 +110,28 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Add first_name, last_name and avatar for richer profiles
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN first_name TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN last_name TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN avatar TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  // Add language column for user preference
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN language TEXT`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
   
   // Add pinned column to services if it doesn't exist
   try {
