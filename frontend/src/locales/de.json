@@ -1,0 +1,152 @@
+{
+  "nav": {
+    "dashboard": "Übersicht",
+    "reporting": "Berichte",
+    "settings": "Einstellungen"
+  },
+  "general": {
+    "welcome": "Willkommen bei GhassiCloud. Digitale Souveränität.",
+    "scanMe": "Scanne mich",
+    "userFallback": "Benutzer",
+    "memberFallback": "Mitglied"
+  },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Teilweise bewölkt",
+    "openProfile": "Öffne Profileinstellungen",
+    "notifications": "Benachrichtigungen"
+  },
+  "dashboard": {
+    "servicesOnline": "Dienste online",
+    "addService": "Dienst hinzufügen",
+    "searchPlaceholder": "Dienste suchen...",
+    "noServices": "Keine Dienste gefunden",
+    "loadingServices": "Dienste werden geladen...",
+    "getStarted": "Füge deinen ersten Dienst hinzu, um zu beginnen",
+    "noServicesPopover": "Keine Dienste",
+    "lastChecked": "Zuletzt geprüft",
+    "checking": "Prüfe...",
+    "never": "Nie",
+    "yourServices": "Deine Dienste"
+  },
+  "auth": {
+    "completingSignIn": "Anmeldung wird abgeschlossen..."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Verwalte dein Konto und deine Einstellungen",
+    "profile": "Profileinstellungen",
+    "appearance": "Darstellung",
+    "theme": "Thema",
+    "themeOptions": { "light": "Hell", "dark": "Dunkel", "system": "System" },
+    "accentColor": "Akzentfarbe",
+    "logoStyle": "Logo-Stil",
+    "logoHint": "Wähle deinen bevorzugten Logo-Stil für das Dashboard",
+    "avatarHint": "Empfohlen: PNG/JPG bis 2MB.",
+    "security": "Sicherheit",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPasswordPlaceholder": "Aktuelles Passwort eingeben",
+    "newPassword": "Neues Passwort",
+    "newPasswordPlaceholder": "Neues Passwort eingeben",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+    "twoFactor": { "title": "Zwei-Faktor-Authentifizierung", "desc": "Füge eine zusätzliche Sicherheitsebene zu deinem Konto hinzu" },
+    "enable2FA": "2FA aktivieren",
+    "ssoConfig": { "title": "SSO-Konfiguration", "desc": "Mit deinem Identitätsanbieter verbinden", "button": "SSO konfigurieren" },
+    "notifications": {
+      "serviceAlerts": { "title": "Dienststatus-Benachrichtigungen", "desc": "Erhalte eine Benachrichtigung, wenn ein Dienst offline geht" },
+      "systemUpdates": { "title": "System-Updates", "desc": "Benachrichtigungen über Systemupdates" },
+      "weeklyReports": { "title": "Wöchentliche Berichte", "desc": "Erhalte wöchentliche Nutzungsberichte" }
+    },
+    "data": "Daten & Backup",
+    "exportData": "Daten exportieren",
+    "exportDataDesc": "Lade alle deine Dienstkonfigurationen herunter",
+    "exportJSON": "Als JSON exportieren",
+    "importData": "Daten importieren",
+    "importDataDesc": "Aus einer Sicherung wiederherstellen",
+    "import": "Importieren",
+    "dangerZone": "Gefahrenbereich",
+    "resetAllTitle": "Alle Dienste zurücksetzen",
+    "resetAllDesc": "Entfernt alle Dienstkonfigurationen",
+    "reset": "Zurücksetzen",
+    "confirmTitle": "Bist du sicher?",
+    "confirmDesc": "Dies wird alle deine Dienste dauerhaft löschen. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "cancel": "Abbrechen",
+    "resetting": "Wird zurückgesetzt...",
+    "resetConfirmYes": "Ja, alle zurücksetzen",
+    "deleteAccountTitle": "Konto löschen",
+    "deleteAccountDesc": "Lösche dauerhaft dein Konto und alle Daten",
+    "delete": "Löschen",
+    "saveChanges": "Änderungen speichern",
+    "signOut": "Abmelden",
+    "uploadAvatar": "Avatar hochladen",
+    "removeAvatar": "Entfernen",
+    "language": "Sprache",
+    "languageHint": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
+    "tabs": { "profile": "Profil", "appearance": "Darstellung", "security": "Sicherheit", "notifications": "Benachrichtigungen", "data": "Daten & Backup" },
+    "avatarTooLarge": "Avatar darf nicht größer als 2 MB sein",
+    "profileSaved": "Profil gespeichert",
+    "saveFailed": "Fehler beim Speichern des Profils",
+    "languageConfirmTitle": "Sprache ändern?",
+    "languageConfirmMsg": "Die ausgewählte Sprache auf die Benutzeroberfläche anwenden? Wenn Sie nicht anwenden, wird sie auf die vorherige Sprache zurückgesetzt.",
+    "languageConfirmApply": "Anwenden",
+    "usernameSSOHint": "Der Benutzername wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
+    "emailSSOHint": "Die E-Mail wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
+    "resetSuccess": "Alle Dienste wurden erfolgreich zurückgesetzt!",
+    "resetFailed": "Fehler beim Zurücksetzen der Dienste"
+  },
+  "profile": {
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "displayName": "Anzeigename",
+    "username": "Benutzername",
+    "email": "E-Mail"
+  },
+  "reporting": {
+    "title": "Berichte",
+    "description": "Analysen und Einblicke für deine Dienste",
+    "comingSoon": "Demnächst",
+    "plannedFeatures": "Geplante Funktionen",
+    "usageAnalytics": "Nutzungsanalyse",
+    "features": {
+      "dailyWeeklyMonthly": "Tägliche/Wöchentliche/Monatliche Nutzungsberichte",
+      "uptimeCharts": "Diagramme zur Dienstverfügbarkeit",
+      "mostAccessed": "Meistgenutzte Dienste",
+      "responseTime": "Antwortzeitüberwachung",
+      "export": "Berichte als PDF/CSV exportieren",
+      "dateRange": "Benutzerdefinierter Datumsbereich",
+      "emailReports": "Per E-Mail geplante Berichte"
+    }
+  },
+  "nowPlaying": {
+    "loading": "Lädt…",
+    "nothingPlaying": "Nichts wird abgespielt",
+    "unknownArtist": "Unbekannter Künstler",
+    "noPlayerInfo": "Keine Player-Informationen",
+    "connectButton": "Mit GhassiMusic verbinden",
+    "connectTitle": "Mit GhassiMusic verbinden",
+    "signInDesc": "Melde dich bei GhassiMusic an, um anzuzeigen, was auf deinem Dashboard abgespielt wird.",
+    "loggingIn": "Anmeldung…",
+    "login": "Anmelden"
+  },
+  "service": {
+    "check": "Status prüfen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "pin": "Anpinnen",
+    "unpin": "Lösen",
+    "open": "Öffnen",
+    "addTitle": "Neuen Dienst hinzufügen",
+    "editTitle": "Dienst bearbeiten",
+    "fields": { "name": "Dienstname", "description": "Beschreibung", "url": "URL", "icon": "Icon", "preview": "Vorschau:", "color": "Farbe" },
+    "placeholders": { "name": "z. B. Jellyfin", "description": "z. B. Media-Streaming-Server", "url": "https://service.beispiel.de" },
+    "faviconPreview": "Favicon-Vorschau"
+  },
+  "app": {
+    "loading": "GhassiCloud wird geladen..."
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen"
+  }
+}

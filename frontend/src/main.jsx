@@ -5,6 +5,8 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { LogoProvider } from './context/LogoContext'
 import { AccentProvider } from './context/AccentContext'
+import { LanguageProvider } from './context/LanguageContext'
+import { ToastProvider } from './context/ToastContext'
 import './styles/globals.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,7 +15,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AccentProvider>
         <LogoProvider>
           <AuthProvider>
-            <App />
+            {/* LanguageProvider reads user language when AuthProvider finishes loading */}
+            <LanguageProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </LanguageProvider>
           </AuthProvider>
         </LogoProvider>
       </AccentProvider>

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import { useLanguage } from './context/LanguageContext'
 import Login from './pages/Login'
 import SSOCallback from './pages/SSOCallback'
 import Dashboard from './pages/Dashboard'
@@ -9,16 +10,17 @@ import Layout from './components/Layout'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  
+  const { t } = useLanguage()
+
   if (loading) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner" />
-        <p>Loading GhassiCloud...</p>
+        <p>{t('app.loading')}</p>
       </div>
     )
   }
-  
+
   return user ? children : <Navigate to="/login" />
 }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTheme } from '../context/ThemeContext'
+import { useLanguage } from '../context/LanguageContext'
 import '../styles/nowPlaying.css'
 
 export default function NowPlayingCard({ endpoint, accent }) {
@@ -20,6 +21,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
 
   // Theme
   const { theme } = useTheme()
+  const { t } = useLanguage()
 
   // Refs for modal focus management
   const usernameRef = useRef(null)
@@ -276,12 +278,12 @@ export default function NowPlayingCard({ endpoint, accent }) {
           ) : extraInfo ? (
             <div className="np-info">{extraInfo}</div>
           ) : (
-            <div className="np-info-placeholder">No player info</div>
+            <div className="np-info-placeholder">{t('nowPlaying.noPlayerInfo')}</div>
           )}
         </div>
         {!connected && (
           <div style={{ marginTop: 8 }}>
-            <button className="btn-connect" onClick={() => setShowModal(true)}>Connect to GhassiMusic</button>
+            <button className="btn-connect" onClick={() => setShowModal(true)}>{t('nowPlaying.connectButton')}</button>
           </div>
         )}
       </div>
@@ -299,15 +301,15 @@ export default function NowPlayingCard({ endpoint, accent }) {
       >
         <div ref={modalRef} className={`np-login-card np-theme-card ${theme === 'light' ? 'np-light' : ''}`} role="document" aria-label="Connect to GhassiMusic">
           <div className="np-login-header">
-            <h3>Connect to GhassiMusic</h3>
-            <button type="button" className="np-login-close" aria-label="Close" onClick={() => { setShowModal(false); setPassword('') }}>
+            <h3>{t('nowPlaying.connectTitle')}</h3>
+            <button type="button" className="np-login-close" aria-label={t('common.close')} onClick={() => { setShowModal(false); setPassword('') }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path d="M18 6L6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M6 6L18 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
-          <p className="np-login-sub">Sign in to GhassiMusic to show what's playing on your dashboard.</p>
+          <p className="np-login-sub">{t('nowPlaying.signInDesc')}</p>
           <form className="np-login-body" onSubmit={handleLogin}>
             <label>Username
               <input ref={usernameRef} placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
@@ -317,8 +319,8 @@ export default function NowPlayingCard({ endpoint, accent }) {
             </label>
             {loginError && <div className="np-login-error">{loginError}</div>}
             <div className="np-login-actions">
-              <button type="submit" className="btn-play" disabled={loggingIn}>{loggingIn ? 'Logging in…' : 'Login'}</button>
-              <button type="button" className="btn-icon" onClick={() => { setShowModal(false); setPassword('') }} aria-label="Close">Cancel</button>
+              <button type="submit" className="btn-play" disabled={loggingIn}>{loggingIn ? t('nowPlaying.loggingIn') : t('nowPlaying.login')}</button>
+              <button type="button" className="btn-icon" onClick={() => { setShowModal(false); setPassword('') }} aria-label={t('common.close')}>{t('common.cancel')}</button>
             </div>
           </form>
         </div>

@@ -37,7 +37,7 @@ export default function ServicesStatusCard({ token }) {
   return (
     <motion.div className="services-status-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="ssc-header">
-        <span>Services Online</span>
+        <span>{t('dashboard.servicesOnline')}</span>
         <button className="ssc-refresh" onClick={fetchStatus} disabled={loading} title="Check Now">
           {loading ? (
             <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
@@ -61,7 +61,7 @@ export default function ServicesStatusCard({ token }) {
         {error && <div className="ssc-error">{error}</div>}
       </div>
       <div className="ssc-footer">
-        <span>Last checked: {lastChecked ? new Date(lastChecked).toLocaleTimeString() : 'Never'}</span>
+        <span>{t('dashboard.lastChecked')}: {lastChecked ? new Date(lastChecked).toLocaleTimeString() : t('dashboard.never')}</span>
       </div>
     </motion.div>
   );

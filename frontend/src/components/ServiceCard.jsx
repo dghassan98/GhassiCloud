@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 
 // Common favicon paths to try
 const FAVICON_PATHS = [
@@ -12,6 +13,7 @@ const FAVICON_PATHS = [
 ]
 
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
+  const { t } = useLanguage()
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [faviconPathIndex, setFaviconPathIndex] = useState(0)
@@ -125,7 +127,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                     e.preventDefault()
                     onPin(service.id, !service.pinned)
                   }}
-                  title={service.pinned ? 'Unpin' : 'Pin to top'}
+                  title={service.pinned ? t('service.unpin') : t('service.pin')}
                 >
                   <Pin size={12} />
                 </button>
@@ -146,11 +148,11 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   e.preventDefault()
                   onCheck(service)
                 }}
-                title="Check Health"
-                aria-label="Check Health"
+                title={t('service.check')}
+                aria-label={t('service.check')}
               >
                 <RefreshCw size={16} />
-                <span style={{ marginLeft: 8 }}>Check Health</span>
+                <span style={{ marginLeft: 8 }}>{t('service.check')}</span>
               </button>
             )}
 
@@ -163,10 +165,10 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   e.preventDefault()
                   onEdit(service)
                 }}
-                title="Edit"
+                title={t('service.edit')}
               >
                 <Edit2 size={14} />
-                <span style={{ marginLeft: 8 }}>Edit</span>
+                <span style={{ marginLeft: 8 }}>{t('service.edit')}</span>
               </button>
             )}
 
@@ -179,10 +181,10 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   e.preventDefault()
                   onDelete()
                 }}
-                title="Delete"
+                title={t('service.delete')}
               >
                 <Trash2 size={14} />
-                <span style={{ marginLeft: 8 }}>Delete</span>
+                <span style={{ marginLeft: 8 }}>{t('service.delete')}</span>
               </button>
             )}
 
@@ -193,7 +195,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                title="Open"
+                title={t('service.open')}
               >
                 <span className="service-url-right">{new URL(service.url).hostname}</span>
                 <ExternalLink size={14} />
@@ -229,7 +231,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   e.preventDefault()
                   onPin(service.id, !service.pinned)
                 }}
-                title={service.pinned ? 'Unpin' : 'Pin to top'}
+                title={service.pinned ? t('service.unpin') : t('service.pin')}
               >
                 <Pin size={14} />
               </button>
@@ -262,7 +264,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                       onCheck(service)
                     }}>
                       <RefreshCw size={14} />
-                      Check
+                      {t('service.check')}
                     </button>
                   )}
                   <button onClick={(e) => { 
@@ -271,7 +273,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                     onEdit(service)
                   }}>
                     <Edit2 size={14} />
-                    Edit
+                    {t('service.edit') }
                   </button>
                   <button 
                     className="danger"
@@ -282,7 +284,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                     }}
                   >
                     <Trash2 size={14} />
-                    Delete
+                    {t('service.delete') }
                   </button>
                 </motion.div>
               )}
@@ -305,7 +307,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              title="Open"
+              title={t('service.open')}
             >
               <span className="service-url">{new URL(service.url).hostname}</span>
               <ExternalLink size={14} />

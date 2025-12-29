@@ -174,9 +174,9 @@ export default function Login() {
               <div className="button-spinner" />
             ) : (
               <>
-                <img 
-                  src="https://drive.ghassandarwish.com/public/api/raw?files=%2F&hash=mzcI4SScFS-oPaQxHS79Ig" 
-                  alt="GhassiCloud" 
+                <img
+                  src="https://icons.duckduckgo.com/ip3/ghassandarwish.com.ico"
+                  alt="GhassiCloud"
                   className="sso-icon"
                 />
                 Sign in with GhassiCloud

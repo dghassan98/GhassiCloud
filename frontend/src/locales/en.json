@@ -1,0 +1,164 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "reporting": "Reporting",
+    "settings": "Settings"
+  },
+  "general": {
+    "welcome": "Welcome to GhassiCloud. Embrace Digital Sovereignty.",
+    "scanMe": "Scan me",
+    "userFallback": "User",
+    "memberFallback": "Member"
+  },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Partly Cloudy",
+    "openProfile": "Open profile settings",
+    "notifications": "Notifications"
+  },
+  "dashboard": {
+    "servicesOnline": "Services Online",
+    "addService": "Add Service",
+    "searchPlaceholder": "Search services...",
+    "noServices": "No services found",
+    "loadingServices": "Loading services...",
+    "getStarted": "Add your first service to get started",
+    "noServicesPopover": "No services",
+    "lastChecked": "Last checked",
+    "checking": "Checking...",
+    "never": "Never",
+    "yourServices": "Your Services"
+  },
+  "auth": {
+    "completingSignIn": "Completing sign in..."
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account and preferences",
+    "profile": "Profile Settings",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "accentColor": "Accent Color",
+    "logoStyle": "Logo Style",
+    "logoHint": "Choose your preferred logo style for the dashboard",
+    "auto": "Auto",
+    "avatarHint": "Recommended: PNG/JPG up to 2MB.",
+    "security": "Security",
+    "currentPassword": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPassword": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "desc": "Add an extra layer of security to your account"
+    },
+    "enable2FA": "Enable 2FA",
+    "ssoConfig": {
+      "title": "SSO Configuration",
+      "desc": "Connect with your identity provider",
+      "button": "Configure SSO"
+    },
+    "notifications": {
+      "serviceAlerts": { "title": "Service Status Alerts", "desc": "Get notified when a service goes offline" },
+      "systemUpdates": { "title": "System Updates", "desc": "Notifications about system updates" },
+      "weeklyReports": { "title": "Weekly Reports", "desc": "Receive weekly usage reports" }
+    },
+    "data": "Data & Backup",
+    "exportData": "Export Data",
+    "exportDataDesc": "Download all your service configurations",
+    "exportJSON": "Export JSON",
+    "importData": "Import Data",
+    "importDataDesc": "Restore from a backup file",
+    "import": "Import",
+    "dangerZone": "Danger Zone",
+    "resetAllTitle": "Reset All Services",
+    "resetAllDesc": "Remove all service configurations",
+    "reset": "Reset",
+    "confirmTitle": "Are you sure?",
+    "confirmDesc": "This will permanently delete all your services. This action cannot be undone.",
+    "cancel": "Cancel",
+    "resetting": "Resetting...",
+    "resetConfirmYes": "Yes, Reset All",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and all data",
+    "delete": "Delete",
+    "saveChanges": "Save Changes",
+    "signOut": "Sign Out",
+    "notifications": "Notifications",
+    "uploadAvatar": "Upload Avatar",
+    "removeAvatar": "Remove",
+    "avatarTooLarge": "Avatar must be less than 2 MB",
+    "profileSaved": "Profile saved",
+    "saveFailed": "Failed to save profile",
+    "language": "Language",
+    "languageConfirmTitle": "Change language?",
+    "languageConfirmMsg": "Apply the selected language to the UI? If you don't apply, it will revert to the previous language.",
+    "languageConfirmApply": "Apply",
+    "languageHint": "Choose your preferred UI language",
+    "usernameSSOHint": "Username is provided by your SSO provider and cannot be changed here.",
+    "emailSSOHint": "Email is provided by your SSO provider and cannot be changed here.",
+    "resetSuccess": "All services have been reset successfully!",
+    "resetFailed": "Failed to reset services"
+  },
+  "profile": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "displayName": "Display Name",
+    "username": "Username",
+    "email": "Email"
+  },
+  "reporting": {
+    "title": "Reporting",
+    "description": "Analytics and insights for your services",
+    "comingSoon": "Coming Soon",
+    "plannedFeatures": "Planned Features",
+    "usageAnalytics": "Usage Analytics",
+    "features": {
+      "dailyWeeklyMonthly": "Daily/Weekly/Monthly usage reports",
+      "uptimeCharts": "Service uptime history charts",
+      "mostAccessed": "Most accessed services ranking",
+      "responseTime": "Response time monitoring",
+      "export": "Export reports as PDF/CSV",
+      "dateRange": "Custom date range filtering",
+      "emailReports": "Email scheduled reports"
+    }
+  },
+  "nowPlaying": {
+    "loading": "Loading…",
+    "nothingPlaying": "Nothing playing",
+    "unknownArtist": "Unknown Artist",
+    "noPlayerInfo": "No player info",
+    "connectButton": "Connect to GhassiMusic",
+    "connectTitle": "Connect to GhassiMusic",
+    "signInDesc": "Sign in to GhassiMusic to show what's playing on your dashboard.",
+    "loggingIn": "Logging in…",
+    "login": "Login"
+  },
+  "service": {
+    "check": "Check Health",
+    "edit": "Edit",
+    "delete": "Delete",
+    "pin": "Pin to top",
+    "unpin": "Unpin",
+    "open": "Open",
+    "addTitle": "Add New Service",
+    "editTitle": "Edit Service",
+    "fields": { "name": "Service Name", "description": "Description", "url": "URL", "icon": "Icon", "preview": "Preview:", "color": "Color" },
+    "placeholders": { "name": "e.g., Jellyfin", "description": "e.g., Media streaming server", "url": "https://service.example.com" },
+    "faviconPreview": "Favicon preview"
+  },
+  "app": {
+    "loading": "Loading GhassiCloud..."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close"
+  }
+}

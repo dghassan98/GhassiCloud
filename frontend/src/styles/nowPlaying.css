@@ -3,7 +3,7 @@
   --np-accent: #4fb0ff; /* fallback accent (not Spotify green) */
   display:flex;
   gap:16px;
-  align-items:center;
+  align-items:flex-start; /* align content to top so meta and player sit closer without clipping */
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
   border: 1px solid rgba(255,255,255,0.04);
   backdrop-filter: blur(6px) saturate(120%);
@@ -55,7 +55,8 @@
   font-weight:700;
   font-size:15px;
   color:#e6eef8;
-  line-height:1.15;
+  line-height:1.25;
+  padding-bottom:2px;
   display:-webkit-box;
   -webkit-line-clamp:2; /* show up to 2 lines and truncate */
   line-clamp:2;
@@ -66,7 +67,9 @@
 
 .np-artist-album{
   display:flex;
-  gap:8px;
+  gap:6px; /* slightly tighter between artist and album */
+  line-height:1.22;
+  padding-bottom:2px;
   align-items:center;
   color:#9fb0c9;
   font-size:13px;
@@ -85,7 +88,7 @@
   line-height:1.2;
   max-height:2.4em; /* ensure it doesn't exceed 2 lines visually */
   word-break:break-word;
-  margin-top:2px;
+  margin-top:1px; /* reduce gap slightly */
 }
 
 /* Light-mode card adjustments for readability */
@@ -171,7 +174,7 @@
 
 .np-progress-bar{height:100%;background:linear-gradient(90deg,var(--np-accent), #79f2b7);border-radius:999px;box-shadow: inset 0 -6px 16px rgba(2,6,6,0.14)}
 
-.np-info-row{margin-top:8px;display:flex;gap:12px;align-items:center}
+.np-info-row{margin-top:6px;display:flex;gap:10px;align-items:center}
 .np-info{font-size:12px;color:#a8c6e8;background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;font-weight:600}
 .np-player{font-size:13px;color:#cfe7ff;opacity:0.95;padding:4px 8px;border-radius:8px;background:transparent;font-weight:600}
 .np-info-placeholder{font-size:12px;color:#7f9bb3}

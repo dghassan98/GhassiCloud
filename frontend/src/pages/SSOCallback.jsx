@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function SSOCallback() {
+  const { t } = useLanguage()
+
   useEffect(() => {
     // Parse the authorization response from URL
     const params = new URLSearchParams(window.location.search)
@@ -45,7 +48,7 @@ export default function SSOCallback() {
           animation: 'spin 1s linear infinite',
           margin: '0 auto 1rem'
         }} />
-        <p>Completing sign in...</p>
+        <p>{t('auth.completingSignIn')}</p>
       </div>
       <style>{`
         @keyframes spin {

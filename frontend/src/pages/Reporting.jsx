@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
 import { BarChart3, PieChart, TrendingUp, Calendar, Download, Filter } from 'lucide-react'
-import '../styles/dashboard.css'
+import { useLanguage } from '../context/LanguageContext'
+import '../styles/dashboard.css' 
 
 export default function Reporting() {
+  const { t } = useLanguage()
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <div>
-          <h1>Reporting</h1>
-          <p>Analytics and insights for your services</p>
+          <h1>{t('reporting.title')}</h1>
+          <p>{t('reporting.description')}</p>
         </div>
         <div className="header-actions">
           <button className="btn btn-secondary">
@@ -30,8 +32,8 @@ export default function Reporting() {
         >
           <BarChart3 size={24} style={{ color: 'var(--accent)' }} />
           <div className="stat-content">
-            <span className="stat-value">Usage Analytics</span>
-            <span className="stat-label">Coming Soon</span>
+            <span className="stat-value">{t('reporting.usageAnalytics')}</span>
+            <span className="stat-label">{t('reporting.comingSoon')}</span>
           </div>
         </motion.div>
 

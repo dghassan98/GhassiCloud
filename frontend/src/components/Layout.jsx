@@ -8,12 +8,14 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
+import { useLanguage } from '../context/LanguageContext'
 import '../styles/layout.css'
 
 export default function Layout() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
+  const { t } = useLanguage()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
   
@@ -98,7 +100,7 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}
           >
             <LayoutDashboard size={20} />
-            <span>Dashboard</span>
+            <span>{t('nav.dashboard')}</span>
           </NavLink>
           <NavLink 
             to="/reporting" 
@@ -106,7 +108,7 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}
           >
             <BarChart3 size={20} />
-            <span>Reporting</span>
+            <span>{t('nav.reporting')}</span>
           </NavLink>
           <NavLink 
             to="/settings" 
@@ -114,7 +116,7 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}
           >
             <Settings size={20} />
-            <span>Settings</span>
+            <span>{t('nav.settings')}</span>
           </NavLink>
         </nav>
 
@@ -122,8 +124,8 @@ export default function Layout() {
           {/* <div className="weather-card">
             <CloudSun size={24} />
             <div className="weather-info">
-              <span className="weather-temp">18°C</span>
-              <span className="weather-desc">Partly Cloudy</span>
+              <span className="weather-temp">{t('layout.weatherTemp')}</span>
+              <span className="weather-desc">{t('layout.weatherDesc')}</span>
             </div>
           </div> */}
 
@@ -133,14 +135,14 @@ export default function Layout() {
             tabIndex={0}
             onClick={() => { navigate('/settings'); setSidebarOpen(false) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/settings'); setSidebarOpen(false) } }}
-            aria-label="Open profile settings"
+            aria-label={t('layout.openProfile') || 'Open profile settings'}
           >
             <div className="avatar">
               {user?.avatar ? <img src={user.avatar} alt={user.displayName || user.username || 'Avatar'} /> : (user?.username?.charAt(0).toUpperCase() || 'U')}
             </div>
             <div className="user-details">
-              <span className="username">{user?.displayName || 'User'}</span>
-              <span className="role">{user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Member'}</span>
+              <span className="username">{user?.displayName || t('general.userFallback')}</span>
+              <span className="role">{user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : t('general.memberFallback')}</span>
             </div>
           </div>
           
@@ -148,17 +150,17 @@ export default function Layout() {
             <button 
               className="icon-button" 
               onClick={toggleTheme}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              title={theme === 'dark' ? t('settings.themeOptions.light') : t('settings.themeOptions.dark')}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="icon-button" title="Notifications">
+            <button className="icon-button" title={t('layout.notifications') || 'Notifications'}>
               <Bell size={18} />
             </button>
             <button 
               className="icon-button" 
               onClick={handleLogout}
-              title="Sign out"
+              title={t('settings.signOut')}
             >
               <LogOut size={18} />
             </button>

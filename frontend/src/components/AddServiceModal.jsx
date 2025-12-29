@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { X, Plus, Globe } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 
 const iconOptions = [
   'server', 'database', 'cloud', 'storage', 'security',
@@ -14,6 +15,7 @@ const colorOptions = [
 ]
 
 export default function AddServiceModal({ onClose, onAdd, iconMap }) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -48,7 +50,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>Add New Service</h2>
+          <h2>{t('service.addTitle')}</h2>
           <button className="close-button" onClick={onClose}>
             <X size={20} />
           </button>
@@ -56,10 +58,10 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Service Name</label>
+            <label>{t('service.fields.name')}</label>
             <input
               type="text"
-              placeholder="e.g., Jellyfin"
+              placeholder={t('service.placeholders.name') || 'e.g., Jellyfin'}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
@@ -67,10 +69,10 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
           </div>
 
           <div className="form-group">
-            <label>Description</label>
+            <label>{t('service.fields.description')}</label>
             <input
               type="text"
-              placeholder="e.g., Media streaming server"
+              placeholder={t('service.placeholders.description') || 'e.g., Media streaming server'}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
@@ -78,10 +80,10 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
           </div>
 
           <div className="form-group">
-            <label>URL</label>
+            <label>{t('service.fields.url')}</label>
             <input
               type="url"
-              placeholder="https://service.example.com"
+              placeholder={t('service.placeholders.url') || 'https://service.example.com'}
               value={formData.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
               required
@@ -89,7 +91,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
           </div>
 
           <div className="form-group">
-            <label>Icon</label>
+            <label>{t('service.fields.icon')}</label>
             <div className="icon-mode-toggle">
               <button
                 type="button"
@@ -97,14 +99,14 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
                 onClick={() => setFormData({ ...formData, useFavicon: true })}
               >
                 <Globe size={16} />
-                Auto (Favicon)
+                {t('service.icon.auto')}
               </button>
               <button
                 type="button"
                 className={`mode-btn ${!formData.useFavicon ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, useFavicon: false })}
               >
-                Choose Icon
+                {t('service.icon.choose')}
               </button>
             </div>
             {!formData.useFavicon && (
@@ -134,10 +136,10 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
                 const url = new URL(formData.url)
                 return (
                   <div className="favicon-preview" style={{ marginTop: '0.75rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Preview:</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('service.fields.preview')}</span>
                     <img 
                       src={`${url.origin}/favicon.ico`}
-                      alt="Favicon preview"
+                      alt={t('service.faviconPreview') || 'Favicon preview'}
                       style={{ width: 24, height: 24, marginLeft: '0.5rem' }}
                       onError={(e) => e.target.style.display = 'none'}
                     />
@@ -150,7 +152,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
           </div>
 
           <div className="form-group">
-            <label>Color</label>
+            <label>{t('service.fields.color')}</label>
             <div className="color-selector">
               {colorOptions.map((color) => (
                 <button
@@ -166,7 +168,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
 
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <motion.button
               type="submit"
@@ -175,7 +177,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
               whileTap={{ scale: 0.98 }}
             >
               <Plus size={18} />
-              Add Service
+              {t('dashboard.addService')}
             </motion.button>
           </div>
         </form>

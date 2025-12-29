@@ -7,6 +7,7 @@ import {
   Monitor, Film, Music, FileText, Image,
   Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone
 } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 import ServiceCard from '../components/ServiceCard'
 import StatsCard from '../components/StatsCard'
 import { RefreshCw, Loader2 } from 'lucide-react'
@@ -40,13 +41,14 @@ const defaultServices = [
     id: '1',
     name: 'GhassiDrive',
     description: 'Your personal cloud storage',
-    url: 'https://drive.ghassandarwish.com',
+    url: 'https://drive.ghassandarwish.com/api/auth/oidc/login?redirect=%2Ffiles%2F',
     icon: 'cloud',
     color: '#0082c9',
     status: 'online',
     useFavicon: true,
     sortOrder: 0
   },
+
   {
     id: '2',
     name: 'GhassiGallery',
@@ -73,18 +75,20 @@ const defaultServices = [
     id: '4',
     name: 'GhassiStream',
     description: 'Your personal streaming service',
-    url: 'https://stream.ghassandarwish.com',
+    url: 'https://stream.ghassandarwish.com/sso/OID/start/keycloak',
     icon: 'media',
     color: '#13b9fd',
     status: 'online',
     useFavicon: true,
     sortOrder: 3
   },
+
+
   {
     id: '5',
     name: 'GhassiNotes',
     description: 'Your personal notes library',
-    url: 'https://notes.ghassandarwish.com',
+    url: 'https://notes.ghassandarwish.com/',
     icon: 'documents',
     color: '#f46800',
     status: 'online',
@@ -95,7 +99,7 @@ const defaultServices = [
     id: '6',
     name: 'GhassiShare',
     description: 'Your personal file sharing service',
-    url: 'https://share.ghassandarwish.com',
+    url: 'https://share.ghassandarwish.com/api/oauth/auth/oidc',
     icon: 'share-2',
     color: '#96060c',
     status: 'online',
@@ -504,6 +508,7 @@ export default function Dashboard() {
     return msgs[3]
   }
 
+  const { t } = useLanguage()
   const greeting = getGreeting();
 
   // compute status class for styling the existing top-right pill
@@ -527,7 +532,7 @@ export default function Dashboard() {
         />
         <div className="qr-code-text">
           <Smartphone size={14} />
-          <span>Scan me</span>
+          <span>{t('general.scanMe')}</span>
         </div>
       </a>
       
@@ -539,7 +544,7 @@ export default function Dashboard() {
       >
         <div className="hero-content">
           <h1>{greeting}</h1>
-          <p>Welcome to GhassiCloud. Embrace Digital Sovereignty.</p>
+          <p>{t('general.welcome')}</p>
         </div>
         <div className="hero-stats">
           <div style={{marginBottom:8, width: '100%', display: 'flex', justifyContent:'center'}}>
@@ -549,7 +554,7 @@ export default function Dashboard() {
           </div>
           <motion.div ref={servicesCardRef} className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="stats-content">
-              <span className="stats-label">Services Online</span>
+              <span className="stats-label">{t('dashboard.servicesOnline')}</span>
               <div className="ssc-row">
                 <span className="stats-value">{servicesOnlineLoading ? <Loader2 className="ssc-spin" size={20} /> : servicesOnline.value}</span>
                 <button
@@ -593,12 +598,12 @@ export default function Dashboard() {
                           <span className={`dot ${s.status === 'online' ? 'online' : 'offline'}`}></span>
                           <a className="service-link" href={s.url} target="_blank" rel="noreferrer">{s.name}</a>
                           <div className="item-actions">
-                            <button className="btn-icon" title="Check" onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
-                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title="Open"><ExternalLink size={14} /></a>
+                            <button className="btn-icon" title={t('service.check')} aria-label={t('service.check')} onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
+                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title={t('service.open')}><ExternalLink size={14} /></a>
                           </div>
                         </div>
-                      )) : <div className="popover-empty">No services</div>}
-                      <div className="popover-footer">Last checked: {servicesOnlineLoading ? 'Checking...' : (servicesStatus.total ? `${servicesStatus.online}/${servicesStatus.total}` : 'Never')}</div>
+                      )) : <div className="popover-empty">{t('dashboard.noServicesPopover')}</div>}
+                      <div className="popover-footer">{t('dashboard.lastChecked')}: {servicesOnlineLoading ? t('dashboard.checking') : (servicesStatus.total ? `${servicesStatus.online}/${servicesStatus.total}` : t('dashboard.never'))}</div>
                     </div>
                   </motion.div>
                 </AnimatePresence>,
@@ -615,7 +620,7 @@ export default function Dashboard() {
       {/* Services Section */}
       <section className="services-section">
         <div className="services-header">
-          <h2>Your Services</h2>
+          <h2>{t('dashboard.yourServices')}</h2>
           <div className="services-controls">
             <div className="search-box">
               <div className="search-input-wrap">
@@ -624,7 +629,7 @@ export default function Dashboard() {
                   id="search-input"
                   type="text"
                   aria-label="Search services"
-                  placeholder="Search services..."
+                  placeholder={t('dashboard.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -661,7 +666,7 @@ export default function Dashboard() {
               whileTap={{ scale: 0.95 }}
             >
               <Plus size={20} />
-              Add Service
+              {t('dashboard.addService')}
             </motion.button>
           </div>
         </div>
@@ -669,7 +674,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="services-loading">
             <div className="loading-spinner" />
-            <p>Loading services...</p>
+            <p>{t('dashboard.loadingServices')}</p>
           </div>
         ) : (
           <motion.div 
@@ -701,11 +706,11 @@ export default function Dashboard() {
             animate={{ opacity: 1 }}
           >
             <Cloud size={64} strokeWidth={1} />
-            <h3>No services found</h3>
-            <p>Add your first service to get started</p>
+            <h3>{t('dashboard.noServices')}</h3>
+            <p>{t('dashboard.addService')} &nbsp;{t('dashboard.getStarted') || ''}</p>
             <button onClick={() => setShowAddModal(true)}>
               <Plus size={20} />
-              Add Service
+              {t('dashboard.addService')}
             </button>
           </motion.div>
         )}
