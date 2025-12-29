@@ -11,6 +11,10 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Centered spinner when Services Online is fetching initial status */
+.ssc-loading { display:flex; align-items:center; justify-content:center; padding: 1rem 0; }
+.ssc-loading .loading-spinner { width:48px; height:48px; }
 /* ServicesStatusCard styles */
 .services-status-card {
   background: var(--card-bg, #181c2a);

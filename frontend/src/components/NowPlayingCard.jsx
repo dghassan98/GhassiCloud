@@ -254,6 +254,12 @@ export default function NowPlayingCard({ endpoint, accent }) {
         ) : (
           <div className="np-art-fallback">🎶</div>
         )}
+        {/* Loading spinner overlay while fetching */}
+        {loading && (
+          <div className="np-art-loading" aria-hidden>
+            <div className="loading-spinner" />
+          </div>
+        )}
       </div>
       <div className="np-body">
         <div className="np-meta">

@@ -195,6 +195,12 @@
   .np-art-wrap{width:66px;height:66px}
 }
 
+/* Loading overlay inside the art area */
+.np-art-wrap{ position: relative; }
+.np-art-loading{ position: absolute; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.05); z-index: 5; }
+.np-art-loading .loading-spinner{ width: 40px; height: 40px; }
+
+
 /* Logout button */
 .np-logout-btn{
   position:absolute;
