@@ -40,6 +40,44 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [requireReauth, setRequireReauth] = useState(false)
 
+  // Heuristic user-agent parser for friendly names (keeps bundle small)
+  const parseUserAgent = (ua) => {
+    if (!ua || typeof ua !== 'string' || ua.trim() === '') return { name: t('settings.ua.unknown') || 'Unknown' }
+    const s = ua
+    // Common checks in order
+    const checks = [
+      { re: /Electron\/(\d+[\.\d]*)/i, name: 'Electron' },
+      { re: /Edg\/(\d+[\.\d]*)/i, name: 'Edge' },
+      { re: /OPR\/(\d+[\.\d]*)/i, name: 'Opera' },
+      { re: /Chrome\/(\d+[\.\d]*)/i, name: 'Chrome' },
+      { re: /CriOS\/(\d+[\.\d]*)/i, name: 'Chrome (iOS)' },
+      { re: /Firefox\/(\d+[\.\d]*)/i, name: 'Firefox' },
+      { re: /FxiOS\/(\d+[\.\d]*)/i, name: 'Firefox (iOS)' },
+      { re: /Version\/(\d+[\.\d]*)\s+Safari\//i, name: 'Safari' },
+      { re: /Safari\/(\d+[\.\d]*)/i, name: 'Safari' },
+      { re: /Android\s+WebView/i, name: 'Android WebView' },
+      { re: /Mobile\/\w+.*Safari/i, name: 'Mobile Safari' },
+      { re: /PostmanRuntime\//i, name: 'Postman' },
+      { re: /Insomnia\//i, name: 'Insomnia' },
+      { re: /curl\/(\d+[\.\d]*)/i, name: 'curl' },
+      { re: /python-requests\/(\d+[\.\d]*)/i, name: 'python-requests' },
+      { re: /okhttp\/(\d+[\.\d]*)/i, name: 'okhttp' }
+    ]
+    for (const c of checks) {
+      const m = s.match(c.re)
+      if (m) {
+        return { name: c.name, version: m[1] || null }
+      }
+    }
+    // Fallback: extract product token at start (e.g., "Mozilla/5.0 (...) ...")
+    const prod = s.split(' ')[0]
+    if (prod && prod.includes('/')) {
+      const [prodName, prodVer] = prod.split('/')
+      return { name: prodName, version: prodVer }
+    }
+    return { name: s.slice(0, 30) }
+  }
+
   // confirmation modals
   const [sessionToRevoke, setSessionToRevoke] = useState(null)
   const [showSignoutAllConfirm, setShowSignoutAllConfirm] = useState(false)
@@ -57,22 +95,7 @@ export default function Settings() {
   const { showToast } = useToast()
 
   // Debug: log modal state transitions to help diagnose why modals don't appear
-  useEffect(() => {
-    console.debug('showSignoutAllConfirm =>', showSignoutAllConfirm)
-    setTimeout(() => {
-      const ssoCount = document.querySelectorAll('.sso-config-modal').length
-      const zoneCount = document.querySelectorAll('.sso-config-zone.reset-confirm-modal').length
-      console.debug('DOM sso modal count after showSignoutAllConfirm change:', ssoCount, 'zone count:', zoneCount)
-    }, 120)
-  }, [showSignoutAllConfirm])
-  useEffect(() => {
-    console.debug('sessionToRevoke =>', sessionToRevoke)
-    setTimeout(() => {
-      const ssoCount = document.querySelectorAll('.sso-config-modal').length
-      const zoneCount = document.querySelectorAll('.sso-config-zone.reset-confirm-modal').length
-      console.debug('DOM sso modal count after sessionToRevoke change:', ssoCount, 'zone count:', zoneCount)
-    }, 120)
-  }, [sessionToRevoke])
+
 
   // Detect SSO users reliably: backend flag or local marker set during SSO login
   const isSSO = Boolean(
@@ -342,8 +365,6 @@ export default function Settings() {
   }
 
   const handleSectionClick = (id) => {
-    // lightweight debug logging to help reproduce tab-switching issues
-    console.debug('Settings: switch to', id)
     setActiveSection(id)
   }
 
@@ -538,7 +559,7 @@ export default function Settings() {
                 <h3>{t('settings.activeSessionsTitle') || 'Active sessions'}</h3>
                 <p className="form-hint">{t('settings.activeSessionsDesc') || 'See devices and browsers currently signed in. Revoke any session you don\'t recognize.'}</p>
                 <div className="sessions-actions">
-                  <button className="btn-secondary" onClick={() => { console.debug('sign out everywhere clicked'); showToast({ message: 'Opening sign out confirmation', type: 'info' }); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setShowSignoutAllConfirm(true), 0) }}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
+                  <button className="btn-secondary" onClick={() => { /* defer to avoid overlay receiving the same click event */ setTimeout(() => setShowSignoutAllConfirm(true), 0) }}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
                 </div>
                 <div className="sessions-list">
                   {sessionsLoading ? (
@@ -548,10 +569,19 @@ export default function Settings() {
                       <p className="muted">{t('settings.noActiveSessions') || 'No active sessions'}</p>
                     ) : (
                       sessions.map(s => (
-                        <div key={s.id} className="session-row" onClick={() => console.debug('session row clicked', s.id)}>
+                        <div key={s.id} className="session-row">
                           <div className="session-info">
                             <strong>{s.clientId || s.client || 'Unknown'}</strong>
-                            <div className="muted">{s.userAgent ? (s.userAgent.length > 80 ? `${s.userAgent.slice(0,80)}…` : s.userAgent) : (s.ipAddress || 'Unknown')}</div>
+                            <div className="muted" title={s.userAgent || s.ipAddress || ''}>
+                              {s.userAgent ? (
+                                (() => {
+                                  const parsed = parseUserAgent(s.userAgent)
+                                  const name = parsed.name + (parsed.version ? ` ${parsed.version}` : '')
+                                  // show friendly name and keep truncated raw UA in title
+                                  return name.length > 48 ? `${name.slice(0,48)}…` : name
+                                })()
+                              ) : (s.ipAddress || 'Unknown')}
+                            </div>
                             <div className="muted small">{s.createdAt ? `${t('settings.started') || 'Started'} ${new Date(s.createdAt).toLocaleString()}` : ''} {s.lastAccess ? ` • ${t('settings.lastActive') || 'Last active'} ${new Date(s.lastAccess).toLocaleString()}` : ''}</div>
                             <div className="session-flags">
                               {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current'}</span>}
@@ -561,7 +591,7 @@ export default function Settings() {
                             </div>
                           </div>
                           <div className="session-actions">
-                            <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); console.debug('revoke session click', s.id); showToast({ message: 'Opening session revoke confirmation', type: 'info' }); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setSessionToRevoke(s), 0) }}>{t('settings.signOut') || 'Sign out'}</button>
+                            <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setSessionToRevoke(s), 0) }}>{t('settings.signOut') || 'Sign out'}</button>
                           </div>
                         </div>
                       ))
@@ -884,7 +914,6 @@ export default function Settings() {
           <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowSignoutAllConfirm(false) }}>
             <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
               <div className="reset-confirm-content">
-                {console.debug('rendering signout-all modal')}
                 <AlertTriangle size={48} className="warning-icon" />
                 <h3>{t('settings.confirmTitle')}</h3>
                 <p>{t('settings.signOutEverywhereConfirm')}</p>
@@ -921,7 +950,6 @@ export default function Settings() {
           <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setSessionToRevoke(null) }}>
             <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
               <div className="reset-confirm-content">
-                {console.debug('rendering session revoke modal', sessionToRevoke ? sessionToRevoke.id : null)}
                 <AlertTriangle size={48} className="warning-icon" />
                 <h3>{t('settings.confirmTitle')}</h3>
                 <p>{t('settings.signOutSessionConfirm')}</p>

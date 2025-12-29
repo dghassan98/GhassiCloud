@@ -395,6 +395,10 @@
 .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-right: 0.5rem; }
 .badge.current { background: var(--accent); color: white; }
 .badge.risk { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+
+/* Friendly UA label (small and subtle) */
+.session-info .muted { display: block; color: var(--text-muted); font-size: 0.9rem; }
+.session-info .muted[title] { cursor: help; }
 .badge.risk.differentIp { color: #eab308; }
 .badge.risk.differentDevice { color: #f97316; }
 .badge.risk.staleSession { color: #ef4444; }
@@ -824,35 +828,6 @@
   padding: 1rem;
 }
 
-/* Debug state badge (development-only) */
-.debug-modal-state {
-  position: fixed;
-  right: 12px;
-  top: 12px;
-  background: rgba(14,22,31,0.88);
-  color: #fff;
-  padding: 8px 10px;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  z-index: 100001;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-}
-.debug-modal-state div { opacity: 0.95; }
-
-/* Dev sentinel to clearly show modal mount during debugging */
-.dev-modal-sentinel {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(239, 68, 68, 0.95);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 8px;
-  z-index: 100002;
-  font-weight: 700;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-}
 
 
 
