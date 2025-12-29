@@ -40,6 +40,11 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [requireReauth, setRequireReauth] = useState(false)
 
+  // confirmation modals
+  const [sessionToRevoke, setSessionToRevoke] = useState(null)
+  const [showSignoutAllConfirm, setShowSignoutAllConfirm] = useState(false)
+  const [revoking, setRevoking] = useState(false)
+
   // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
   const [emailVal, setEmailVal] = useState(user?.email || '')
@@ -50,6 +55,24 @@ export default function Settings() {
   const [avatarFile, setAvatarFile] = useState(null)
 
   const { showToast } = useToast()
+
+  // Debug: log modal state transitions to help diagnose why modals don't appear
+  useEffect(() => {
+    console.debug('showSignoutAllConfirm =>', showSignoutAllConfirm)
+    setTimeout(() => {
+      const ssoCount = document.querySelectorAll('.sso-config-modal').length
+      const zoneCount = document.querySelectorAll('.sso-config-zone.reset-confirm-modal').length
+      console.debug('DOM sso modal count after showSignoutAllConfirm change:', ssoCount, 'zone count:', zoneCount)
+    }, 120)
+  }, [showSignoutAllConfirm])
+  useEffect(() => {
+    console.debug('sessionToRevoke =>', sessionToRevoke)
+    setTimeout(() => {
+      const ssoCount = document.querySelectorAll('.sso-config-modal').length
+      const zoneCount = document.querySelectorAll('.sso-config-zone.reset-confirm-modal').length
+      console.debug('DOM sso modal count after sessionToRevoke change:', ssoCount, 'zone count:', zoneCount)
+    }, 120)
+  }, [sessionToRevoke])
 
   // Detect SSO users reliably: backend flag or local marker set during SSO login
   const isSSO = Boolean(
@@ -509,50 +532,23 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="danger-zone sso-danger-block">
-                <h3>{t('settings.dangerZone')}</h3>
-                <div className="danger-action">
-                  <div>
-                    <h4>{t('settings.ssoConfig.title')}</h4>
-                    <p>{t('settings.ssoConfig.desc')}</p>
-                  </div>
-                  <button className="btn-danger" onClick={() => setShowSSOEditor(true)}>{t('settings.ssoConfig.button')}</button>
-                </div>
-              </div>
-
               {/* Active sessions (Keycloak-backed users) */}
+              <hr className="section-sep" />
               <div className="settings-section sessions-section">
                 <h3>{t('settings.activeSessionsTitle') || 'Active sessions'}</h3>
                 <p className="form-hint">{t('settings.activeSessionsDesc') || 'See devices and browsers currently signed in. Revoke any session you don\'t recognize.'}</p>
                 <div className="sessions-actions">
-                  <button className="btn-secondary" onClick={async () => {
-                    if (!confirm(t('settings.signOutEverywhereConfirm') || 'Sign out from all devices?')) return
-                    const token = getAuthToken()
-                    if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
-                    try {
-                      const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ all: true }) })
-                      if (r.ok) {
-                        showToast({ message: t('settings.signOutEverywhereSuccess') || 'Signed out everywhere', type: 'success' })
-                        handleLoadSessions()
-                      } else {
-                        const data = await r.json()
-                        showToast({ message: data.message || 'Failed to revoke sessions', type: 'error' })
-                      }
-                    } catch (err) {
-                      console.error('Sign out everywhere error:', err)
-                      showToast({ message: t('settings.signOutEverywhereFailed') || 'Failed to sign out everywhere', type: 'error' })
-                    }
-                  }}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
+                  <button className="btn-secondary" onClick={() => { console.debug('sign out everywhere clicked'); showToast({ message: 'Opening sign out confirmation', type: 'info' }); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setShowSignoutAllConfirm(true), 0) }}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
                 </div>
                 <div className="sessions-list">
                   {sessionsLoading ? (
-                    <p>{t('common.loading') || 'Loading...'}</p>
+                    <div className="loading-spinner" aria-hidden="true" />
                   ) : (
                     sessions.length === 0 ? (
                       <p className="muted">{t('settings.noActiveSessions') || 'No active sessions'}</p>
                     ) : (
                       sessions.map(s => (
-                        <div key={s.id} className="session-row">
+                        <div key={s.id} className="session-row" onClick={() => console.debug('session row clicked', s.id)}>
                           <div className="session-info">
                             <strong>{s.clientId || s.client || 'Unknown'}</strong>
                             <div className="muted">{s.userAgent ? (s.userAgent.length > 80 ? `${s.userAgent.slice(0,80)}…` : s.userAgent) : (s.ipAddress || 'Unknown')}</div>
@@ -565,29 +561,24 @@ export default function Settings() {
                             </div>
                           </div>
                           <div className="session-actions">
-                            <button className="btn-secondary" onClick={async () => {
-                              if (!confirm(t('settings.signOutSessionConfirm') || 'Sign out this session?')) return
-                              const token = getAuthToken()
-                              if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
-                              try {
-                                const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ sessionId: s.id }) })
-                                if (r.ok) {
-                                  showToast({ message: t('settings.signOutSessionSuccess') || 'Session revoked', type: 'success' })
-                                  handleLoadSessions()
-                                } else {
-                                  const data = await r.json()
-                                  showToast({ message: data.message || 'Failed to revoke session', type: 'error' })
-                                }
-                              } catch (err) {
-                                console.error('Revoke session error:', err)
-                                showToast({ message: t('settings.signOutSessionFailed') || 'Failed to revoke session', type: 'error' })
-                              }
-                            }}>{t('settings.signOut') || 'Sign out'}</button>
+                            <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); console.debug('revoke session click', s.id); showToast({ message: 'Opening session revoke confirmation', type: 'info' }); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setSessionToRevoke(s), 0) }}>{t('settings.signOut') || 'Sign out'}</button>
                           </div>
                         </div>
                       ))
                     )
                   )}
+                </div>
+              </div>
+
+              <hr className="section-sep" />
+              <div className="danger-zone sso-danger-block">
+                <h3>{t('settings.dangerZone')}</h3>
+                <div className="danger-action">
+                  <div>
+                    <h4>{t('settings.ssoConfig.title')}</h4>
+                    <p>{t('settings.ssoConfig.desc')}</p>
+                  </div>
+                  <button className="btn-danger" onClick={() => setShowSSOEditor(true)}>{t('settings.ssoConfig.button')}</button>
                 </div>
               </div>
 
@@ -853,6 +844,10 @@ export default function Settings() {
                     </div>
                   </motion.div>
                 )}
+
+
+
+
                 <div className="danger-action">
                   <div>
                     <h4>{t('settings.deleteAccountTitle')}</h4>
@@ -883,6 +878,93 @@ export default function Settings() {
             </motion.button>
           </div>
         </div>
+
+        {/* Confirmation modals (render at root so they aren't clipped by section containers) */}
+        {showSignoutAllConfirm && (
+          <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowSignoutAllConfirm(false) }}>
+            <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
+              <div className="reset-confirm-content">
+                {console.debug('rendering signout-all modal')}
+                <AlertTriangle size={48} className="warning-icon" />
+                <h3>{t('settings.confirmTitle')}</h3>
+                <p>{t('settings.signOutEverywhereConfirm')}</p>
+                <div className="reset-confirm-actions">
+                  <button className="btn-secondary" onClick={() => setShowSignoutAllConfirm(false)} disabled={revoking}>{t('common.cancel')}</button>
+                  <button className="btn-danger" onClick={async () => {
+                    setRevoking(true)
+                    try {
+                      const token = getAuthToken()
+                      if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
+                      const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ all: true }) })
+                      if (r.ok) {
+                        showToast({ message: t('settings.signOutEverywhereSuccess') || 'Signed out everywhere', type: 'success' })
+                        logout()
+                      } else {
+                        const data = await r.json()
+                        showToast({ message: data.message || 'Failed to revoke sessions', type: 'error' })
+                      }
+                    } catch (err) {
+                      console.error('Sign out everywhere error:', err)
+                      showToast({ message: t('settings.signOutEverywhereFailed') || 'Failed to sign out everywhere', type: 'error' })
+                    } finally {
+                      setRevoking(false)
+                      setShowSignoutAllConfirm(false)
+                    }
+                  }}>{t('settings.signOut') || 'Sign out'}</button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {sessionToRevoke && (
+          <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setSessionToRevoke(null) }}>
+            <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
+              <div className="reset-confirm-content">
+                {console.debug('rendering session revoke modal', sessionToRevoke ? sessionToRevoke.id : null)}
+                <AlertTriangle size={48} className="warning-icon" />
+                <h3>{t('settings.confirmTitle')}</h3>
+                <p>{t('settings.signOutSessionConfirm')}</p>
+                <div className="reset-confirm-actions">
+                  <button className="btn-secondary" onClick={() => setSessionToRevoke(null)} disabled={revoking}>{t('common.cancel')}</button>
+                  <button className="btn-danger" onClick={async () => {
+                    setRevoking(true)
+                    try {
+                      const token = getAuthToken()
+                      if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
+                      const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ sessionId: sessionToRevoke.id }) })
+                      if (r.ok) {
+                        showToast({ message: t('settings.signOutSessionSuccess') || 'Session revoked', type: 'success' })
+                        // If revoking our current session, logout locally
+                        try {
+                          const currentToken = getAuthToken()
+                          if (currentToken) {
+                            const payload = JSON.parse(atob(currentToken.split('.')[1]))
+                            if (payload && payload.sessionId === sessionToRevoke.id) {
+                              logout()
+                              return
+                            }
+                          }
+                        } catch (e) {}
+                        handleLoadSessions()
+                      } else {
+                        const data = await r.json()
+                        showToast({ message: data.message || 'Failed to revoke session', type: 'error' })
+                      }
+                    } catch (err) {
+                      console.error('Revoke session error:', err)
+                      showToast({ message: t('settings.signOutSessionFailed') || 'Failed to revoke session', type: 'error' })
+                    } finally {
+                      setRevoking(false)
+                      setSessionToRevoke(null)
+                    }
+                  }}>{t('settings.signOut') || 'Sign out'}</button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
       </div>
     </div>
   )

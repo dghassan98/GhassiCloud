@@ -138,6 +138,12 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Add tokens_invalid_before to allow invalidating tokens issued before a time
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
   
   // Add pinned column to services if it doesn't exist
   try {

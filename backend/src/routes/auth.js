@@ -244,8 +244,9 @@ router.post('/sso/callback', async (req, res) => {
       }
     }
 
-    // Generate our own JWT token
-    const token = generateToken(user)
+    // Generate our own JWT token and include Keycloak session id when available
+    const sessionId = tokens.session_state || tokens.sessionId || tokens.session || null
+    const token = generateToken(user, sessionId)
 
     res.json({
       token,
@@ -613,6 +614,8 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
         }
         // Remove local metadata for this user
         try { db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(user.id) } catch (e) { /* ignore */ }
+        // Invalidate any tokens issued before now
+        try { db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(user.id) } catch (e) { /* ignore */ }
         return res.json({ message: 'All sessions revoked' })
       } catch (err) {
         console.error('Logout all sessions error:', err)

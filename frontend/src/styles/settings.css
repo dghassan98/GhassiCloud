@@ -456,7 +456,7 @@
   place-items: center;
   background: rgba(6,10,15,0.45);
   backdrop-filter: blur(6px);
-  z-index: 60;
+  z-index: 110000 !important; /* ensure SSO-style modals appear above toasts and other UI */
   padding: 2rem;
 }
 .sso-config-zone {
@@ -786,13 +786,98 @@
   }
 }
 
+/* Section separator */
+.section-sep {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 1.25rem 0;
+  width: 100%;
+}
+
+/* Ensure sessions area and its buttons accept pointer events (workaround for overlapped elements) */
+.sessions-section, .sessions-actions, .session-row, .session-actions .btn-secondary {
+  pointer-events: auto;
+}
+.session-row { cursor: default; }
+.session-actions .btn-secondary { cursor: pointer; }
+
+/* Modal overlay used for confirmations (strong rule for settings page to beat global modal rules) */
+.settings-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 110000 !important; /* ensure overlays appear above toasts and other UI */
+  padding: 1rem;
+}
+/* Keep a fallback less-specific rule as well */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Debug state badge (development-only) */
+.debug-modal-state {
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  background: rgba(14,22,31,0.88);
+  color: #fff;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  z-index: 100001;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+.debug-modal-state div { opacity: 0.95; }
+
+/* Dev sentinel to clearly show modal mount during debugging */
+.dev-modal-sentinel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  z-index: 100002;
+  font-weight: 700;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+
+
+
+/* Loading spinner */
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 1rem auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 /* Reset Confirmation Modal */
 .reset-confirm-modal {
-  margin-top: 1rem;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border: 2px solid var(--danger);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
 }
 
 .reset-confirm-content {
