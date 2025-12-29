@@ -67,7 +67,16 @@
   "profile": { "firstName": "Nombre", "lastName": "Apellido", "displayName": "Nombre para mostrar", "username": "Nombre de usuario", "email": "Correo" },
   "reporting": { "title": "Informes", "description": "Análisis y conocimientos sobre tus servicios", "comingSoon": "Próximamente", "plannedFeatures": "Funciones planificadas", "usageAnalytics": "Analítica de uso", "features": { "dailyWeeklyMonthly": "Informes diarios/semanales/mensuales", "uptimeCharts": "Gráficos de disponibilidad del servicio", "mostAccessed": "Servicios más accedidos", "responseTime": "Monitoreo del tiempo de respuesta", "export": "Exportar informes como PDF/CSV", "dateRange": "Filtrado por rango de fechas personalizado", "emailReports": "Informes programados por correo electrónico" } },
   "nowPlaying": { "loading": "Cargando…", "nothingPlaying": "Nada reproduciéndose", "unknownArtist": "Artista desconocido", "noPlayerInfo": "Sin información del reproductor", "connectButton": "Conectar con GhassiMusic", "connectTitle": "Conectar con GhassiMusic", "signInDesc": "Inicia sesión en GhassiMusic para mostrar lo que se reproduce en tu panel.", "loggingIn": "Iniciando sesión…", "login": "Iniciar sesión" },
-  "service": { "check": "Comprobar estado", "edit": "Editar", "delete": "Eliminar", "pin": "Fijar", "unpin": "Quitar fijado", "open": "Abrir", "addTitle": "Agregar nuevo servicio", "editTitle": "Editar servicio", "fields": { "name": "Nombre del servicio", "description": "Descripción", "url": "URL", "icon": "Icono", "preview": "Vista previa:", "color": "Color" }, "placeholders": { "name": "p.ej., Jellyfin", "description": "p.ej., Servidor de streaming de medios", "url": "https://service.ejemplo.com" }, "faviconPreview": "Vista previa del favicon" },
+  "service": { "check": "Comprobar estado", "edit": "Editar", "delete": "Eliminar", "pin": "Fijar", "unpin": "Quitar fijado", "open": "Abrir", "addTitle": "Agregar nuevo servicio", "editTitle": "Editar servicio", "fields": { "name": "Nombre del servicio", "description": "Descripción", "url": "URL", "icon": "Icono", "preview": "Vista previa:", "color": "Color" }, "placeholders": { "name": "p.ej., Jellyfin", "description": "p.ej., Servidor de streaming de medios", "url": "https://service.ejemplo.com" }, "faviconPreview": "Vista previa del favicon",
+    "extraAuth": "Requiere autenticación adicional",
+    "extraAuthShort": "Auth requerida",
+    "extraAuthDesc": "Este servicio requiere autenticación adicional y no puede iniciar sesión mediante OIDC de forma inmediata.",
+    "ghassiMusicDesc": "Tu biblioteca de música personal",
+    "ghassiNotesDesc": "Tu biblioteca de notas personal",
+    "ghassiDriveDesc": "Tu almacenamiento en la nube personal",
+    "ghassiGalleryDesc": "Tu galería en la nube personal",
+    "ghassiStreamDesc": "Tu servicio de streaming personal",
+    "ghassiShareDesc": "Tu servicio personal para compartir archivos" },
   "app": { "loading": "Cargando GhassiCloud..." },
   "common": { "cancel": "Cancelar", "close": "Cerrar" }
 }

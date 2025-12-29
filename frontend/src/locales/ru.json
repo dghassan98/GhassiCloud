@@ -67,7 +67,16 @@
   "profile": { "firstName": "Имя", "lastName": "Фамилия", "displayName": "Отображаемое имя", "username": "Имя пользователя", "email": "Эл. почта" },
   "reporting": { "title": "Отчёты", "description": "Аналитика и данные по вашим сервисам", "comingSoon": "Скоро", "plannedFeatures": "Планируемые функции", "usageAnalytics": "Аналитика использования", "features": { "dailyWeeklyMonthly": "Ежедневные/еженедельные/ежемесячные отчёты", "uptimeCharts": "Графики доступности сервисов", "mostAccessed": "Чаще всего используемые сервисы", "responseTime": "Мониторинг времени отклика", "export": "Экспорт отчётов в PDF/CSV", "dateRange": "Фильтрация по диапазону дат", "emailReports": "Рассылка отчётов по электронной почте" } },
   "nowPlaying": { "loading": "Загрузка…", "nothingPlaying": "Ничего не воспроизводится", "unknownArtist": "Исполнитель неизвестен", "noPlayerInfo": "Нет данных плеера", "connectButton": "Подключиться к GhassiMusic", "connectTitle": "Подключиться к GhassiMusic", "signInDesc": "Войдите в GhassiMusic, чтобы показать, что воспроизводится на вашей панели.", "loggingIn": "Вход…", "login": "Войти" },
-  "service": { "check": "Проверить состояние", "edit": "Редактировать", "delete": "Удалить", "pin": "Закрепить", "unpin": "Открепить", "open": "Открыть", "addTitle": "Добавить новый сервис", "editTitle": "Редактировать сервис", "fields": { "name": "Название сервиса", "description": "Описание", "url": "URL", "icon": "Иконка", "preview": "Превью:", "color": "Цвет" }, "placeholders": { "name": "напр., Jellyfin", "description": "напр., Медиа-сервер", "url": "https://service.example.com" }, "faviconPreview": "Превью фавикона" },
+  "service": { "check": "Проверить состояние", "edit": "Редактировать", "delete": "Удалить", "pin": "Закрепить", "unpin": "Открепить", "open": "Открыть", "addTitle": "Добавить новый сервис", "editTitle": "Редактировать сервис", "fields": { "name": "Название сервиса", "description": "Описание", "url": "URL", "icon": "Иконка", "preview": "Превью:", "color": "Цвет" }, "placeholders": { "name": "напр., Jellyfin", "description": "напр., Медиа-сервер", "url": "https://service.example.com" }, "faviconPreview": "Превью фавикона",
+    "extraAuth": "Требуется дополнительная аутентификация",
+    "extraAuthShort": "Треб. аут.",
+    "extraAuthDesc": "Этот сервис требует дополнительной аутентификации и не может сразу выполнить вход через OIDC.",
+    "ghassiMusicDesc": "Ваша личная музыкальная библиотека",
+    "ghassiNotesDesc": "Ваша личная библиотека заметок",
+    "ghassiDriveDesc": "Ваше личное облачное хранилище",
+    "ghassiGalleryDesc": "Ваша личная галерея",
+    "ghassiStreamDesc": "Ваш персональный стриминговый сервис",
+    "ghassiShareDesc": "Ваш персональный сервис обмена файлами" },
   "app": { "loading": "Загрузка GhassiCloud..." },
   "common": { "cancel": "Отмена", "close": "Закрыть" }
 }

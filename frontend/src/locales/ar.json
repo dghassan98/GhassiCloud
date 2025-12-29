@@ -67,7 +67,17 @@
   "profile": { "firstName": "الاسم الأول", "lastName": "اسم العائلة", "displayName": "اسم العرض", "username": "اسم المستخدم", "email": "البريد الإلكتروني" },
   "reporting": { "title": "التقارير", "description": "تحليلات ونتائج حول خدماتك", "comingSoon": "قريبًا", "plannedFeatures": "الميزات المخطط لها", "usageAnalytics": "تحليلات الاستخدام", "features": { "dailyWeeklyMonthly": "تقارير يومية/أسبوعية/شهرية", "uptimeCharts": "مخططات زمن تشغيل الخدمة", "mostAccessed": "أكثر الخدمات استخدامًا", "responseTime": "مراقبة زمن الاستجابة", "export": "تصدير التقارير كـ PDF/CSV", "dateRange": "تصفية بنطاق تاريخ مخصص", "emailReports": "تقارير مجدولة عبر البريد الإلكتروني" } },
   "nowPlaying": { "loading": "جارٍ التحميل…", "nothingPlaying": "لا يوجد تشغيل", "unknownArtist": "فنان غير معروف", "noPlayerInfo": "لا توجد معلومات عن المشغل", "connectButton": "الاتصال بـ GhassiMusic", "connectTitle": "الاتصال بـ GhassiMusic", "signInDesc": "قم بتسجيل الدخول إلى GhassiMusic لإظهار ما يتم تشغيله على لوحة القيادة.", "loggingIn": "تسجيل الدخول…", "login": "تسجيل الدخول" },
-  "service": { "check": "التحقق من الحالة", "edit": "تحرير", "delete": "حذف", "pin": "تثبيت", "unpin": "إلغاء التثبيت", "open": "فتح", "addTitle": "إضافة خدمة جديدة", "editTitle": "تحرير الخدمة", "fields": { "name": "اسم الخدمة", "description": "الوصف", "url": "URL", "icon": "أيقونة", "preview": "معاينة:", "color": "لون" }, "placeholders": { "name": "مثال: Jellyfin", "description": "مثال: خادم بث وسائط", "url": "https://service.example.com" }, "faviconPreview": "معاينة الأيقونة" },
+  "service": { "check": "التحقق من الحالة", "edit": "تحرير", "delete": "حذف", "pin": "تثبيت", "unpin": "إلغاء التثبيت", "open": "فتح", "addTitle": "إضافة خدمة جديدة", "editTitle": "تحرير الخدمة", "fields": { "name": "اسم الخدمة", "description": "الوصف", "url": "URL", "icon": "أيقونة", "preview": "معاينة:", "color": "لون" }, "placeholders": { "name": "مثال: Jellyfin", "description": "مثال: خادم بث وسائط", "url": "https://service.example.com" }, "faviconPreview": "معاينة الأيقونة",
+    "extraAuth": "يتطلب مصادقة إضافية",
+    "extraAuthShort": "مطلوب مصادقة",
+    "extraAuthDesc": "تتطلب هذه الخدمة مصادقة إضافية ولا يمكنها تنفيذ تسجيل OIDC الفوري.",
+    "ghassiMusicDesc": "مكتبة الموسيقى الشخصية",
+    "ghassiNotesDesc": "مكتبة الملاحظات الشخصية",
+    "ghassiDriveDesc": "التخزين السحابي الشخصي",
+    "ghassiGalleryDesc": "معرض الصور السحابي الشخصي",
+    "ghassiStreamDesc": "خدمة البث الشخصية",
+    "ghassiShareDesc": "خدمة مشاركة الملفات الشخصية"
+  },
   "app": { "loading": "جارٍ تحميل GhassiCloud..." },
   "common": { "cancel": "إلغاء", "close": "إغلاق" }
 }

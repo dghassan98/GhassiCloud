@@ -140,7 +140,16 @@
     "editTitle": "Dienst bearbeiten",
     "fields": { "name": "Dienstname", "description": "Beschreibung", "url": "URL", "icon": "Icon", "preview": "Vorschau:", "color": "Farbe" },
     "placeholders": { "name": "z. B. Jellyfin", "description": "z. B. Media-Streaming-Server", "url": "https://service.beispiel.de" },
-    "faviconPreview": "Favicon-Vorschau"
+    "faviconPreview": "Favicon-Vorschau",
+    "extraAuth": "Erfordert zusätzliche Authentifizierung",
+    "extraAuthShort": "Auth erforderlich",
+    "extraAuthDesc": "Dieser Dienst erfordert zusätzliche Authentifizierung und kann keine sofortige OIDC-Anmeldung durchführen.",
+    "ghassiMusicDesc": "Ihre persönliche Musiksammlung",
+    "ghassiNotesDesc": "Ihre persönlichen Notizen",
+    "ghassiDriveDesc": "Ihr persönlicher Cloud-Speicher",
+    "ghassiGalleryDesc": "Ihre persönliche Cloud-Galerie",
+    "ghassiStreamDesc": "Ihr persönlicher Streamingdienst",
+    "ghassiShareDesc": "Ihr persönlicher Dateifreigabedienst"
   },
   "app": {
     "loading": "GhassiCloud wird geladen..."

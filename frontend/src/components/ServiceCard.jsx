@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw } from 'lucide-react'
+import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw, AlertTriangle } from 'lucide-react' 
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 
@@ -14,11 +14,62 @@ const FAVICON_PATHS = [
 
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
   const { t } = useLanguage()
+  // Localized description if a translation key is provided on the service
+  const descText = service.descriptionKey ? t(service.descriptionKey) : service.description
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [faviconPathIndex, setFaviconPathIndex] = useState(0)
   const rootRef = useRef(null)
+  const authBtnRef = useRef(null)
+  const [authOpen, setAuthOpen] = useState(false)
+  // Inline auth message state
+  const [tooltipVisible, setTooltipVisible] = useState(false)
+  const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0, placement: 'top' })
+  // NOTE: legacy portal tooltip code removed; keeping placeholders in case we reintroduce later.
   const Icon = iconMap[service.icon] || iconMap.default
+
+  // Local inline auth message (no header dispatch) — show/hide inside the card
+  const showAuthLabel = () => {
+    setAuthOpen(true)
+  }
+  const hideAuthLabel = () => {
+    setAuthOpen(false)
+  }
+  const toggleAuthLabel = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    if (authOpen) hideAuthLabel()
+    else showAuthLabel()
+  }
+  // keep inline auth message open/closed on outside clicks
+  useEffect(() => {
+    const onDoc = (ev) => {
+      // close inline auth message when clicking elsewhere
+      if (authBtnRef.current && authBtnRef.current.contains(ev.target)) return
+      if (authOpen) hideAuthLabel()
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('touchstart', onDoc)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('touchstart', onDoc)
+    }
+  }, [authOpen])
+
+  // Close auth message on outside clicks when open
+  useEffect(() => {
+    const onDocClick = (ev) => {
+      if (!authOpen) return
+      if (authBtnRef.current && authBtnRef.current.contains(ev.target)) return
+      hideAuthLabel()
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('touchstart', onDocClick)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('touchstart', onDocClick)
+    }
+  }, [authOpen])
   
   // Get favicon URL - try multiple paths
   const getFaviconUrl = () => {
@@ -93,9 +144,9 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
       transition={{ duration: 0.18 }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={handleClick}
-      style={{ '--accent-color': service.color }}
+      style={{ '--np-accent': service.color }}
     >
-      <div className="card-glow" style={{ backgroundColor: service.color }} />
+      <div className="card-glow" />
       
       {viewMode === 'list' ? (
         <div className="card-header list-mode">
@@ -131,10 +182,40 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                 >
                   <Pin size={12} />
                 </button>
+                {service.requiresExtraAuth && (
+                  <button
+                    ref={authBtnRef}
+                    type="button"
+                    className="auth-warning-button small"
+                    onMouseEnter={(e) => { e.stopPropagation(); setAuthOpen(true) }}
+                    onMouseLeave={(e) => { e.stopPropagation(); setAuthOpen(false) }}
+                    onFocus={(e) => { e.stopPropagation(); setAuthOpen(true) }}
+                    onBlur={(e) => { e.stopPropagation(); setAuthOpen(false) }}
+                    onClick={(e) => { e.stopPropagation(); toggleAuthLabel() }}
+                    aria-label={t('service.extraAuth')}
+                    aria-expanded={authOpen}
+                  >
+                    <AlertTriangle size={12} />
+                  </button>
+                )}
               </div>
               <h3>{service.name}</h3>
             </div>
-            <div className="muted-desc">{service.description}</div>
+            <div className="muted-desc">{descText}</div>
+
+            {/* Inline auth message inside the card (hoverable/toggleable) */}
+            {service.requiresExtraAuth && (
+              <div
+                className={`auth-inline ${authOpen ? 'visible' : ''}`}
+                role="status"
+                aria-live="polite"
+                onMouseEnter={() => setAuthOpen(true)}
+                onMouseLeave={() => setAuthOpen(false)}
+              >
+                {t('service.extraAuthDesc')}
+              </div>
+            )}
+
           </div>
 
           <div className="card-actions list-actions">
@@ -235,6 +316,23 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
               >
                 <Pin size={14} />
               </button>
+
+              {service.requiresExtraAuth && (
+                <button
+                  ref={authBtnRef}
+                  type="button"
+                  className="auth-warning-button"
+                  onMouseEnter={(e) => { e.stopPropagation(); showAuthLabel() }}
+                  onMouseLeave={(e) => { e.stopPropagation(); hideAuthLabel() }}
+                  onFocus={(e) => { e.stopPropagation(); showAuthLabel() }}
+                  onBlur={(e) => { e.stopPropagation(); hideAuthLabel() }}
+                  onClick={toggleAuthLabel}
+                  aria-label={t('service.extraAuth')}
+                >
+                  <AlertTriangle size={14} />
+                </button>
+              )}
+
               <div 
                 className="status-indicator"
                 style={{ backgroundColor: statusColors[service.status] }}
@@ -293,7 +391,19 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
 
           <div className="card-content">
             <h3>{service.name}</h3>
-            <p>{service.description}</p>
+            <p>{descText}</p>
+
+            {service.requiresExtraAuth && (
+              <div
+                className={`auth-inline ${authOpen ? 'visible' : ''}`}
+                role="status"
+                aria-live="polite"
+                onMouseEnter={() => setAuthOpen(true)}
+                onMouseLeave={() => setAuthOpen(false)}
+              >
+                {t('service.extraAuthDesc')}
+              </div>
+            )}
           </div>
         </>
       )}

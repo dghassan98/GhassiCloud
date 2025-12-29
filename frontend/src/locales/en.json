@@ -152,7 +152,16 @@
     "editTitle": "Edit Service",
     "fields": { "name": "Service Name", "description": "Description", "url": "URL", "icon": "Icon", "preview": "Preview:", "color": "Color" },
     "placeholders": { "name": "e.g., Jellyfin", "description": "e.g., Media streaming server", "url": "https://service.example.com" },
-    "faviconPreview": "Favicon preview"
+    "faviconPreview": "Favicon preview",
+    "extraAuth": "Requires additional authentication",
+    "extraAuthShort": "Auth required",
+    "extraAuthDesc": "This service requires additional authentication and cannot perform immediate OIDC sign-in.",
+    "ghassiMusicDesc": "Your personal music library",
+    "ghassiNotesDesc": "Your personal notes library",
+    "ghassiDriveDesc": "Your personal cloud storage",
+    "ghassiGalleryDesc": "Your personal cloud gallery",
+    "ghassiStreamDesc": "Your personal streaming service",
+    "ghassiShareDesc": "Your personal file sharing service"
   },
   "app": {
     "loading": "Loading GhassiCloud..."

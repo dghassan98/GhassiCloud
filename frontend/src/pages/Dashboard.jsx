@@ -41,6 +41,7 @@ const defaultServices = [
     id: '1',
     name: 'GhassiDrive',
     description: 'Your personal cloud storage',
+    descriptionKey: 'service.ghassiDriveDesc',
     url: 'https://drive.ghassandarwish.com/api/auth/oidc/login?redirect=%2Ffiles%2F',
     icon: 'cloud',
     color: '#0082c9',
@@ -53,6 +54,7 @@ const defaultServices = [
     id: '2',
     name: 'GhassiGallery',
     description: 'Your personal cloud gallery',
+    descriptionKey: 'service.ghassiGalleryDesc',
     url: 'https://gallery.ghassandarwish.com',
     icon: 'photo',
     color: '#e5a00d',
@@ -64,17 +66,20 @@ const defaultServices = [
     id: '3',
     name: 'GhassiMusic',
     description: 'Your personal music library',
+    descriptionKey: 'service.ghassiMusicDesc',
     url: 'https://music.ghassandarwish.com',
     icon: 'music',
     color: '#41bdf5',
     status: 'online',
     useFavicon: true,
+    requiresExtraAuth: true,
     sortOrder: 2
   },
   {
     id: '4',
     name: 'GhassiStream',
     description: 'Your personal streaming service',
+    descriptionKey: 'service.ghassiStreamDesc',
     url: 'https://stream.ghassandarwish.com/sso/OID/start/keycloak',
     icon: 'media',
     color: '#13b9fd',
@@ -88,17 +93,20 @@ const defaultServices = [
     id: '5',
     name: 'GhassiNotes',
     description: 'Your personal notes library',
+    descriptionKey: 'service.ghassiNotesDesc',
     url: 'https://notes.ghassandarwish.com/',
     icon: 'documents',
     color: '#f46800',
     status: 'online',
     useFavicon: true,
+    requiresExtraAuth: true,
     sortOrder: 4
   },
   {
     id: '6',
     name: 'GhassiShare',
     description: 'Your personal file sharing service',
+    descriptionKey: 'service.ghassiShareDesc',
     url: 'https://share.ghassandarwish.com/api/oauth/auth/oidc',
     icon: 'share-2',
     color: '#96060c',
@@ -162,6 +170,8 @@ export default function Dashboard() {
   const [editingService, setEditingService] = useState(null)
   const [loading, setLoading] = useState(true)
   const token = localStorage.getItem('ghassicloud-token')
+
+
   // Fetch real-time services online status
   // Real-time Services Online with manual refresh
   const fetchServicesOnline = async () => {
@@ -621,6 +631,7 @@ export default function Dashboard() {
       <section className="services-section">
         <div className="services-header">
           <h2>{t('dashboard.yourServices')}</h2>
+
           <div className="services-controls">
             <div className="search-box">
               <div className="search-input-wrap">

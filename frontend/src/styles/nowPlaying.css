@@ -69,14 +69,14 @@
   display:flex;
   gap:6px; /* slightly tighter between artist and album */
   line-height:1.22;
-  padding-bottom:2px;
+  padding-bottom:6px; /* provide bottom spacing for both elements */
   align-items:center;
   color:#9fb0c9;
   font-size:13px;
-  flex-wrap:wrap;
+  flex-wrap:nowrap; /* keep artist and album on one line */
 }
 
-.np-artist{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.np-artist{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.22; min-width:0}
 /* Album name: allow up to two lines and clamp with ellipsis */
 .np-album{
   opacity:0.9;
