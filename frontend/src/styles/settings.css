@@ -353,6 +353,186 @@
   color: var(--text-muted);
 }
 
+/* SSO card style (in Security tab) */
+.sso-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-card));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+/* Sessions list */
+.sessions-section {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.sessions-actions {
+  margin-bottom: 1rem;
+}
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.session-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+.session-info strong { display: block; }
+.session-info .muted { color: var(--text-muted); font-size: 0.9rem; }
+.session-info .muted.small { font-size: 0.8rem; color: var(--text-muted); }
+.session-actions .btn-secondary { padding: 0.35rem 0.75rem; }
+
+/* Badges for current session and risk */
+.badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-right: 0.5rem; }
+.badge.current { background: var(--accent); color: white; }
+.badge.risk { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+.badge.risk.differentIp { color: #eab308; }
+.badge.risk.differentDevice { color: #f97316; }
+.badge.risk.staleSession { color: #ef4444; }
+.badge.risk.unknownClient { color: #64748b; }
+
+.sso-card-left {
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+.sso-card-left svg {
+  color: var(--accent);
+}
+.sso-card-body h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.sso-card-body p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.sso-card-actions {
+  margin-left: auto;
+}
+.sso-card-actions .btn-primary {
+  text-decoration: none;
+  padding: 0.45rem 0.75rem; /* slightly smaller */
+  font-size: 0.95rem;
+}
+
+/* Remove legacy security info placeholders entirely in favor of Danger Zone */
+.settings-section .security-info { display: none; }
+
+/* Top SSO card - full width */
+.sso-top-card {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+
+/* Hide any SSO card that is a direct child of settings-content (this removes the duplicate top card)
+   while keeping the SSO card that lives inside the canonical `.settings-section` visible. */
+.settings-content > .sso-card {
+  display: none;
+}
+
+/* SSO config editor (danger-zone style) */
+.sso-config-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(6,10,15,0.45);
+  backdrop-filter: blur(6px);
+  z-index: 60;
+  padding: 2rem;
+}
+.sso-config-zone {
+  width: 100%;
+  max-width: 760px;
+  padding: 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin-top: 1rem;
+  box-shadow: 0 10px 30px rgba(4,6,12,0.6);
+}
+.sso-config-zone .form-group input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+}
+.sso-config-zone h3 {
+  margin: 0 0 0.5rem 0;
+}
+.sso-config-zone .danger-action {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  /* Remove red-tinted block background inside the modal */
+  background: transparent;
+  padding: 0;
+}
+.sso-config-zone .danger-action button:last-child { margin-left: 0.5rem; }.sso-card {
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border-color);
+}
+.sso-card-left { color: var(--accent); }
+.sso-card-body { flex: 1; }
+.sso-card-actions { display: flex; align-items: center; }
+.sso-card-actions .btn-secondary { border-radius: 0.5rem; }
+
+/* Button with inline icon */
+.btn-icon { display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.btn-icon svg { vertical-align: middle; }
+
+.sso-card .btn-primary { padding: 0.5rem 0.9rem; }
+.sso-card .btn-secondary { padding: 0.5rem 0.9rem; }
+
+/* Hide the legacy two-factor block inside the security section (admin can re-enable later) */
+.section-security .settings-section .security-info:nth-of-type(1) {
+  display: none;
+}
+/* Hide the legacy two-factor block inside the security section (admin can re-enable later) */
+.section-security .settings-section .security-info:nth-of-type(1) {
+  display: none;
+}
+
+/* Hide any security-info that has an empty heading/description to ensure 2FA is not shown */
+.security-info h4:empty,
+.security-info p:empty {
+  display: none;
+}
+.security-info:has(> h4:empty) {
+  display: none;
+}
+.security-info:has(> h4:empty) button,
+.security-info:has(> p:empty) button {
+  display: none;
+}
+
+/* Keep hide rule as a fallback for older UI where inputs may render */
+.sso-user .settings-section .form-group:has(input[type="password"]) {
+  display: none;
+}
+
 /* Data Actions */
 .data-actions {
   display: grid;
@@ -432,6 +612,8 @@
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-color);
 }
+
+
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -38,11 +38,12 @@
     "profile": "Profile Settings",
     "appearance": "Appearance",
     "theme": "Theme",
-    "theme": {
+    "themeOptions": {
       "light": "Light",
       "dark": "Dark",
       "system": "System"
     },
+    "tabs": { "profile": "Profile Settings", "appearance": "Appearance", "security": "Security", "notifications": "Notifications", "data": "Data & Backup" },
     "accentColor": "Accent Color",
     "logoStyle": "Logo Style",
     "logoHint": "Choose your preferred logo style for the dashboard",
@@ -56,14 +57,19 @@
     "confirmPassword": "Confirm New Password",
     "confirmPasswordPlaceholder": "Confirm new password",
     "twoFactor": {
-      "title": "Two-Factor Authentication",
-      "desc": "Add an extra layer of security to your account"
+      "title": "",
+      "desc": ""
     },
-    "enable2FA": "Enable 2FA",
+    "enable2FA": "",
     "ssoConfig": {
       "title": "SSO Configuration",
       "desc": "Connect with your identity provider",
-      "button": "Configure SSO"
+      "button": "Edit SSO",
+      "editHint": "Edit SSO configuration. Changing this may affect user login. Save with care.",
+      "saved": "SSO configuration saved",
+      "reset": "Reset to defaults",
+      "resetConfirm": "Reset SSO config to defaults? This cannot be undone.",
+      "resetSuccess": "SSO configuration reset to defaults"
     },
     "notifications": {
       "serviceAlerts": { "title": "Service Status Alerts", "desc": "Get notified when a service goes offline" },
@@ -91,7 +97,6 @@
     "delete": "Delete",
     "saveChanges": "Save Changes",
     "signOut": "Sign Out",
-    "notifications": "Notifications",
     "uploadAvatar": "Upload Avatar",
     "removeAvatar": "Remove",
     "avatarTooLarge": "Avatar must be less than 2 MB",
@@ -104,8 +109,35 @@
     "languageHint": "Choose your preferred UI language",
     "usernameSSOHint": "Username is provided by your SSO provider and cannot be changed here.",
     "emailSSOHint": "Email is provided by your SSO provider and cannot be changed here.",
+    "passwordManagedBySSOTitle": "Password managed by identity provider",
+    "passwordManagedBySSO": "Your account uses single sign-on. To change your password, please visit your authentication provider.",
+    "changeOnAuthPlatform": "Change password",
+
     "resetSuccess": "All services have been reset successfully!",
-    "resetFailed": "Failed to reset services"
+    "resetFailed": "Failed to reset services",
+    "activeSessionsTitle": "Active sessions",
+    "activeSessionsDesc": "See devices and browsers currently signed in. Revoke any session you don't recognize.",
+    "signOutEverywhere": "Sign out everywhere",
+    "signOutEverywhereConfirm": "Sign out from all devices?",
+    "signOutEverywhereSuccess": "Signed out everywhere",
+    "signOutEverywhereFailed": "Failed to sign out everywhere",
+    "signOutSessionConfirm": "Sign out this session?",
+    "signOutSessionSuccess": "Session revoked",
+    "signOutSessionFailed": "Failed to revoke session",
+    "noActiveSessions": "No active sessions",
+    "requireReauthTitle": "Require re-authentication for critical actions",
+    "requireReauthDesc": "If enabled, you will be asked to re-enter your credentials for sensitive actions such as deleting your account or rotating tokens.",
+    "requireReauthSaved": "Security preference saved",
+    "requireReauthFailed": "Failed to save security preference",
+    "started": "Started",
+    "lastActive": "Last active",
+    "currentSession": "Current session",
+    "risk": {
+      "differentIp": "Different IP address",
+      "differentDevice": "Different device/browser",
+      "staleSession": "Long unused session",
+      "unknownClient": "Unknown client"
+    }
   },
   "profile": {
     "firstName": "First Name",

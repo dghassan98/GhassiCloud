@@ -20,6 +20,14 @@ export function AuthProvider({ children }) {
         if (res.ok) {
           const data = await res.json()
           setUser(data.user)
+          // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag
+          try {
+            if (data.user?.ssoProvider || data.user?.sso_provider) {
+              localStorage.setItem('ghassicloud-sso', 'true')
+            } else {
+              localStorage.removeItem('ghassicloud-sso')
+            }
+          } catch (e) {}
         } else {
           localStorage.removeItem('ghassicloud-token')
         }
@@ -174,6 +182,8 @@ export function AuthProvider({ children }) {
               }
 
               localStorage.setItem('ghassicloud-token', data.token)
+              // Mark that login was done via SSO so UI can rely on this even if backend lacks the flag
+              try { localStorage.setItem('ghassicloud-sso', 'true') } catch (e) {}
               setUser(data.user)
               
               // Clean up
@@ -235,6 +245,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('ghassicloud-token')
+    try { localStorage.removeItem('ghassicloud-sso') } catch (e) {}
     setUser(null)
   }
 

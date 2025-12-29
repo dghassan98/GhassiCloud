@@ -132,6 +132,12 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Add require_reauth flag (0/1) - allows user to require re-authentication for critical actions
+  try {
+    dbWrapper.exec(`ALTER TABLE users ADD COLUMN require_reauth INTEGER DEFAULT 0`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
   
   // Add pinned column to services if it doesn't exist
   try {
@@ -187,6 +193,19 @@ export async function initDatabase() {
       salt TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // Create table to persist user session metadata captured during SSO login
+  dbWrapper.exec(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      session_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      client_id TEXT,
+      ip TEXT,
+      user_agent TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_seen DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 

@@ -47,14 +47,31 @@ npm install
 
 2. **Configure environment (optional):**
 
-Edit `backend/.env` to customize:
+Copy `.env.example` to `.env` and edit the values (do NOT commit `.env`):
+
+```bash
+cp .env.example .env
+# then edit .env and fill secrets
+```
+
+Example values in `.env` include:
 ```env
 PORT=3001
 JWT_SECRET=your-super-secret-key
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASS=admin
+
+# Keycloak admin service account (recommended)
+KEYCLOAK_URL=https://auth.example.com
+KEYCLOAK_REALM=master
+KEYCLOAK_ADMIN_CLIENT_ID=ghassicloud-admin
+KEYCLOAK_ADMIN_CLIENT_SECRET=your-client-secret
+
+# Or, for quick testing only, you can paste a short-lived admin token (not recommended for production)
+# KEYCLOAK_ADMIN_TOKEN=<access_token>
 ```
 
+Note: `.env` is already included in `.gitignore` to prevent accidentally committing secrets.
 3. **Start development servers:**
 
 ```bash
