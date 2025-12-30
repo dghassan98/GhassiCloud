@@ -84,7 +84,7 @@
     "lastActive": "Última actividad",
     "currentSession": "Sesión actual",
     "risk": {
-      "differentIp": "Dirección IP diferente",
+
       "differentDevice": "Dispositivo/Navegador diferente",
       "staleSession": "Sesión sin usar por mucho tiempo",
       "unknownClient": "Cliente desconocido"
@@ -104,5 +104,5 @@
     "ghassiStreamDesc": "Tu servicio de streaming personal",
     "ghassiShareDesc": "Tu servicio personal para compartir archivos" },
   "app": { "loading": "Cargando GhassiCloud..." },
-  "common": { "cancel": "Cancelar", "close": "Cerrar" }
+  "common": { "cancel": "Cancelar", "close": "Cerrar", "loading": "Cargando..." }
 }

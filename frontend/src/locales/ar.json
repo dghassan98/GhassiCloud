@@ -84,7 +84,6 @@
     "lastActive": "آخر نشاط",
     "currentSession": "الجلسة الحالية",
     "risk": {
-      "differentIp": "عنوان IP مختلف",
       "differentDevice": "جهاز/متصفح مختلف",
       "staleSession": "جلسة لم تُستخدم منذ وقت طويل",
       "unknownClient": "عميل غير معروف"
@@ -105,5 +104,5 @@
     "ghassiShareDesc": "خدمة مشاركة الملفات الشخصية"
   },
   "app": { "loading": "جارٍ تحميل GhassiCloud..." },
-  "common": { "cancel": "إلغاء", "close": "إغلاق" }
+  "common": { "cancel": "إلغاء", "close": "إغلاق", "loading": "جارٍ التحميل..." }
 }

@@ -133,7 +133,6 @@
     "lastActive": "Last active",
     "currentSession": "Current session",
     "risk": {
-      "differentIp": "Different IP address",
       "differentDevice": "Different device/browser",
       "staleSession": "Long unused session",
       "unknownClient": "Unknown client"
@@ -200,6 +199,7 @@
   },
   "common": {
     "cancel": "Cancel",
-    "close": "Close"
+    "close": "Close",
+    "loading": "Loading..."
   }
 }

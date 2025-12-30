@@ -98,6 +98,43 @@ router.delete('/sso/config', authenticateToken, async (req, res) => {
 })
 
 // Exchange authorization code for tokens and create/login user (PKCE flow)
+function normalizeIp(ip) {
+  if (!ip) return null
+  let s = String(ip).trim()
+  if (!s) return null
+
+  // If header contains a list (e.g., X-Forwarded-For), take the first value
+  if (s.includes(',')) s = s.split(',')[0].trim()
+
+  // Remove surrounding brackets (e.g., [::1])
+  if (s.startsWith('[') && s.endsWith(']')) s = s.slice(1, -1)
+
+  // Strip IPv6 zone identifiers (fe80::1%eth0)
+  const pct = s.indexOf('%')
+  if (pct !== -1) s = s.slice(0, pct)
+
+  // Convert IPv4-mapped IPv6 to IPv4 (e.g., ::ffff:127.0.0.1)
+  const mapped = s.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/i)
+  if (mapped) s = mapped[1]
+
+  // Remove trailing port when present (IPv4:port or [IPv6]:port or IPv6:port)
+  const lastColon = s.lastIndexOf(':')
+  if (lastColon !== -1) {
+    const after = s.slice(lastColon + 1)
+    if (/^\d+$/.test(after)) {
+      const before = s.slice(0, lastColon)
+      // If before contains dots it's IPv4:port, otherwise IPv6:port — in both cases strip the port
+      s = before
+    }
+  }
+
+  s = s.trim()
+  if (!s) return null
+  // Treat values that are only punctuation (e.g., ":") as invalid
+  if (/^[^\w\d\.\:]+$/.test(s)) return null
+  return s.toLowerCase()
+}
+
 router.post('/sso/callback', async (req, res) => {
   try {
     const { code, redirectUri, codeVerifier } = req.body
@@ -174,10 +211,11 @@ router.post('/sso/callback', async (req, res) => {
     )
 
     // Capture session metadata for Active Sessions UI
+    let sessionId = tokens.session_state || tokens.sessionId || tokens.session || null
     try {
       // token response may include session_state or similar identifier
-      const sessionId = tokens.session_state || tokens.sessionId || tokens.session || null
-      const ip = req.ip || (req.headers && (req.headers['x-forwarded-for'] || req.connection?.remoteAddress)) || null
+      const rawIp = req.ip || (req.headers && (req.headers['x-forwarded-for'] || req.connection?.remoteAddress)) || null
+      const ip = normalizeIp(rawIp)
       const userAgent = req.headers?.['user-agent'] || ''
 
       if (sessionId) {
@@ -244,9 +282,8 @@ router.post('/sso/callback', async (req, res) => {
       }
     }
 
-    // Generate our own JWT token and include Keycloak session id when available
-    const sessionId = tokens.session_state || tokens.sessionId || tokens.session || null
-    const token = generateToken(user, sessionId)
+    // Generate our own JWT token and include the SSO session id when available
+    const token = generateToken(user, sessionId || null)
 
     res.json({
       token,
@@ -474,6 +511,61 @@ async function callKeycloakAdmin(path, options = {}) {
   return fetch(url, opts)
 }
 
+// Simple client name resolver with in-memory cache
+const _kcClientCache = { mapById: new Map(), mapByClientId: new Map(), expiresAt: 0 }
+async function resolveKeycloakClientName(key) {
+  if (!key) return null
+  // refresh cache every 60s
+  const now = Date.now()
+  if (now > _kcClientCache.expiresAt) {
+    _kcClientCache.mapById.clear()
+    _kcClientCache.mapByClientId.clear()
+    _kcClientCache.expiresAt = now + 60 * 1000
+  }
+
+  // check caches
+  if (_kcClientCache.mapById.has(key)) return _kcClientCache.mapById.get(key)
+  if (_kcClientCache.mapByClientId.has(key)) return _kcClientCache.mapByClientId.get(key)
+
+  try {
+    // Try treat key as UUID
+    let r = await callKeycloakAdmin(`/clients/${encodeURIComponent(key)}`, { method: 'GET' })
+    if (r.ok) {
+      const j = await r.json()
+      // Prefer the admin 'name' (display name) if available, otherwise fall back to clientId
+      const name = j.name || j.clientId || key
+      _kcClientCache.mapById.set(key, name)
+      if (j.id) _kcClientCache.mapById.set(j.id, name)
+      if (j.clientId) _kcClientCache.mapByClientId.set(j.clientId, name)
+      return name
+    }
+  } catch (e) {
+    // ignore and fallback
+  }
+
+  try {
+    // Try search by clientId
+    const q = `?clientId=${encodeURIComponent(key)}`
+    const r2 = await callKeycloakAdmin(`/clients${q}`, { method: 'GET' })
+    if (r2.ok) {
+      const arr = await r2.json()
+      if (Array.isArray(arr) && arr.length > 0) {
+        const j = arr[0]
+        // Prefer display name when present
+        const name = j.name || j.clientId || key
+        _kcClientCache.mapByClientId.set(key, name)
+        if (j.id) _kcClientCache.mapById.set(j.id, name)
+        return name
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // unresolved
+  return null
+}
+
 // Get active sessions for current user (Keycloak-backed users only)
 router.get('/sessions', authenticateToken, async (req, res) => {
   try {
@@ -499,23 +591,40 @@ router.get('/sessions', authenticateToken, async (req, res) => {
       const localMap = new Map(local.map(s => [s.session_id, s]))
 
       // Determine requester identifiers for marking current session and risk
-      const currentIp = (req.headers && (req.headers['x-forwarded-for'] || req.headers['x-forwarded-host']))
-        ? (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+      const currentIpRaw = (req.headers && (req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.headers['x-forwarded-host']))
+        ? ((req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim())
         : (req.ip || (req.connection && req.connection.remoteAddress) || null)
+      const currentIp = normalizeIp(currentIpRaw)
       const currentUA = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
+
+      // Resolve client display names for better UX
+      const uniqueClients = new Set()
+      kcSessions.forEach(k => { const candidate = k.client || k.clientId || (localMap.get(k.id) && localMap.get(k.id).client_id); if (candidate) uniqueClients.add(candidate) })
+      const clientDisplay = {}
+      await Promise.all(Array.from(uniqueClients).map(async (c) => {
+        try {
+          const resolved = await resolveKeycloakClientName(c)
+          if (resolved) clientDisplay[c] = resolved
+        } catch (e) { /* ignore */ }
+      }))
 
       const merged = kcSessions.map(k => {
         const matching = localMap.get(k.id)
-        const ipAddr = k.ipAddress || k.clientAddress || (matching && matching.ip) || null
+        const ipAddr = normalizeIp(k.ipAddress) || normalizeIp(k.clientAddress) || normalizeIp(matching && matching.ip) || null
         const ua = matching ? matching.user_agent : null
-        const clientId = k.client || k.clientId || (matching && matching.client_id) || null
+        const rawClient = k.client || k.clientId || (matching && matching.client_id) || null
+        const clientId = clientDisplay[rawClient] || rawClient || null
         const lastAccess = k.lastAccess || null
         const createdAt = matching ? matching.created_at : null
 
-        // Heuristic: current session if both IP and UA match (or UA contains matching snippet)
+        // Heuristic: current session if sessionId matches this token OR IP and UA match (or UA contains matching snippet)
         let isCurrent = false
         try {
-          if (ipAddr && currentIp && ipAddr === currentIp) {
+          if (req.user && req.user.sessionId && req.user.sessionId === k.id) {
+            isCurrent = true
+          }
+
+          if (!isCurrent && ipAddr && currentIp && ipAddr === currentIp) {
             if (!ua || !currentUA) isCurrent = true
             else if (currentUA === ua || currentUA.includes(ua) || ua.includes(currentUA.substring(0, 30))) isCurrent = true
           }
@@ -525,7 +634,6 @@ router.get('/sessions', authenticateToken, async (req, res) => {
 
         // Risk flags
         const risk = []
-        if (ipAddr && currentIp && ipAddr !== currentIp) risk.push('differentIp')
         if (ua && currentUA && ua !== currentUA && !(currentUA.includes(ua) || ua.includes(currentUA.substring(0, 30)))) risk.push('differentDevice')
         const last = lastAccess || createdAt
         if (last) {
@@ -541,6 +649,7 @@ router.get('/sessions', authenticateToken, async (req, res) => {
           id: k.id,
           ipAddress: ipAddr,
           clientId,
+          rawClientId: rawClient,
           start: k.start || null,
           lastAccess,
           userAgent: ua,
@@ -554,21 +663,29 @@ router.get('/sessions', authenticateToken, async (req, res) => {
       // Include any local-only sessions (where KC didn't return an id)
       local.forEach(l => {
         if (!kcSessions.find(k => k.id === l.session_id)) {
-          const ipAddr = l.ip
+          const ipAddr = normalizeIp(l.ip)
           const ua = l.user_agent
           let isCurrent = false
           try {
-            const currentIpHeader = (req.headers && (req.headers['x-forwarded-for'] || req.headers['x-forwarded-host'])) ? (req.headers['x-forwarded-for'] || '').split(',')[0].trim() : (req.ip || (req.connection && req.connection.remoteAddress) || null)
-            const currentUAHeader = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
-            if (ipAddr && currentIpHeader && ipAddr === currentIpHeader) {
-              if (!ua || !currentUAHeader) isCurrent = true
-              else if (currentUAHeader === ua || currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30))) isCurrent = true
+            // sessionId match takes precedence when available
+            if (req.user && req.user.sessionId && req.user.sessionId === l.session_id) {
+              isCurrent = true
+            }
+
+            if (!isCurrent) {
+            const currentIpHeaderRaw = (req.headers && (req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.headers['x-forwarded-host'])) ? ((req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim()) : (req.ip || (req.connection && req.connection.remoteAddress) || null)
+              const currentIpHeader = normalizeIp(currentIpHeaderRaw)
+              const currentUAHeader = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
+              if (ipAddr && currentIpHeader && ipAddr === currentIpHeader) {
+                if (!ua || !currentUAHeader) isCurrent = true
+                else if (currentUAHeader === ua || currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30))) isCurrent = true
+              }
             }
           } catch (e) {}
 
           const risk = []
-          if (ipAddr && req.ip && ipAddr !== req.ip) risk.push('differentIp')
-          if (ua && req.headers && req.headers['user-agent'] && ua !== req.headers['user-agent'] && !(req.headers['user-agent'].includes(ua) || ua.includes((req.headers['user-agent'] || '').substring(0, 30)))) risk.push('differentDevice')
+
+          if (ua && currentUAHeader && ua !== currentUAHeader && !(currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30)))) risk.push('differentDevice')
           const last = l.last_seen || l.created_at
           if (last) {
             const lastTs = new Date(last).getTime()
@@ -612,10 +729,14 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
           console.error('Keycloak logout-all failed:', r.status, text)
           return res.status(502).json({ message: 'Failed to logout user sessions via SSO provider' })
         }
+        // Mark tokens invalid before now so existing JWTs cannot be used
+        try {
+          db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(user.id)
+        } catch (e) {
+          console.warn('Failed to set tokens_invalid_before for user:', e)
+        }
         // Remove local metadata for this user
         try { db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(user.id) } catch (e) { /* ignore */ }
-        // Invalidate any tokens issued before now
-        try { db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(user.id) } catch (e) { /* ignore */ }
         return res.json({ message: 'All sessions revoked' })
       } catch (err) {
         console.error('Logout all sessions error:', err)

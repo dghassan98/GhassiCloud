@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, Lock, Palette, Bell, Shield, Database, 
-  Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle
+  Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
+  Globe, Zap, Compass, Terminal, Package, Box
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -40,49 +41,6 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [requireReauth, setRequireReauth] = useState(false)
 
-  // Heuristic user-agent parser for friendly names (keeps bundle small)
-  const parseUserAgent = (ua) => {
-    if (!ua || typeof ua !== 'string' || ua.trim() === '') return { name: t('settings.ua.unknown') || 'Unknown' }
-    const s = ua
-    // Common checks in order
-    const checks = [
-      { re: /Electron\/(\d+[\.\d]*)/i, name: 'Electron' },
-      { re: /Edg\/(\d+[\.\d]*)/i, name: 'Edge' },
-      { re: /OPR\/(\d+[\.\d]*)/i, name: 'Opera' },
-      { re: /Chrome\/(\d+[\.\d]*)/i, name: 'Chrome' },
-      { re: /CriOS\/(\d+[\.\d]*)/i, name: 'Chrome (iOS)' },
-      { re: /Firefox\/(\d+[\.\d]*)/i, name: 'Firefox' },
-      { re: /FxiOS\/(\d+[\.\d]*)/i, name: 'Firefox (iOS)' },
-      { re: /Version\/(\d+[\.\d]*)\s+Safari\//i, name: 'Safari' },
-      { re: /Safari\/(\d+[\.\d]*)/i, name: 'Safari' },
-      { re: /Android\s+WebView/i, name: 'Android WebView' },
-      { re: /Mobile\/\w+.*Safari/i, name: 'Mobile Safari' },
-      { re: /PostmanRuntime\//i, name: 'Postman' },
-      { re: /Insomnia\//i, name: 'Insomnia' },
-      { re: /curl\/(\d+[\.\d]*)/i, name: 'curl' },
-      { re: /python-requests\/(\d+[\.\d]*)/i, name: 'python-requests' },
-      { re: /okhttp\/(\d+[\.\d]*)/i, name: 'okhttp' }
-    ]
-    for (const c of checks) {
-      const m = s.match(c.re)
-      if (m) {
-        return { name: c.name, version: m[1] || null }
-      }
-    }
-    // Fallback: extract product token at start (e.g., "Mozilla/5.0 (...) ...")
-    const prod = s.split(' ')[0]
-    if (prod && prod.includes('/')) {
-      const [prodName, prodVer] = prod.split('/')
-      return { name: prodName, version: prodVer }
-    }
-    return { name: s.slice(0, 30) }
-  }
-
-  // confirmation modals
-  const [sessionToRevoke, setSessionToRevoke] = useState(null)
-  const [showSignoutAllConfirm, setShowSignoutAllConfirm] = useState(false)
-  const [revoking, setRevoking] = useState(false)
-
   // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
   const [emailVal, setEmailVal] = useState(user?.email || '')
@@ -94,8 +52,57 @@ export default function Settings() {
 
   const { showToast } = useToast()
 
-  // Debug: log modal state transitions to help diagnose why modals don't appear
+  // Copy IP helper (click to copy IP to clipboard)
+  const copyToClipboard = async (text) => {
+    if (!text) return showToast({ message: t('settings.noIp') || 'No IP available', type: 'error' })
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast({ message: t('settings.ipCopied') || 'IP copied to clipboard', type: 'success' })
+    } catch (e) {
+      // Fallback: try execCommand
+      const ta = document.createElement('textarea')
+      ta.value = text
+      document.body.appendChild(ta)
+      ta.select()
+      try { document.execCommand('copy'); showToast({ message: t('settings.ipCopied') || 'IP copied to clipboard', type: 'success' }) } catch (e) { showToast({ message: t('settings.copyFailed') || 'Failed to copy IP', type: 'error' }) }
+      ta.remove()
+    }
+  }
 
+  // Small UA parser for friendly labels
+  const parseUserAgent = (ua) => {
+    if (!ua || typeof ua !== 'string') return { name: t('settings.ua.unknown') || 'Unknown' }
+    const s = ua
+    const checks = [
+      { re: /Electron\/(\d+[\.\d]*)/i, name: 'Electron', icon: 'Monitor' },
+      { re: /Edg\/(\d+[\.\d]*)/i, name: 'Edge', icon: 'Globe' },
+      { re: /OPR\/(\d+[\.\d]*)/i, name: 'Opera', icon: 'Globe' },
+      { re: /Chrome\/(\d+[\.\d]*)/i, name: 'Chrome', icon: 'Globe' },
+      { re: /CriOS\/(\d+[\.\d]*)/i, name: 'Chrome (iOS)', icon: 'Globe' },
+      { re: /Firefox\/(\d+[\.\d]*)/i, name: 'Firefox', icon: 'Zap' },
+      { re: /FxiOS\/(\d+[\.\d]*)/i, name: 'Firefox (iOS)', icon: 'Zap' },
+      { re: /Version\/(\d+[\.\d]*)\s+Safari\//i, name: 'Safari', icon: 'Compass' },
+      { re: /Safari\/(\d+[\.\d]*)/i, name: 'Safari', icon: 'Compass' },
+      { re: /Mobile\/\w+.*Safari/i, name: 'Mobile Safari', icon: 'Compass' },
+      { re: /PostmanRuntime\//i, name: 'Postman', icon: 'Package' },
+      { re: /Insomnia\//i, name: 'Insomnia', icon: 'Package' },
+      { re: /curl\/(\d+[\.\d]*)/i, name: 'curl', icon: 'Terminal' },
+      { re: /python-requests\/(\d+[\.\d]*)/i, name: 'python-requests', icon: 'Terminal' },
+      { re: /okhttp\/(\d+[\.\d]*)/i, name: 'okhttp', icon: 'Terminal' }
+    ]
+    for (const c of checks) {
+      const m = s.match(c.re)
+      if (m) {
+        return { name: c.name, version: m[1] || null, icon: c.icon || 'Globe' }
+      }
+    }
+    const prod = s.split(' ')[0]
+    if (prod && prod.includes('/')) {
+      const [prodName, prodVer] = prod.split('/')
+      return { name: prodName, version: prodVer }
+    }
+    return { name: s.slice(0, 30) }
+  }
 
   // Detect SSO users reliably: backend flag or local marker set during SSO login
   const isSSO = Boolean(
@@ -107,6 +114,12 @@ export default function Settings() {
   const [ssoConfig, setSsoConfig] = useState({ authUrl: '', clientId: '', scope: '', realm: '' })
   const [ssoLoading, setSsoLoading] = useState(false)
   const ssoFirstInputRef = useRef(null)
+
+  // Confirmation modals for sign out actions
+  const [showConfirmSignOutAll, setShowConfirmSignOutAll] = useState(false)
+  const [confirmSignOutAllLoading, setConfirmSignOutAllLoading] = useState(false)
+  const [confirmSession, setConfirmSession] = useState(null) // holds session object when confirming single session
+  const [confirmSessionLoading, setConfirmSessionLoading] = useState(false)
 
   const getAuthToken = () => {
     let token = localStorage.getItem('ghassicloud-token')
@@ -365,6 +378,8 @@ export default function Settings() {
   }
 
   const handleSectionClick = (id) => {
+    // lightweight debug logging to help reproduce tab-switching issues
+    console.debug('Settings: switch to', id)
     setActiveSection(id)
   }
 
@@ -439,6 +454,80 @@ export default function Settings() {
               <button className="btn-secondary" onClick={() => setShowSSOEditor(false)}>{t('common.cancel')}</button>
               <button className="btn-primary" onClick={handleSaveSSOConfig}>{t('settings.saveChanges')}</button>
               <button className="btn-danger" onClick={handleResetSSOConfig}>{t('settings.ssoConfig.reset')}</button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Confirmation modal: Sign out everywhere */}
+      {showConfirmSignOutAll && (
+        <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowConfirmSignOutAll(false) }}>
+          <div className="sso-config-zone danger-zone" role="dialog" aria-modal="true">
+            <h3>{t('settings.signOutEverywhereConfirm') || 'Sign out from all devices?'}</h3>
+            <p className="muted">{t('settings.signOutEverywhereDesc') || 'You will be logged out from all active sessions.'}</p>
+            <div className="danger-action">
+              <button className="btn-secondary" onClick={() => setShowConfirmSignOutAll(false)}>{t('common.cancel')}</button>
+              <button className="btn-danger" onClick={async () => {
+                setConfirmSignOutAllLoading(true)
+                try {
+                  const token = getAuthToken()
+                  if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
+                  const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ all: true }) })
+                  if (r.ok) {
+                    showToast({ message: t('settings.signOutEverywhereSuccess') || 'Signed out everywhere', type: 'success' })
+                    try { logout() } catch (e) {}
+                    setTimeout(() => { window.location.href = '/login' }, 350)
+                  } else {
+                    const data = await r.json()
+                    showToast({ message: data.message || 'Failed to revoke sessions', type: 'error' })
+                  }
+                } catch (err) {
+                  console.error('Sign out everywhere error:', err)
+                  showToast({ message: t('settings.signOutEverywhereFailed') || 'Failed to sign out everywhere', type: 'error' })
+                } finally {
+                  setConfirmSignOutAllLoading(false)
+                  setShowConfirmSignOutAll(false)
+                }
+              }}>{confirmSignOutAllLoading ? (t('common.loading') || 'Loading...') : (t('settings.signOutEverywhere') || 'Sign out everywhere')}</button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Confirmation modal: Sign out single session */}
+      {confirmSession && (
+        <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setConfirmSession(null) }}>
+          <div className="sso-config-zone danger-zone" role="dialog" aria-modal="true">
+            <h3>{t('settings.signOutSessionConfirm') || 'Sign out this session?'}</h3>
+            <p className="muted">{confirmSession.clientId || confirmSession.client || ''} {confirmSession.ipAddress ? `• ${confirmSession.ipAddress}` : ''}</p>
+            <div className="danger-action">
+              <button className="btn-secondary" onClick={() => setConfirmSession(null)}>{t('common.cancel')}</button>
+              <button className="btn-danger" onClick={async () => {
+                setConfirmSessionLoading(true)
+                try {
+                  const token = getAuthToken()
+                  if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
+                  const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ sessionId: confirmSession.id }) })
+                  if (r.ok) {
+                    showToast({ message: t('settings.signOutSessionSuccess') || 'Session revoked', type: 'success' })
+                    if (confirmSession.isCurrent) {
+                      try { logout() } catch (e) {}
+                      setTimeout(() => { window.location.href = '/login' }, 350)
+                    } else {
+                      handleLoadSessions()
+                    }
+                  } else {
+                    const data = await r.json()
+                    showToast({ message: data.message || 'Failed to revoke session', type: 'error' })
+                  }
+                } catch (err) {
+                  console.error('Revoke session error:', err)
+                  showToast({ message: t('settings.signOutSessionFailed') || 'Failed to revoke session', type: 'error' })
+                } finally {
+                  setConfirmSessionLoading(false)
+                  setConfirmSession(null)
+                }
+              }}>{confirmSessionLoading ? (t('common.loading') || 'Loading...') : (t('settings.signOut') || 'Sign out')}</button>
             </div>
           </div>
         </motion.div>
@@ -553,17 +642,19 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Active sessions (Keycloak-backed users) */}
+              {/* Danger Zone (moved below Active sessions) */}
+
               <hr className="section-sep" />
+              {/* Active sessions (Keycloak-backed users) */}
               <div className="settings-section sessions-section">
                 <h3>{t('settings.activeSessionsTitle') || 'Active sessions'}</h3>
                 <p className="form-hint">{t('settings.activeSessionsDesc') || 'See devices and browsers currently signed in. Revoke any session you don\'t recognize.'}</p>
                 <div className="sessions-actions">
-                  <button className="btn-secondary" onClick={() => { /* defer to avoid overlay receiving the same click event */ setTimeout(() => setShowSignoutAllConfirm(true), 0) }}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
+                  <button className="btn-secondary" onClick={() => setShowConfirmSignOutAll(true)}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
                 </div>
                 <div className="sessions-list">
                   {sessionsLoading ? (
-                    <div className="loading-spinner" aria-hidden="true" />
+                    <p>{t('common.loading') || 'Loading...'}</p>
                   ) : (
                     sessions.length === 0 ? (
                       <p className="muted">{t('settings.noActiveSessions') || 'No active sessions'}</p>
@@ -571,17 +662,11 @@ export default function Settings() {
                       sessions.map(s => (
                         <div key={s.id} className="session-row">
                           <div className="session-info">
-                            <strong>{s.clientId || s.client || 'Unknown'}</strong>
-                            <div className="muted" title={s.userAgent || s.ipAddress || ''}>
-                              {s.userAgent ? (
-                                (() => {
-                                  const parsed = parseUserAgent(s.userAgent)
-                                  const name = parsed.name + (parsed.version ? ` ${parsed.version}` : '')
-                                  // show friendly name and keep truncated raw UA in title
-                                  return name.length > 48 ? `${name.slice(0,48)}…` : name
-                                })()
-                              ) : (s.ipAddress || 'Unknown')}
+                            <strong title={s.rawClientId || s.clientId || ''}>{s.clientId || s.client || 'Unknown'}</strong>
+                            <div className="muted" title={s.userAgent || ''}>
+                              {s.userAgent ? (() => { const parsed = parseUserAgent(s.userAgent); const name = parsed.name + (parsed.version ? ` ${parsed.version}` : ''); const Icon = parsed.icon ? ({ 'Globe': Globe, 'Zap': Zap, 'Compass': Compass, 'Terminal': Terminal, 'Package': Package, 'Box': Box, 'Monitor': Monitor }[parsed.icon]) : Globe; return (<><Icon size={14} className="ua-icon" />&nbsp;{ name.length > 80 ? `${name.slice(0,80)}…` : name }</>) })() : ''}
                             </div>
+                            <div className="muted small session-ip" title={t('settings.copyIpTooltip') || 'Click to copy IP'} onClick={(e) => { e.stopPropagation(); copyToClipboard(s.ipAddress) }}>{s.ipAddress || (t('settings.noIp') || 'No IP address')}</div>
                             <div className="muted small">{s.createdAt ? `${t('settings.started') || 'Started'} ${new Date(s.createdAt).toLocaleString()}` : ''} {s.lastAccess ? ` • ${t('settings.lastActive') || 'Last active'} ${new Date(s.lastAccess).toLocaleString()}` : ''}</div>
                             <div className="session-flags">
                               {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current'}</span>}
@@ -591,7 +676,7 @@ export default function Settings() {
                             </div>
                           </div>
                           <div className="session-actions">
-                            <button className="btn-secondary" onClick={(e) => { e.stopPropagation(); /* defer to avoid overlay receiving the same click event */ setTimeout(() => setSessionToRevoke(s), 0) }}>{t('settings.signOut') || 'Sign out'}</button>
+                            <button className="btn-secondary" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign out'}</button>
                           </div>
                         </div>
                       ))
@@ -874,10 +959,6 @@ export default function Settings() {
                     </div>
                   </motion.div>
                 )}
-
-
-
-
                 <div className="danger-action">
                   <div>
                     <h4>{t('settings.deleteAccountTitle')}</h4>
@@ -908,91 +989,6 @@ export default function Settings() {
             </motion.button>
           </div>
         </div>
-
-        {/* Confirmation modals (render at root so they aren't clipped by section containers) */}
-        {showSignoutAllConfirm && (
-          <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowSignoutAllConfirm(false) }}>
-            <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
-              <div className="reset-confirm-content">
-                <AlertTriangle size={48} className="warning-icon" />
-                <h3>{t('settings.confirmTitle')}</h3>
-                <p>{t('settings.signOutEverywhereConfirm')}</p>
-                <div className="reset-confirm-actions">
-                  <button className="btn-secondary" onClick={() => setShowSignoutAllConfirm(false)} disabled={revoking}>{t('common.cancel')}</button>
-                  <button className="btn-danger" onClick={async () => {
-                    setRevoking(true)
-                    try {
-                      const token = getAuthToken()
-                      if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
-                      const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ all: true }) })
-                      if (r.ok) {
-                        showToast({ message: t('settings.signOutEverywhereSuccess') || 'Signed out everywhere', type: 'success' })
-                        logout()
-                      } else {
-                        const data = await r.json()
-                        showToast({ message: data.message || 'Failed to revoke sessions', type: 'error' })
-                      }
-                    } catch (err) {
-                      console.error('Sign out everywhere error:', err)
-                      showToast({ message: t('settings.signOutEverywhereFailed') || 'Failed to sign out everywhere', type: 'error' })
-                    } finally {
-                      setRevoking(false)
-                      setShowSignoutAllConfirm(false)
-                    }
-                  }}>{t('settings.signOut') || 'Sign out'}</button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {sessionToRevoke && (
-          <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setSessionToRevoke(null) }}>
-            <div className="sso-config-zone reset-confirm-modal" role="dialog" aria-modal="true">
-              <div className="reset-confirm-content">
-                <AlertTriangle size={48} className="warning-icon" />
-                <h3>{t('settings.confirmTitle')}</h3>
-                <p>{t('settings.signOutSessionConfirm')}</p>
-                <div className="reset-confirm-actions">
-                  <button className="btn-secondary" onClick={() => setSessionToRevoke(null)} disabled={revoking}>{t('common.cancel')}</button>
-                  <button className="btn-danger" onClick={async () => {
-                    setRevoking(true)
-                    try {
-                      const token = getAuthToken()
-                      if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
-                      const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ sessionId: sessionToRevoke.id }) })
-                      if (r.ok) {
-                        showToast({ message: t('settings.signOutSessionSuccess') || 'Session revoked', type: 'success' })
-                        // If revoking our current session, logout locally
-                        try {
-                          const currentToken = getAuthToken()
-                          if (currentToken) {
-                            const payload = JSON.parse(atob(currentToken.split('.')[1]))
-                            if (payload && payload.sessionId === sessionToRevoke.id) {
-                              logout()
-                              return
-                            }
-                          }
-                        } catch (e) {}
-                        handleLoadSessions()
-                      } else {
-                        const data = await r.json()
-                        showToast({ message: data.message || 'Failed to revoke session', type: 'error' })
-                      }
-                    } catch (err) {
-                      console.error('Revoke session error:', err)
-                      showToast({ message: t('settings.signOutSessionFailed') || 'Failed to revoke session', type: 'error' })
-                    } finally {
-                      setRevoking(false)
-                      setSessionToRevoke(null)
-                    }
-                  }}>{t('settings.signOut') || 'Sign out'}</button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
       </div>
     </div>
   )

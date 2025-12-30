@@ -82,7 +82,7 @@
     "lastActive": "Последняя активность",
     "currentSession": "Текущая сессия",
     "risk": {
-      "differentIp": "Другой IP-адрес",
+
       "differentDevice": "Другое устройство/браузер",
       "staleSession": "Давно неиспользуемая сессия",
       "unknownClient": "Неизвестный клиент"
@@ -102,5 +102,5 @@
     "ghassiStreamDesc": "Ваш персональный стриминговый сервис",
     "ghassiShareDesc": "Ваш персональный сервис обмена файлами" },
   "app": { "loading": "Загрузка GhassiCloud..." },
-  "common": { "cancel": "Отмена", "close": "Закрыть" }
+  "common": { "cancel": "Отмена", "close": "Закрыть", "loading": "Загрузка..." }
 }

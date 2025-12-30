@@ -28,3 +28,4 @@ Thumbs.db
 # Cache
 .cache/
 *.tsbuildinfo
+backend/scripts/keycloak-inspect.js
