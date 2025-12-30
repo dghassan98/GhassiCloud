@@ -227,6 +227,7 @@ router.post('/sso/callback', async (req, res) => {
           console.warn('Failed to persist SSO session metadata:', e)
         }
       }
+
     } catch (e) {
       // non-fatal
     }
@@ -360,6 +361,7 @@ router.get('/me', authenticateToken, (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' })
     }
+
 
     res.json({
       user: {

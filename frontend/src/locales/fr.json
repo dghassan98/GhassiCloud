@@ -74,6 +74,8 @@
     "signOutSessionConfirm": "Déconnecter cette session ?",
     "signOutSessionSuccess": "Session révoquée",
     "signOutSessionFailed": "Échec de la révocation de la session",
+    "signOutEverywhereDesc": "Vous serez déconnecté de toutes les sessions actives.",
+    "signOutSessionDesc": "Vous serez déconnecté de cette session.",
     "noActiveSessions": "Aucune session active",
     "requireReauthTitle": "Exiger une nouvelle authentification pour les actions sensibles",
     "requireReauthDesc": "Si activé, vous devrez vous réauthentifier pour des actions sensibles comme la suppression du compte.",

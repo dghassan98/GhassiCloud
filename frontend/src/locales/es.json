@@ -75,6 +75,8 @@
     "signOutSessionConfirm": "¿Cerrar sesión en esta sesión?",
     "signOutSessionSuccess": "Sesión revocada",
     "signOutSessionFailed": "Error al revocar la sesión",
+    "signOutEverywhereDesc": "Se cerrará la sesión en todas las sesiones activas.",
+    "signOutSessionDesc": "Se cerrará la sesión en esta sesión.",
     "noActiveSessions": "No hay sesiones activas",
     "requireReauthTitle": "Requerir reautenticación para acciones críticas",
     "requireReauthDesc": "Si está activado, se te pedirá que te vuelvas a autenticar para acciones sensibles.",
