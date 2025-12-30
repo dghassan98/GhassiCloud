@@ -254,8 +254,8 @@ export default function NowPlayingCard({ endpoint, accent }) {
         ) : (
           <div className="np-art-fallback">🎶</div>
         )}
-        {/* Loading spinner overlay while fetching */}
-        {loading && (
+        {/* Loading spinner overlay while fetching (only when not connected / not logged in) */}
+        {loading && !connected && (
           <div className="np-art-loading" aria-hidden>
             <div className="loading-spinner" />
           </div>
@@ -263,7 +263,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
       </div>
       <div className="np-body">
         <div className="np-meta">
-          <div className="np-title" title={songTitle || (track ? track.name : '')}>{songTitle ? songTitle : (loading ? 'Loading…' : 'Nothing playing')}</div>
+          <div className="np-title" title={songTitle || (track ? track.name : '')}>{songTitle ? songTitle : ((loading && !connected) ? 'Loading…' : 'Nothing playing')}</div>
           <div className="np-artist-album">
             <span className="np-artist">{track ? track.artist || track.creator || 'Unknown Artist' : ''}</span>
             {track && track.album && <span className="np-sep">•</span>}

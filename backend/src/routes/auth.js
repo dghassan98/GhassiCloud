@@ -668,6 +668,7 @@ router.get('/sessions', authenticateToken, async (req, res) => {
           const ipAddr = normalizeIp(l.ip)
           const ua = l.user_agent
           let isCurrent = false
+          let currentUAHeader = ''
           try {
             // sessionId match takes precedence when available
             if (req.user && req.user.sessionId && req.user.sessionId === l.session_id) {
@@ -677,7 +678,7 @@ router.get('/sessions', authenticateToken, async (req, res) => {
             if (!isCurrent) {
             const currentIpHeaderRaw = (req.headers && (req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.headers['x-forwarded-host'])) ? ((req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim()) : (req.ip || (req.connection && req.connection.remoteAddress) || null)
               const currentIpHeader = normalizeIp(currentIpHeaderRaw)
-              const currentUAHeader = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
+              currentUAHeader = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
               if (ipAddr && currentIpHeader && ipAddr === currentIpHeader) {
                 if (!ua || !currentUAHeader) isCurrent = true
                 else if (currentUAHeader === ua || currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30))) isCurrent = true
