@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'GhassiCloud',
         short_name: 'GhassiCloud',
-        description: 'Your self-hosted cloud dashboard',
+        description: 'Embrace Digital Sovereignty with GhassiCloud',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

@@ -223,15 +223,47 @@
   pointer-events:none;
 }
 
+/* Refresh button (appears on hover like logout) */
+.np-refresh-btn{
+  position:absolute;
+  top:8px;
+  right:48px; /* left of logout */
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  border-radius:8px;
+  border:none;
+  background:transparent;
+  color:#cfe7ff;
+  padding:6px;
+  opacity:0;
+  transform:translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease, background .12s ease;
+  pointer-events:none;
+}
+
 /* Show on hover, focus-within or keyboard focus */
 .nowplaying-card:hover .np-logout-btn,
 .nowplaying-card:focus-within .np-logout-btn,
-.np-logout-btn:focus {
+.np-logout-btn:focus,
+.nowplaying-card:hover .np-refresh-btn,
+.nowplaying-card:focus-within .np-refresh-btn,
+.np-refresh-btn:focus {
   opacity:1;
   transform:translateY(0);
   background:rgba(255,255,255,0.02);
   pointer-events:auto;
 }
+
+.np-refresh-btn svg{width:16px;height:16px;color:inherit}
+.np-refresh-btn:hover{background:rgba(255,255,255,0.04);color:var(--np-accent)}
+
+/* spinning animation when performing refresh */
+@keyframes np-spin{to{transform:rotate(360deg)}}
+.np-refresh-btn.spinning svg{animation:np-spin 1s linear infinite}
 
 .np-logout-btn svg{width:16px;height:16px;color:inherit}
 .np-logout-btn:hover{background:rgba(255,255,255,0.04);color:var(--np-accent)}

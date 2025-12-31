@@ -148,6 +148,14 @@
     }
   },
   "nowPlaying": {
+    "refresh": "Aktualisieren",
+    "refreshedSuccess": "Jetzt wird aktualisiert",
+    "refreshFailed": "Aktualisierung fehlgeschlagen",
+    "refreshFailedAuth": "Nicht authentifiziert — bitte anmelden",
+    "refreshNoEntry": "Keine Wiedergabe erkannt",
+    "reloginSuccess": "Erfolgreich erneut angemeldet",
+    "reloginFailed": "Automatische erneute Anmeldung fehlgeschlagen",
+    "logout": "Abmelden",
     "loading": "Lädt…",
     "nothingPlaying": "Nichts wird abgespielt",
     "unknownArtist": "Unbekannter Künstler",

@@ -264,6 +264,56 @@ router.post('/logout', async (req, res) => {
   }
 })
 
+// Attempt to re-authenticate using stored (encrypted) password if available
+router.post('/reauth', async (req, res) => {
+  try {
+    const db = getDb()
+    const cred = getCred(db)
+    if (!cred) return res.status(401).json({ message: 'No credentials configured' })
+    const username = cred.username
+
+    // Only possible to reauth if we have an encrypted password stored
+    if (!(cred.password_encrypted)) {
+      return res.status(400).json({ message: 'No stored password available for re-authentication' })
+    }
+
+    const decrypted = decryptText(cred.password_encrypted)
+
+    let attempt
+    try {
+      attempt = await remoteLogin(username, decrypted)
+    } catch (err) {
+      console.error('Navidrome reauth failed:', err)
+      return res.status(401).json({ message: 'Reauth failed', details: String(err.message || err) })
+    }
+
+    // Replace stored cred with new result (same logic as /login)
+    try { db.prepare('DELETE FROM navidrome_credentials').run() } catch (e) {}
+
+    if (attempt.method === 'direct') {
+      const enc = encryptText(attempt.passwordToUse)
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, password_encrypted, password_type, auth_method) VALUES (?, ?, ?, ?, ?)`)
+        .run(username, cred.password_hashed || '', enc, attempt.passwordType, 'direct')
+      console.log('🔄 Navidrome re-auth saved (direct) for', username)
+    } else if (attempt.method === 'token-md5') {
+      const token = attempt.token
+      const salt = attempt.salt
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, token, salt, auth_method) VALUES (?, ?, ?, ?, ?)`)
+        .run(username, cred.password_hashed || '', token, salt, 'token-md5')
+      console.log('🔄 Navidrome re-auth saved (token-md5) for', username)
+    } else {
+      db.prepare(`INSERT INTO navidrome_credentials (username, password_hashed, token, auth_method) VALUES (?, ?, ?, ?)`)
+        .run(username, cred.password_hashed || '', attempt.token, 'token')
+      console.log('🔄 Navidrome re-auth saved (token) for', username)
+    }
+
+    res.json({ status: 'ok', username, method: attempt.method })
+  } catch (err) {
+    console.error('Navidrome reauth error', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
 // Check validity of saved credentials
 router.get('/check', async (req, res) => {
   try {

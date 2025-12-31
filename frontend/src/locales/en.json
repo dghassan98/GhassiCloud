@@ -172,7 +172,15 @@
     "connectTitle": "Connect to GhassiMusic",
     "signInDesc": "Sign in to GhassiMusic to show what's playing on your dashboard.",
     "loggingIn": "Logging in…",
-    "login": "Login"
+    "login": "Login",
+    "refresh": "Refresh",
+    "refreshedSuccess": "Now playing updated",
+    "refreshFailed": "Failed to refresh",
+    "refreshFailedAuth": "Not authenticated — please sign in",
+    "refreshNoEntry": "No active playback detected",
+    "reloginSuccess": "Re-authenticated and updated",
+    "reloginFailed": "Auto re-login failed",
+    "logout": "Log out"
   },
   "service": {
     "check": "Check Health",

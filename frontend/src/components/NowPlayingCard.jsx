@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTheme } from '../context/ThemeContext'
 import { useLanguage } from '../context/LanguageContext'
-import '../styles/nowPlaying.css'
+import { useToast } from '../context/ToastContext'
+import { RefreshCw } from 'lucide-react'
+import '../styles/nowPlaying.css' 
 
 export default function NowPlayingCard({ endpoint, accent }) {
   // Use backend proxy endpoints by default to avoid leaking tokens
@@ -77,7 +79,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
   // fetch function pulled out so control handlers can trigger a refresh
   // `force` bypasses the connected check (used after a successful login)
   const fetchNowPlaying = async (force = false) => {
-    if (!force && !connected) return
+    if (!force && !connected) return null
     try {
       setLoading(true)
       setLoginError(null)
@@ -88,7 +90,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
         setConnected(false)
         // Do NOT automatically open the modal; show connect button instead
         // setShowModal(true)
-        return
+        return null
       }
       if (res.ok) setConnected(true)
       if (!res.ok) throw new Error('Failed to fetch now playing')
@@ -96,15 +98,17 @@ export default function NowPlayingCard({ endpoint, accent }) {
       const entryRoot = data && data['subsonic-response'] && data['subsonic-response'].nowPlaying && data['subsonic-response'].nowPlaying.entry
       if (!entryRoot) {
         setTrack(null)
-        return
+        return null
       }
       const entry = Array.isArray(entryRoot) ? entryRoot[0] : entryRoot
       setTrack(entry)
       setNeedsLogin(false)
       setShowModal(false)
+      return entry
     } catch (e) {
       console.warn('NowPlaying fetch error', e)
       setTrack(null)
+      return null
     } finally {
       setLoading(false)
     }
@@ -177,17 +181,72 @@ export default function NowPlayingCard({ endpoint, accent }) {
     }
   }
 
-  const handleLogout = async () => {
+  const handleLogout = async (openLogin = false) => {
     try {
       await fetch('/api/navidrome/logout', { method: 'POST' })
     } catch (e) {
       console.warn('Logout failed', e)
     } finally {
-      // Clear UI state but do not reopen the login modal automatically.
+      // Clear UI state. Optionally open the login modal for quick re-login.
       setTrack(null)
       setNeedsLogin(true)
       setConnected(false)
-      setShowModal(false)
+      setShowModal(Boolean(openLogin))
+    }
+  }
+
+  const { showToast } = useToast()
+
+  // Force a connection re-check using stored credentials and re-fetch now playing
+  const handleRefresh = async (e) => {
+    e && e.stopPropagation && e.stopPropagation()
+    e && e.preventDefault && e.preventDefault()
+    try {
+      setLoading(true)
+      setLoginError(null)
+      // Try a lightweight check but don't rely solely on it — always attempt a fetchNowPlaying
+      try {
+        const res = await fetch('/api/navidrome/check')
+        if (res.ok) setConnected(true)
+        else setConnected(false)
+      } catch (err) {
+        console.warn('Navidrome check failed', err)
+        setConnected(false)
+      }
+
+      let entry = await fetchNowPlaying(true)
+      if (entry) {
+        showToast({ message: t('nowPlaying.refreshedSuccess'), type: 'success' })
+      } else if (!connected || needsLogin) {
+        // Try auto re-login if we have stored (encrypted) password on the server
+        try {
+          const r = await fetch('/api/navidrome/reauth', { method: 'POST' })
+          if (r.ok) {
+            // reauth succeeded: try fetching again
+            setConnected(true)
+            entry = await fetchNowPlaying(true)
+            if (entry) {
+              showToast({ message: t('nowPlaying.reloginSuccess'), type: 'success' })
+            } else {
+              showToast({ message: t('nowPlaying.refreshNoEntry'), type: 'info' })
+            }
+          } else {
+            const json = await r.json().catch(() => ({}))
+            showToast({ message: t('nowPlaying.reloginFailed') + (json?.message ? `: ${json.message}` : ''), type: 'error' })
+          }
+        } catch (err) {
+          console.warn('Reauth request failed', err)
+          showToast({ message: t('nowPlaying.reloginFailed'), type: 'error' })
+        }
+      } else {
+        // no entry but we're connected
+        showToast({ message: t('nowPlaying.refreshNoEntry'), type: 'info' })
+      }
+    } catch (err) {
+      console.warn('Refresh failed', err)
+      showToast({ message: t('nowPlaying.refreshFailed'), type: 'error' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -237,16 +296,29 @@ export default function NowPlayingCard({ endpoint, accent }) {
   return (
     <>
     <div className={`nowplaying-card ${theme === 'light' ? 'np-light-card' : ''}`} role="region" aria-label="Now playing" style={{ ['--np-accent']: detectedAccent, position: 'relative' }}>
-      {/* Logout icon */}
-      {(!showModal && !needsLogin && connected) && (
-        <button className="np-logout-btn" title="Log out" onClick={handleLogout} aria-label="Log out">
+      {/* Refresh + Logout icons */}
+      {!showModal && (
+        <button
+          type="button"
+          className={`np-refresh-btn ${loading ? 'spinning' : ''}`}
+          title={t('nowPlaying.refresh')}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleRefresh() }}
+          aria-label={t('nowPlaying.refresh')}
+        >
+          <RefreshCw />
+        </button>
+      )}
+
+      {/* Logout button: now always available on hover so user can clear saved credentials and re-login */}
+      {!showModal && (
+        <button className="np-logout-btn" title={t('nowPlaying.logout')} onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleLogout(true) }} aria-label={t('nowPlaying.logout')}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M21 12H9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M12 19H6A2 2 0 0 1 4 17V7A2 2 0 0 1 6 5H12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      )}
+      )} 
 
       <div className="np-art-wrap">
         {coverUrl ? (
