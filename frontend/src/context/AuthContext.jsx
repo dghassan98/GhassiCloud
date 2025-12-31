@@ -3,7 +3,17 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('ghassicloud-user')
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      // parsed may be { user, storedAt } or legacy user object
+      return parsed.user || parsed
+    } catch (e) {
+      return null
+    }
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,6 +30,7 @@ export function AuthProvider({ children }) {
         if (res.ok) {
           const data = await res.json()
           setUser(data.user)
+          try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
           // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag
           try {
             if (data.user?.ssoProvider || data.user?.sso_provider) {
@@ -54,6 +65,8 @@ export function AuthProvider({ children }) {
     const data = await res.json()
     localStorage.setItem('ghassicloud-token', data.token)
     setUser(data.user)
+    try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
+    if (data.user?.avatar) { try { const _img = new Image(); _img.src = data.user.avatar } catch (e) {} }
     return data
   }
 
@@ -185,13 +198,15 @@ export function AuthProvider({ children }) {
               // Mark that login was done via SSO so UI can rely on this even if backend lacks the flag
               try { localStorage.setItem('ghassicloud-sso', 'true') } catch (e) {}
               setUser(data.user)
+              try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
+              if (data.user?.avatar) { try { const _img2 = new Image(); _img2.src = data.user.avatar } catch (e) {} }
               
               // Clean up
               sessionStorage.removeItem('sso_state')
               sessionStorage.removeItem('sso_redirect_uri')
               sessionStorage.removeItem('sso_code_verifier')
               
-              resolve(data)
+              resolve(data) 
             } catch (err) {
               reject(err)
             }
@@ -219,6 +234,13 @@ export function AuthProvider({ children }) {
   }, [])
 
   const updateUser = async (updates) => {
+    // If avatar is being updated, preload and force a reload (cache-bust) so the new image shows immediately
+    if (updates && updates.avatar) {
+      try {
+        const img = new Image()
+        img.src = updates.avatar + (updates.avatar.includes('?') ? '&' : '?') + '_=' + Date.now()
+      } catch (e) {}
+    }
     // Optimistically update local state
     setUser(prev => ({ ...prev, ...updates }))
     try {
@@ -246,8 +268,23 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('ghassicloud-token')
     try { localStorage.removeItem('ghassicloud-sso') } catch (e) {}
+    localStorage.removeItem('ghassicloud-user')
     setUser(null)
   }
+
+  // Persist user in localStorage and preload avatar image whenever user changes
+  useEffect(() => {
+    try {
+      if (user) {
+        localStorage.setItem('ghassicloud-user', JSON.stringify({ user, storedAt: Date.now() }))
+        if (user.avatar) {
+          try { const _img = new Image(); _img.src = user.avatar } catch (e) {}
+        }
+      } else {
+        localStorage.removeItem('ghassicloud-user')
+      }
+    } catch (e) {}
+  }, [user])
 
   return (
     <AuthContext.Provider value={{ user, loading, login, loginWithSSO, logout, checkAuth, updateUser }}>
