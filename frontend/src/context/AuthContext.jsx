@@ -3,17 +3,9 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const raw = localStorage.getItem('ghassicloud-user')
-      if (!raw) return null
-      const parsed = JSON.parse(raw)
-      // parsed may be { user, storedAt } or legacy user object
-      return parsed.user || parsed
-    } catch (e) {
-      return null
-    }
-  })
+  // Don't preload user from localStorage on startup. This avoids showing a stale authenticated UI after logout.
+  // The `checkAuth()` routine will populate `user` only when a valid token is present and `/api/auth/me` succeeds.
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -23,6 +15,17 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('ghassicloud-token')
+      console.debug('checkAuth: token present?', !!token)
+      if (!token) {
+        // Ensure any stale local markers are cleaned if there's no token
+        try {
+          localStorage.removeItem('ghassicloud-user')
+          localStorage.removeItem('ghassicloud-sso')
+        } catch (e) {}
+        setUser(null)
+        return
+      }
+
       if (token) {
         const res = await fetch('/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
@@ -31,16 +34,55 @@ export function AuthProvider({ children }) {
           const data = await res.json()
           setUser(data.user)
           try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
-          // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag
+
+          // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag.
+          // For SSO users we also perform a silent provider session check (prompt=none) in a hidden iframe;
+          // if the provider session is not active we clear local auth state to avoid logging in without a valid provider session.
           try {
-            if (data.user?.ssoProvider || data.user?.sso_provider) {
+            const isSSO = Boolean(data.user?.ssoProvider || data.user?.sso_provider)
+            if (isSSO) {
               localStorage.setItem('ghassicloud-sso', 'true')
+              // Start background silent provider-side session check; don't block UI loading
+              try {
+                checkSSOSessionSilent().then(result => {
+                  // result = { active: true } | { active: false, error: '...' } | { active: false, timeout: true }
+                  if (result && result.active === true) {
+                    // Provider session is active — nothing to do
+                    return
+                  }
+
+                  // If the provider returned an explicit error (e.g., login_required), treat that as a sign to clear local SSO auth
+                  if (result && result.error) {
+                    console.warn('Silent SSO session returned error — clearing local auth state.', result.error)
+                    localStorage.removeItem('ghassicloud-token')
+                    localStorage.removeItem('ghassicloud-sso')
+                    try { localStorage.removeItem('ghassicloud-user') } catch (e) {}
+                    setUser(null)
+                    return
+                  }
+
+                  // For timeouts or unknown responses, don't forcibly log out (this avoids noisy logouts when third-party cookies blocked)
+                  if (result && result.timeout) {
+                    console.warn('Silent SSO session probe timed out — leaving local session intact.')
+                    return
+                  }
+
+                }).catch((e) => {
+                  console.error('Silent SSO check error:', e)
+                  // Don't proactively log out on transient errors to avoid bad UX
+                })
+              } catch (e) {}
             } else {
               localStorage.removeItem('ghassicloud-sso')
             }
           } catch (e) {}
         } else {
+          // Token invalid or expired — clear local auth state
+          console.debug('checkAuth: /me returned non-ok, clearing token and stored user')
           localStorage.removeItem('ghassicloud-token')
+          try { localStorage.removeItem('ghassicloud-user') } catch (e) {}
+          try { localStorage.removeItem('ghassicloud-sso') } catch (e) {}
+          setUser(null)
         }
       }
     } catch (err) {
@@ -90,6 +132,77 @@ export function AuthProvider({ children }) {
 
     return { codeVerifier, codeChallenge }
   }
+
+  // Silent SSO session check (uses a hidden iframe and prompt=none)
+  // Returns an object: { active: true } on code, { active: false, error } on explicit provider error,
+  // or { active: false, timeout: true } if the probe timed out.
+  const checkSSOSessionSilent = useCallback(async () => {
+    try {
+      const configRes = await fetch('/api/auth/sso/config')
+      if (!configRes.ok) return { active: false, error: 'no_config' }
+      const config = await configRes.json()
+
+      // Generate state and PKCE for silent request
+      const state = crypto.randomUUID()
+      sessionStorage.setItem('sso_silent_state', state)
+      const { codeVerifier, codeChallenge } = await generatePKCE()
+      sessionStorage.setItem('sso_silent_code_verifier', codeVerifier)
+      const redirectUri = `${window.location.origin}/sso-callback?silent=1`
+      sessionStorage.setItem('sso_silent_redirect_uri', redirectUri)
+
+      const authUrl = new URL(config.authUrl)
+      authUrl.searchParams.set('client_id', config.clientId)
+      authUrl.searchParams.set('redirect_uri', redirectUri)
+      authUrl.searchParams.set('response_type', 'code')
+      authUrl.searchParams.set('scope', config.scope)
+      authUrl.searchParams.set('state', state)
+      authUrl.searchParams.set('prompt', 'none')
+      authUrl.searchParams.set('code_challenge', codeChallenge)
+      authUrl.searchParams.set('code_challenge_method', 'S256')
+
+      return await new Promise((resolve) => {
+        const iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.src = authUrl.toString()
+
+        // If probe doesn't return within timeout, resolve as timeout (do not treat as explicit failure)
+        const timeout = setTimeout(() => {
+          cleanup()
+          resolve({ active: false, timeout: true })
+        }, 1500)
+
+        const handleMessage = (event) => {
+          if (event.origin !== window.location.origin) return
+          if (event.data?.type === 'SSO_SILENT_CALLBACK') {
+            const { code: returnedCode, state: returnedState, error } = event.data
+            if (returnedState !== state) { cleanup(); resolve({ active: false, error: 'state_mismatch' }); return }
+            cleanup()
+            if (error) {
+              resolve({ active: false, error })
+            } else if (returnedCode) {
+              resolve({ active: true })
+            } else {
+              resolve({ active: false, error: 'unknown_response' })
+            }
+          }
+        }
+
+        function cleanup() {
+          clearTimeout(timeout)
+          window.removeEventListener('message', handleMessage)
+          try { iframe.remove() } catch (e) {}
+          sessionStorage.removeItem('sso_silent_state')
+          sessionStorage.removeItem('sso_silent_code_verifier')
+          sessionStorage.removeItem('sso_silent_redirect_uri')
+        }
+
+        window.addEventListener('message', handleMessage)
+        document.body.appendChild(iframe)
+      })
+    } catch (e) {
+      return { active: false, error: 'exception' }
+    }
+  }, [])
 
   // SSO Login with popup window (PKCE flow)
   const loginWithSSO = useCallback(() => {
@@ -266,10 +379,36 @@ export function AuthProvider({ children }) {
   }
 
   const logout = () => {
-    localStorage.removeItem('ghassicloud-token')
+    console.debug('logout: clearing local auth state')
+    // Grab token and sessionId for best-effort remote revocation
+    const token = (() => { try { return localStorage.getItem('ghassicloud-token') } catch (e) { return null } })()
+
+    // Immediately clear local state so UI updates fast
+    try { localStorage.removeItem('ghassicloud-token') } catch (e) {}
     try { localStorage.removeItem('ghassicloud-sso') } catch (e) {}
-    localStorage.removeItem('ghassicloud-user')
+    try { localStorage.removeItem('ghassicloud-user') } catch (e) {}
     setUser(null)
+
+    // Best-effort: if token contains a sessionId, ask backend to revoke that single SSO session
+    try {
+      if (token) {
+        const parts = token.split('.')
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+          const sessionId = payload && payload.sessionId
+          if (sessionId) {
+            // fire-and-forget; don't block logout UI
+            fetch('/api/auth/sessions/revoke', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ sessionId })
+            }).then(r => {
+              if (!r.ok) console.warn('Session revoke request failed', r.status)
+            }).catch(e => console.warn('Session revoke request error', e))
+          }
+        }
+      }
+    } catch (e) { console.warn('logout: failed to send session revoke', e) }
   }
 
   // Persist user in localStorage and preload avatar image whenever user changes

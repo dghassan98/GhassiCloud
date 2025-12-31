@@ -1,7 +1,8 @@
 {
   "nav": { "dashboard": "Panel", "reporting": "Informes", "settings": "Ajustes" },
   "general": { "welcome": "Bienvenido a GhassiCloud. Adopta la soberanía digital.", "scanMe": "Escanéame", "userFallback": "Usuario", "memberFallback": "Miembro" },
-  "layout": { "weatherTemp": "18°C", "weatherDesc": "Parcialmente nublado", "openProfile": "Abrir configuración de perfil", "notifications": "Notificaciones" },
+  "layout": { "weatherTemp": "18°C", "weatherDesc": "Parcialmente nublado", "openProfile": "Abrir configuración de perfil", "notifications": "Notificaciones", "signOutLocal": "Cerrar sesión (local)", "signOutProvider": "Cerrar sesión en el proveedor de identidad", "signedOut": "Sesión cerrada" },
+
   "dashboard": { "servicesOnline": "Servicios en línea", "addService": "Agregar servicio", "searchPlaceholder": "Buscar servicios...", "noServices": "No se encontraron servicios", "loadingServices": "Cargando servicios...", "getStarted": "Agrega tu primer servicio para comenzar", "noServicesPopover": "Sin servicios", "lastChecked": "Última verificación", "checking": "Comprobando...", "never": "Nunca", "yourServices": "Tus servicios" },
   "auth": { "completingSignIn": "Finalizando inicio de sesión..." },
   "settings": {
@@ -47,7 +48,6 @@
     "delete": "Eliminar",
     "saveChanges": "Guardar cambios",
     "signOut": "Cerrar sesión",
-    "notifications": "Notificaciones",
     "uploadAvatar": "Subir avatar",
     "removeAvatar": "Eliminar",
     "language": "Idioma",
@@ -78,10 +78,6 @@
     "signOutEverywhereDesc": "Se cerrará la sesión en todas las sesiones activas.",
     "signOutSessionDesc": "Se cerrará la sesión en esta sesión.",
     "noActiveSessions": "No hay sesiones activas",
-    "requireReauthTitle": "Requerir reautenticación para acciones críticas",
-    "requireReauthDesc": "Si está activado, se te pedirá que te vuelvas a autenticar para acciones sensibles.",
-    "requireReauthSaved": "Preferencia de seguridad guardada",
-    "requireReauthFailed": "Error al guardar la preferencia",
     "started": "Iniciada",
     "lastActive": "Última actividad",
     "currentSession": "Sesión actual",

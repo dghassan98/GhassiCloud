@@ -9,19 +9,24 @@ import { LanguageProvider } from './context/LanguageContext'
 import { ToastProvider } from './context/ToastContext'
 import './styles/globals.css'
 
+// 🔧 Disable right-click everywhere in the app
+// Prevents the browser context menu from opening on right-click or Shift+F10
+document.addEventListener('contextmenu', (e) => e.preventDefault())
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
       <AccentProvider>
         <LogoProvider>
-          <AuthProvider>
-            {/* LanguageProvider reads user language when AuthProvider finishes loading */}
-            <LanguageProvider>
-              <ToastProvider>
+          {/* Move ToastProvider up so AuthProvider can show toasts during auth changes */}
+          <ToastProvider>
+            <AuthProvider>
+              {/* LanguageProvider reads user language when AuthProvider finishes loading */}
+              <LanguageProvider>
                 <App />
-              </ToastProvider>
-            </LanguageProvider>
-          </AuthProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </ToastProvider>
         </LogoProvider>
       </AccentProvider>
     </ThemeProvider>

@@ -12,8 +12,18 @@ export default function SSOCallback() {
     const error = params.get('error')
     const errorDescription = params.get('error_description')
 
-    // Send message to parent window
-    if (window.opener) {
+    // Silent checks (iframe) will include ?silent=1 and have no opener
+    const silent = params.get('silent') === '1'
+
+    // Debug: log callback params for investigation
+    if (silent) {
+      try { console.debug('SSOCallback (silent) loaded', { code, state, error, errorDescription }) } catch (e) {}
+    } else {
+      try { console.debug('SSOCallback (interactive) loaded', { code, state, error, errorDescription }) } catch (e) {}
+    }
+
+    // If running inside a popup (normal interactive flow), post to opener and close
+    if (window.opener && !silent) {
       window.opener.postMessage({
         type: 'SSO_CALLBACK',
         code,
@@ -23,8 +33,20 @@ export default function SSOCallback() {
       
       // Close this popup window
       window.close()
+
+    // If running inside an iframe for silent session check, post to parent and DO NOT close
+    } else if (silent && window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'SSO_SILENT_CALLBACK',
+        code,
+        state,
+        error: error ? (errorDescription || error) : null
+      }, window.location.origin)
+
+      // keep the iframe content visible briefly (or show a minimal message)
+
     } else {
-      // If no opener (direct navigation), redirect to login
+      // If no opener and not a silent iframe (direct navigation), redirect to login
       window.location.href = '/login'
     }
   }, [])

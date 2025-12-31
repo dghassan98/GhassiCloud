@@ -1,7 +1,8 @@
 {
   "nav": { "dashboard": "لوحة القيادة", "reporting": "التقارير", "settings": "الإعدادات" },
   "general": { "welcome": "مرحبًا بك في GhassiCloud. اعتمد السيادة الرقمية.", "scanMe": "امسحني", "userFallback": "مستخدم", "memberFallback": "عضو" },
-  "layout": { "weatherTemp": "18°C", "weatherDesc": "غائم جزئيًا", "openProfile": "فتح إعدادات الملف الشخصي", "notifications": "الإشعارات" },
+  "layout": { "weatherTemp": "18°C", "weatherDesc": "غائم جزئيًا", "openProfile": "فتح إعدادات الملف الشخصي", "notifications": "الإشعارات", "signOutLocal": "تسجيل الخروج (محلي)", "signOutProvider": "تسجيل الخروج من مزود الهوية", "signedOut": "تم تسجيل الخروج" },
+
   "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },
   "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول..." },
   "settings": {
@@ -47,7 +48,6 @@
     "delete": "حذف",
     "saveChanges": "حفظ التغييرات",
     "signOut": "تسجيل الخروج",
-    "notifications": "الإشعارات",
     "uploadAvatar": "تحميل الصورة",
     "removeAvatar": "إزالة",
     "language": "اللغة",
@@ -78,10 +78,6 @@
     "signOutSessionSuccess": "تم إبطال الجلسة",
     "signOutSessionFailed": "فشل إبطال الجلسة",
     "noActiveSessions": "لا توجد جلسات نشطة",
-    "requireReauthTitle": "طلب إعادة المصادقة للإجراءات الحساسة",
-    "requireReauthDesc": "إذا تم التفعيل، سيُطلب منك إعادة إدخال بياناتك عند تنفيذ إجراءات حساسة.",
-    "requireReauthSaved": "تم حفظ تفضيل الأمان",
-    "requireReauthFailed": "فشل حفظ التفضيل",
     "started": "بدأت",
     "lastActive": "آخر نشاط",
     "currentSession": "الجلسة الحالية",

@@ -777,32 +777,45 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
   }
 })
 
-// Get security preferences for current user (e.g., require_reauth)
-router.get('/security', authenticateToken, (req, res) => {
+// Front-channel logout endpoint for SSO providers (Keycloak frontchannel logout can redirect here)
+// Example GET: /api/auth/sso/frontchannel-logout?session_state=<sessionId>
+// This will attempt to revoke the local session metadata for the provided session id and mark tokens invalid for the user.
+router.get('/sso/frontchannel-logout', async (req, res) => {
   try {
-    const db = getDb()
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
-    if (!user) return res.status(404).json({ message: 'User not found' })
-    res.json({ requireReauth: Boolean(user.require_reauth) })
-  } catch (err) {
-    console.error('Get security settings error:', err)
-    res.status(500).json({ message: 'Server error' })
-  }
-})
+    const sessionId = req.query.session_state || req.query.session || req.query.sid || null
+    if (!sessionId) {
+      return res.status(400).send('Missing session identifier')
+    }
 
-// Update security preferences for current user
-router.put('/security', authenticateToken, (req, res) => {
-  try {
-    const { requireReauth } = req.body
     const db = getDb()
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
-    if (!user) return res.status(404).json({ message: 'User not found' })
-    const flag = requireReauth ? 1 : 0
-    db.prepare('UPDATE users SET require_reauth = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(flag, req.user.id)
-    res.json({ requireReauth: Boolean(flag) })
+    const row = db.prepare('SELECT user_id FROM user_sessions WHERE session_id = ?').get(sessionId)
+    if (!row || !row.user_id) {
+      // Unknown session — respond success to avoid revealing info
+      console.warn('Frontchannel logout received unknown session:', sessionId)
+      return res.status(200).send('Ok')
+    }
+
+    const userId = row.user_id
+
+    // Remove the session metadata
+    try {
+      db.prepare('DELETE FROM user_sessions WHERE session_id = ?').run(sessionId)
+    } catch (e) {
+      console.warn('Failed to delete user_session for frontchannel logout:', e)
+    }
+
+    // Mark tokens invalid before now so existing JWTs are rejected
+    try {
+      db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(userId)
+    } catch (e) {
+      console.warn('Failed to set tokens_invalid_before during frontchannel logout:', e)
+    }
+
+    console.info('Frontchannel logout processed for session:', sessionId)
+    return res.status(200).send('Ok')
   } catch (err) {
-    console.error('Update security settings error:', err)
-    res.status(500).json({ message: 'Server error' })
+    console.error('Frontchannel logout handler error:', err)
+    return res.status(500).send('Server error')
   }
 })
 

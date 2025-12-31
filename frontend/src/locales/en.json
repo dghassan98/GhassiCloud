@@ -14,7 +14,10 @@
     "weatherTemp": "18°C",
     "weatherDesc": "Partly Cloudy",
     "openProfile": "Open profile settings",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "signOutLocal": "Sign out (app only)",
+    "signOutProvider": "Sign out everywhere (includes identity provider)",
+    "signedOut": "Signed out"
   },
   "dashboard": {
     "servicesOnline": "Services Online",
@@ -127,10 +130,6 @@
     "signOutSessionSuccess": "Session revoked",
     "signOutSessionFailed": "Failed to revoke session",
     "noActiveSessions": "No active sessions",
-    "requireReauthTitle": "Require re-authentication for critical actions",
-    "requireReauthDesc": "If enabled, you will be asked to re-enter your credentials for sensitive actions such as deleting your account or rotating tokens.",
-    "requireReauthSaved": "Security preference saved",
-    "requireReauthFailed": "Failed to save security preference",
     "started": "Started",
     "lastActive": "Last active",
     "currentSession": "Current session",

@@ -39,7 +39,6 @@ export default function Settings() {
   // Sessions & security preferences (user-facing)
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
-  const [requireReauth, setRequireReauth] = useState(false)
 
   // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
@@ -119,6 +118,8 @@ export default function Settings() {
   const [showConfirmSignOutAll, setShowConfirmSignOutAll] = useState(false)
   const [confirmSignOutAllLoading, setConfirmSignOutAllLoading] = useState(false)
   const [confirmSession, setConfirmSession] = useState(null) // holds session object when confirming single session
+
+
   const [confirmSessionLoading, setConfirmSessionLoading] = useState(false)
 
   const getAuthToken = () => {
@@ -218,23 +219,10 @@ export default function Settings() {
     }
   }
 
-  const loadSecurityPrefs = async () => {
-    try {
-      const token = getAuthToken()
-      if (!token) return
-      const r = await fetch('/api/auth/security', { headers: { 'Authorization': token } })
-      if (!r.ok) return
-      const data = await r.json()
-      setRequireReauth(Boolean(data.requireReauth))
-    } catch (err) {
-      console.error('Load security prefs error:', err)
-    }
-  }
 
   useEffect(() => {
     if (activeSection === 'security') {
       handleLoadSessions()
-      loadSecurityPrefs()
     }
   }, [activeSection])
 
@@ -585,6 +573,7 @@ export default function Settings() {
               <h2>{t('settings.security')}</h2>
 
               {isSSO ? (
+                <>
                 <div className="sso-card sso-top-card">
                   <div className="sso-card-left"><Lock size={22} /></div>
                   <div className="sso-card-body">
@@ -595,6 +584,9 @@ export default function Settings() {
                     <a className="btn-primary btn-icon" href="https://auth.ghassandarwish.com/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
                   </div>
                 </div>
+
+
+                </>
               ) : (
                 <>
                   <div className="form-group">
@@ -612,35 +604,6 @@ export default function Settings() {
                 </>
               )}
 
-              <div className="security-pref">
-                <div className="form-group">
-                  <label>{t('settings.requireReauthTitle') || 'Require re-authentication for critical actions'}</label>
-                  <p className="form-hint">{t('settings.requireReauthDesc') || 'If enabled, you will be asked to re-enter your credentials when performing sensitive actions such as deleting your account or rotating tokens.'}</p>
-                  <label className="toggle">
-                    <input type="checkbox" checked={requireReauth} onChange={async (e) => {
-                      const newVal = e.target.checked
-                      setRequireReauth(newVal)
-                      const token = getAuthToken()
-                      if (!token) return showToast({ message: 'Not authenticated', type: 'error' })
-                      try {
-                        const r = await fetch('/api/auth/security', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ requireReauth: newVal }) })
-                        if (!r.ok) {
-                          const data = await r.json()
-                          showToast({ message: data.message || 'Failed to update security settings', type: 'error' })
-                          setRequireReauth(!newVal)
-                        } else {
-                          showToast({ message: t('settings.requireReauthSaved') || 'Security preference saved', type: 'success' })
-                        }
-                      } catch (err) {
-                        console.error('Update requireReauth error:', err)
-                        setRequireReauth(!newVal)
-                        showToast({ message: t('settings.requireReauthFailed') || 'Failed to save preference', type: 'error' })
-                      }
-                    }} />
-                    <span className="toggle-slider" />
-                  </label>
-                </div>
-              </div>
 
               {/* Danger Zone (moved below Active sessions) */}
 
@@ -649,9 +612,8 @@ export default function Settings() {
               <div className="settings-section sessions-section">
                 <h3>{t('settings.activeSessionsTitle') || 'Active sessions'}</h3>
                 <p className="form-hint">{t('settings.activeSessionsDesc') || 'See devices and browsers currently signed in. Revoke any session you don\'t recognize.'}</p>
-                <div className="sessions-actions">
-                  <button className="btn-secondary" onClick={() => setShowConfirmSignOutAll(true)}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
-                </div>
+
+
                 <div className="sessions-list">
                   {sessionsLoading ? (
                     <p>{t('common.loading') || 'Loading...'}</p>
@@ -683,6 +645,11 @@ export default function Settings() {
                     )
                   )}
                 </div>
+
+                <div className="sessions-actions sessions-actions-bottom" style={{ marginTop: '0.75rem' }}>
+                  <button className="btn-secondary" onClick={() => setShowConfirmSignOutAll(true)}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
+                </div>
+
               </div>
 
               <hr className="section-sep" />
@@ -713,8 +680,8 @@ export default function Settings() {
                   </div>
                   <div className="avatar-actions">
                     <label className="btn-secondary btn-file">
-                      {t('settings.uploadAvatar')}
                       <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                      <span>{t('settings.uploadAvatar')}</span>
                     </label>
                     {avatarPreview && <button className="btn-secondary" onClick={handleRemoveAvatar}>{t('settings.removeAvatar')}</button>}
                   </div>

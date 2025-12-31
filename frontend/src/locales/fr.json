@@ -1,7 +1,8 @@
 {
   "nav": { "dashboard": "Tableau de bord", "reporting": "Rapports", "settings": "Paramètres" },
   "general": { "welcome": "Bienvenue sur GhassiCloud. Adoptez la souveraineté numérique.", "scanMe": "Scannez-moi", "userFallback": "Utilisateur", "memberFallback": "Membre" },
-  "layout": { "weatherTemp": "18°C", "weatherDesc": "Partiellement nuageux", "openProfile": "Ouvrir les paramètres du profil", "notifications": "Notifications" },
+  "layout": { "weatherTemp": "18°C", "weatherDesc": "Partiellement nuageux", "openProfile": "Ouvrir les paramètres du profil", "notifications": "Notifications", "signOutLocal": "Déconnexion (locale)", "signOutProvider": "Déconnexion du fournisseur d'identité", "signedOut": "Déconnecté" },
+
   "dashboard": { "servicesOnline": "Services en ligne", "addService": "Ajouter un service", "searchPlaceholder": "Rechercher des services...", "noServices": "Aucun service trouvé", "loadingServices": "Chargement des services...", "getStarted": "Ajoutez votre premier service pour commencer", "noServicesPopover": "Aucun service", "lastChecked": "Dernière vérification", "checking": "Vérification...", "never": "Jamais", "yourServices": "Vos services" },
   "auth": { "completingSignIn": "Connexion en cours..." },
   "settings": {
@@ -48,7 +49,6 @@
     "delete": "Supprimer",
     "saveChanges": "Enregistrer les modifications",
     "signOut": "Se déconnecter",
-    "notifications": "Notifications",
     "uploadAvatar": "Téléverser l'avatar",
     "removeAvatar": "Supprimer",
     "language": "Langue",
@@ -63,7 +63,8 @@
     "usernameSSOHint": "Le nom d'utilisateur est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
     "emailSSOHint": "L'email est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",    "passwordManagedBySSOTitle": "Mot de passe géré par le fournisseur d'identité",
     "passwordManagedBySSO": "Votre compte utilise l'authentification unique. Pour modifier votre mot de passe, veuillez visiter votre fournisseur d'authentification.",
-    "changeOnAuthPlatform": "Modifier le mot de passe sur la plateforme d'authentification",    "resetSuccess": "Tous les services ont été réinitialisés avec succès !",
+    "changeOnAuthPlatform": "Modifier le mot de passe sur la plateforme d'authentification",
+    "resetSuccess": "Tous les services ont été réinitialisés avec succès !",
     "resetFailed": "Échec de la réinitialisation des services",
     "activeSessionsTitle": "Sessions actives",
     "activeSessionsDesc": "Voir les appareils et navigateurs connectés. Révoquer toute session inconnue.",
@@ -77,10 +78,6 @@
     "signOutEverywhereDesc": "Vous serez déconnecté de toutes les sessions actives.",
     "signOutSessionDesc": "Vous serez déconnecté de cette session.",
     "noActiveSessions": "Aucune session active",
-    "requireReauthTitle": "Exiger une nouvelle authentification pour les actions sensibles",
-    "requireReauthDesc": "Si activé, vous devrez vous réauthentifier pour des actions sensibles comme la suppression du compte.",
-    "requireReauthSaved": "Préférence de sécurité enregistrée",
-    "requireReauthFailed": "Échec de l'enregistrement de la préférence",
     "started": "Démarré",
     "lastActive": "Dernière activité",
     "currentSession": "Session actuelle",

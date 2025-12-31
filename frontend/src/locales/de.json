@@ -14,7 +14,10 @@
     "weatherTemp": "18°C",
     "weatherDesc": "Teilweise bewölkt",
     "openProfile": "Öffne Profileinstellungen",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "signOutLocal": "Abmelden (nur App)",
+    "signOutProvider": "Überall abmelden (inkl. Identitätsanbieter)",
+    "signedOut": "Abgemeldet"
   },
   "dashboard": {
     "servicesOnline": "Dienste online",
@@ -110,10 +113,6 @@
     "signOutSessionSuccess": "Sitzung widerrufen",
     "signOutSessionFailed": "Fehler beim Widerrufen der Sitzung",
     "noActiveSessions": "Keine aktiven Sitzungen",
-    "requireReauthTitle": "Für kritische Aktionen erneute Authentifizierung verlangen",
-    "requireReauthDesc": "Wenn aktiviert, musst du dich erneut anmelden, um sensible Aktionen durchzuführen.",
-    "requireReauthSaved": "Sicherheitseinstellung gespeichert",
-    "requireReauthFailed": "Fehler beim Speichern der Einstellung",
     "started": "Gestartet",
     "lastActive": "Zuletzt aktiv",
     "currentSession": "Aktuelle Sitzung",

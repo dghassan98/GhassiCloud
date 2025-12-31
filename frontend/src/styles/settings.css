@@ -284,6 +284,35 @@
   height: 26px;
 }
 
+/* Logout preference radio */
+.radio-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.375rem;
+  background: var(--bg-tertiary);
+}
+
+.radio-label input[type="radio"] {
+  transform: translateY(1px);
+}
+
+.radio-label.disabled {
+  opacity: 0.6;
+}
+
+.form-hint.muted {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
 .toggle input {
   opacity: 0;
   width: 0;

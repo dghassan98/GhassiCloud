@@ -132,17 +132,45 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
-  // Add require_reauth flag (0/1) - allows user to require re-authentication for critical actions
-  try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN require_reauth INTEGER DEFAULT 0`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
   // Add tokens_invalid_before to allow invalidating tokens issued before a time
   try {
     dbWrapper.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)
   } catch (e) {
     // Column already exists, ignore
+  }
+
+  // Remove legacy logout_preference column if present (we no longer support this setting)
+  try {
+    const cols = dbWrapper.prepare(`PRAGMA table_info(users)`).all()
+    const hasLogout = cols && Array.isArray(cols) && cols.some(c => c.name === 'logout_preference')
+    if (hasLogout) {
+      // Recreate users table without logout_preference column
+      dbWrapper.exec(`BEGIN;
+        CREATE TABLE IF NOT EXISTS users_new (
+          id TEXT PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          email TEXT,
+          display_name TEXT,
+          role TEXT DEFAULT 'user',
+          sso_provider TEXT,
+          sso_id TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          first_name TEXT,
+          last_name TEXT,
+          avatar TEXT,
+          language TEXT,
+          tokens_invalid_before DATETIME
+        );
+        INSERT INTO users_new (id, username, password, email, display_name, role, sso_provider, sso_id, created_at, updated_at, first_name, last_name, avatar, language, tokens_invalid_before)
+          SELECT id, username, password, email, display_name, role, sso_provider, sso_id, created_at, updated_at, first_name, last_name, avatar, language, tokens_invalid_before FROM users;
+        DROP TABLE users;
+        ALTER TABLE users_new RENAME TO users;
+        COMMIT;`)
+    }
+  } catch (e) {
+    console.warn('Failed to remove logout_preference during migration:', e)
   }
   
   // Add pinned column to services if it doesn't exist
