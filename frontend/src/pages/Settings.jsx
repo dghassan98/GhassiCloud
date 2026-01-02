@@ -48,8 +48,81 @@ export default function Settings() {
   const [lastName, setLastName] = useState(user?.lastName || '')
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null)
   const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarError, setAvatarError] = useState(false)
+  const [avatarRetryCount, setAvatarRetryCount] = useState(0)
+
+  // Custom color picker state
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [hexInput, setHexInput] = useState('')
+  const [hue, setHue] = useState(180)
+  const [saturation, setSaturation] = useState(100)
+  const [lightness, setLightness] = useState(50)
+
+  // Convert HSL to Hex
+  const hslToHex = (h, s, l) => {
+    l /= 100
+    const a = s * Math.min(l, 1 - l) / 100
+    const f = n => {
+      const k = (n + h / 30) % 12
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+      return Math.round(255 * color).toString(16).padStart(2, '0')
+    }
+    return `#${f(0)}${f(8)}${f(4)}`.toUpperCase()
+  }
+
+  // Convert Hex to HSL
+  const hexToHSL = (hex) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255
+    const g = parseInt(hex.slice(3, 5), 16) / 255
+    const b = parseInt(hex.slice(5, 7), 16) / 255
+
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    let h, s, l = (max + min) / 2
+
+    if (max === min) {
+      h = s = 0
+    } else {
+      const d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+        case g: h = ((b - r) / d + 2) / 6; break
+        case b: h = ((r - g) / d + 4) / 6; break
+      }
+    }
+
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
+  }
+
+  // Update HSL when custom color changes
+  useEffect(() => {
+    if (currentAccent.id === 'custom') {
+      const hsl = hexToHSL(currentAccent.color)
+      setHue(hsl.h)
+      setSaturation(hsl.s)
+      setLightness(hsl.l)
+    }
+  }, [currentAccent])
 
   const { showToast } = useToast()
+
+  // Helper to proxy external avatar URLs through backend to avoid CORS and rate limiting
+  const getProxiedAvatarUrl = (avatarUrl) => {
+    if (!avatarUrl) return null
+    // Check if it's already a proxy URL
+    if (avatarUrl.startsWith('/api/auth/avatar-proxy')) return avatarUrl
+    // Check if it's a data URL (uploaded file)
+    if (avatarUrl.startsWith('data:')) return avatarUrl
+    // Check if it's a relative URL
+    if (avatarUrl.startsWith('/')) return avatarUrl
+    // Check if it's an external URL that needs proxying
+    const externalDomains = ['googleusercontent.com', 'graph.microsoft.com', 'avatars.githubusercontent.com']
+    if (externalDomains.some(domain => avatarUrl.includes(domain))) {
+      return `/api/auth/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`
+    }
+    return avatarUrl
+  }
 
   // Copy IP helper (click to copy IP to clipboard)
   const copyToClipboard = async (text) => {
@@ -307,8 +380,10 @@ export default function Settings() {
     // Only update language if it differs to avoid loops
     const preferred = user.language || (navigator.language || 'en').split('-')[0]
     if (preferred && preferred !== language) setLanguage(preferred)
-    setAvatarPreview(user.avatar || null)
+    setAvatarPreview(getProxiedAvatarUrl(user.avatar))
     setAvatarFile(null)
+    setAvatarError(false)
+    setAvatarRetryCount(0)
     // Keep pendingLanguage in sync with actual language
     setPendingLanguage(preferred && preferred !== language ? preferred : language)
 
@@ -672,8 +747,19 @@ export default function Settings() {
               <div className="profile-grid">
                 <div className="profile-avatar">
                   <div className="avatar-preview">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Avatar" />
+                    {avatarPreview && !avatarError ? (
+                      <img 
+                        src={avatarPreview} 
+                        alt="Avatar"
+                        loading="eager"
+                        onError={() => {
+                          console.warn('Avatar failed to load')
+                          setAvatarError(true)
+                        }}
+                        onLoad={() => {
+                          setAvatarError(false)
+                        }}
+                      />
                     ) : (
                       <div className="avatar-placeholder"><User size={36} /></div>
                     )}
@@ -784,6 +870,183 @@ export default function Settings() {
                       {currentAccent.id === id && <Check size={14} />}
                     </button>
                   ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label>{t('settings.customAccentColor') || 'Custom Accent Color'}</label>
+                <p className="form-hint">{t('settings.customAccentHint') || 'Choose your own accent color'}</p>
+                <div className="custom-color-picker-container">
+                  <button 
+                    type="button"
+                    className={`custom-color-trigger ${currentAccent.id === 'custom' ? 'active' : ''} ${showColorPicker ? 'expanded' : ''}`}
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                  >
+                    <div 
+                      className="color-preview" 
+                      style={{ backgroundColor: currentAccent.id === 'custom' ? currentAccent.color : '#6366f1' }}
+                    ></div>
+                    <span className="color-label">{currentAccent.id === 'custom' ? currentAccent.color.toUpperCase() : '#6366F1'}</span>
+                    {currentAccent.id === 'custom' && <Check size={16} />}
+                  </button>
+                  
+                  {showColorPicker && (
+                    <motion.div 
+                      className="custom-color-picker-panel"
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      <div className="color-picker-header">
+                        <Palette size={18} />
+                        <span>{t('settings.customAccentColor') || 'Custom Color'}</span>
+                        <button type="button" onClick={() => setShowColorPicker(false)} className="close-btn">×</button>
+                      </div>
+                      <div className="color-picker-body">
+                        
+                        {/* Visual Color Picker */}
+                        <div className="visual-color-picker">
+                          {/* Saturation/Lightness Picker */}
+                          <div 
+                            className="color-gradient-box"
+                            style={{ 
+                              background: `
+                                linear-gradient(to top, #000, transparent),
+                                linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))
+                              `
+                            }}
+                            onMouseDown={(e) => {
+                              const box = e.currentTarget
+                              const updateColor = (clientX, clientY) => {
+                                const rect = box.getBoundingClientRect()
+                                const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
+                                const y = Math.max(0, Math.min(clientY - rect.top, rect.height))
+                                
+                                // Calculate saturation (0-100% from left to right)
+                                const newSat = Math.round((x / rect.width) * 100)
+                                
+                                // Calculate lightness based on both gradients
+                                // Left side: white (100% lightness) to black (0% lightness)
+                                // Right side: pure hue (50% lightness) to black (0% lightness)
+                                const yPercent = y / rect.height
+                                const baseLightness = 100 - (newSat * 0.5) // 100% at left, 50% at right
+                                const newLight = Math.round(baseLightness * (1 - yPercent * 0.95)) // Keep 5% min
+                                
+                                setSaturation(newSat)
+                                setLightness(newLight)
+                                const hex = hslToHex(hue, newSat, newLight)
+                                setAccent('custom', hex)
+                                setHexInput(hex)
+                              }
+                              
+                              updateColor(e.clientX, e.clientY)
+                              
+                              const handleMouseMove = (moveEvent) => {
+                                updateColor(moveEvent.clientX, moveEvent.clientY)
+                              }
+                              
+                              const handleMouseUp = () => {
+                                document.removeEventListener('mousemove', handleMouseMove)
+                                document.removeEventListener('mouseup', handleMouseUp)
+                              }
+                              
+                              document.addEventListener('mousemove', handleMouseMove)
+                              document.addEventListener('mouseup', handleMouseUp)
+                            }}
+                          >
+                            <div 
+                              className="color-picker-thumb"
+                              style={{
+                                left: `${saturation}%`,
+                                top: `${(() => {
+                                  const baseLightness = 100 - (saturation * 0.5)
+                                  if (baseLightness === 0) return 100
+                                  const yPercent = 1 - (lightness / baseLightness / 0.95)
+                                  return Math.max(0, Math.min(100, yPercent * 100))
+                                })()}%`
+                              }}
+                            />
+                          </div>
+
+                          {/* Hue Slider */}
+                          <div className="hue-slider-container">
+                            <input
+                              type="range"
+                              min="0"
+                              max="360"
+                              value={hue}
+                              onChange={(e) => {
+                                const newHue = parseInt(e.target.value)
+                                setHue(newHue)
+                                const hex = hslToHex(newHue, saturation, lightness)
+                                setAccent('custom', hex)
+                                setHexInput(hex)
+                              }}
+                              className="hue-slider"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="hex-input-group">
+                          <label>{t('settings.hexCode') || 'Hex Code'}</label>
+                          <div className="hex-input-wrapper">
+                            <input
+                              type="text"
+                              value={hexInput || (currentAccent.id === 'custom' ? currentAccent.color : '#6366f1')}
+                              onChange={(e) => {
+                                let value = e.target.value.toUpperCase()
+                                if (!value.startsWith('#')) value = '#' + value
+                                if (/^#[0-9A-F]{0,6}$/.test(value)) {
+                                  setHexInput(value)
+                                  if (value.length === 7) {
+                                    setAccent('custom', value)
+                                    const hsl = hexToHSL(value)
+                                    setHue(hsl.h)
+                                    setSaturation(hsl.s)
+                                    setLightness(hsl.l)
+                                  }
+                                }
+                              }}
+                              onBlur={() => {
+                                if (currentAccent.id === 'custom') {
+                                  setHexInput(currentAccent.color)
+                                } else {
+                                  setHexInput('')
+                                }
+                              }}
+                              placeholder="#6366F1"
+                              className="hex-input"
+                              maxLength={7}
+                            />
+                            <div 
+                              className="hex-preview" 
+                              style={{ backgroundColor: (hexInput && hexInput.length === 7) ? hexInput : (currentAccent.id === 'custom' ? currentAccent.color : '#6366f1') }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="color-swatches-label">Quick Colors</div>
+                        <div className="color-grid">
+                          {[
+                            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', 
+                            '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
+                            '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#dc2626'
+                          ].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              className="color-swatch"
+                              style={{ backgroundColor: color }}
+                              onClick={() => {
+                                setAccent('custom', color)
+                                setHexInput(color.toUpperCase())
+                              }}
+                              title={color.toUpperCase()}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </div>
               <div className="form-group">

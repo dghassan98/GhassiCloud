@@ -819,4 +819,52 @@ router.get('/sso/frontchannel-logout', async (req, res) => {
   }
 })
 
+// Avatar proxy endpoint to bypass CORS and rate limiting issues with external avatar URLs
+router.get('/avatar-proxy', async (req, res) => {
+  try {
+    const { url } = req.query
+    if (!url) {
+      return res.status(400).json({ message: 'URL parameter required' })
+    }
+
+    // Only allow specific domains to prevent abuse
+    const allowedDomains = ['lh3.googleusercontent.com', 'graph.microsoft.com', 'avatars.githubusercontent.com']
+    try {
+      const urlObj = new URL(url)
+      if (!allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+        return res.status(403).json({ message: 'Domain not allowed' })
+      }
+    } catch (e) {
+      return res.status(400).json({ message: 'Invalid URL' })
+    }
+
+    // Fetch the image with a short timeout
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'GhassiCloud/1.0'
+      }
+    })
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      return res.status(response.status).json({ message: 'Failed to fetch avatar' })
+    }
+
+    // Set caching headers to reduce requests
+    res.setHeader('Cache-Control', 'public, max-age=3600')
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'image/jpeg')
+    
+    // Stream the image
+    const buffer = await response.arrayBuffer()
+    res.send(Buffer.from(buffer))
+  } catch (err) {
+    console.error('Avatar proxy error:', err)
+    res.status(500).json({ message: 'Failed to proxy avatar' })
+  }
+})
+
 export default router

@@ -50,34 +50,69 @@ function HSLToHex(h, s, l) {
   return `#${f(0)}${f(8)}${f(4)}`
 }
 
+// Calculate relative luminance for contrast checking
+function getRelativeLuminance(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
+}
+
+// Get contrasting text color (white or black) for the given background
+function getContrastColor(bgHex) {
+  const luminance = getRelativeLuminance(bgHex)
+  // Use white text for dark backgrounds, black for light backgrounds
+  return luminance > 0.5 ? '#000000' : '#ffffff'
+}
+
 export function AccentProvider({ children }) {
   const [accentId, setAccentId] = useState(() => {
     const saved = localStorage.getItem('ghassicloud-accent')
     return saved || 'cyan'
   })
 
-  const currentAccent = accentColors.find(a => a.id === accentId) || accentColors[6]
+  const [customColor, setCustomColor] = useState(() => {
+    const saved = localStorage.getItem('ghassicloud-custom-accent')
+    return saved || '#6366f1'
+  })
+
+  const currentAccent = accentId === 'custom' 
+    ? { id: 'custom', color: customColor, name: 'Custom' }
+    : accentColors.find(a => a.id === accentId) || accentColors[6]
 
   useEffect(() => {
     localStorage.setItem('ghassicloud-accent', accentId)
+    if (accentId === 'custom') {
+      localStorage.setItem('ghassicloud-custom-accent', customColor)
+    }
     
     // Apply accent color to CSS variables
     const root = document.documentElement
     const hsl = hexToHSL(currentAccent.color)
+    const contrastText = getContrastColor(currentAccent.color)
     
     root.style.setProperty('--accent', currentAccent.color)
+    root.style.setProperty('--accent-text', contrastText)
     root.style.setProperty('--accent-light', HSLToHex(hsl.h, hsl.s, Math.min(hsl.l + 15, 90)))
     root.style.setProperty('--accent-dark', HSLToHex(hsl.h, hsl.s, Math.max(hsl.l - 15, 20)))
     root.style.setProperty('--accent-glow', `${currentAccent.color}15`)
     root.style.setProperty('--gradient-1', `linear-gradient(135deg, ${currentAccent.color} 0%, ${HSLToHex(hsl.h + 30, hsl.s, hsl.l)} 100%)`)
-  }, [accentId, currentAccent])
+  }, [accentId, currentAccent, customColor])
 
-  const setAccent = (id) => {
+  const setAccent = (id, color) => {
     setAccentId(id)
+    if (id === 'custom' && color) {
+      setCustomColor(color)
+    }
   }
 
   return (
-    <AccentContext.Provider value={{ currentAccent, setAccent, accentColors }}>
+    <AccentContext.Provider value={{ currentAccent, setAccent, accentColors, customColor, setCustomColor }}>
       {children}
     </AccentContext.Provider>
   )

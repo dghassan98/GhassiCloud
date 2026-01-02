@@ -36,42 +36,10 @@ export function AuthProvider({ children }) {
           try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
 
           // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag.
-          // For SSO users we also perform a silent provider session check (prompt=none) in a hidden iframe;
-          // if the provider session is not active we clear local auth state to avoid logging in without a valid provider session.
           try {
             const isSSO = Boolean(data.user?.ssoProvider || data.user?.sso_provider)
             if (isSSO) {
               localStorage.setItem('ghassicloud-sso', 'true')
-              // Start background silent provider-side session check; don't block UI loading
-              try {
-                checkSSOSessionSilent().then(result => {
-                  // result = { active: true } | { active: false, error: '...' } | { active: false, timeout: true }
-                  if (result && result.active === true) {
-                    // Provider session is active — nothing to do
-                    return
-                  }
-
-                  // If the provider returned an explicit error (e.g., login_required), treat that as a sign to clear local SSO auth
-                  if (result && result.error) {
-                    console.warn('Silent SSO session returned error — clearing local auth state.', result.error)
-                    localStorage.removeItem('ghassicloud-token')
-                    localStorage.removeItem('ghassicloud-sso')
-                    try { localStorage.removeItem('ghassicloud-user') } catch (e) {}
-                    setUser(null)
-                    return
-                  }
-
-                  // For timeouts or unknown responses, don't forcibly log out (this avoids noisy logouts when third-party cookies blocked)
-                  if (result && result.timeout) {
-                    console.warn('Silent SSO session probe timed out — leaving local session intact.')
-                    return
-                  }
-
-                }).catch((e) => {
-                  console.error('Silent SSO check error:', e)
-                  // Don't proactively log out on transient errors to avoid bad UX
-                })
-              } catch (e) {}
             } else {
               localStorage.removeItem('ghassicloud-sso')
             }
@@ -108,7 +76,6 @@ export function AuthProvider({ children }) {
     localStorage.setItem('ghassicloud-token', data.token)
     setUser(data.user)
     try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
-    if (data.user?.avatar) { try { const _img = new Image(); _img.src = data.user.avatar } catch (e) {} }
     return data
   }
 
@@ -132,77 +99,6 @@ export function AuthProvider({ children }) {
 
     return { codeVerifier, codeChallenge }
   }
-
-  // Silent SSO session check (uses a hidden iframe and prompt=none)
-  // Returns an object: { active: true } on code, { active: false, error } on explicit provider error,
-  // or { active: false, timeout: true } if the probe timed out.
-  const checkSSOSessionSilent = useCallback(async () => {
-    try {
-      const configRes = await fetch('/api/auth/sso/config')
-      if (!configRes.ok) return { active: false, error: 'no_config' }
-      const config = await configRes.json()
-
-      // Generate state and PKCE for silent request
-      const state = crypto.randomUUID()
-      sessionStorage.setItem('sso_silent_state', state)
-      const { codeVerifier, codeChallenge } = await generatePKCE()
-      sessionStorage.setItem('sso_silent_code_verifier', codeVerifier)
-      const redirectUri = `${window.location.origin}/sso-callback?silent=1`
-      sessionStorage.setItem('sso_silent_redirect_uri', redirectUri)
-
-      const authUrl = new URL(config.authUrl)
-      authUrl.searchParams.set('client_id', config.clientId)
-      authUrl.searchParams.set('redirect_uri', redirectUri)
-      authUrl.searchParams.set('response_type', 'code')
-      authUrl.searchParams.set('scope', config.scope)
-      authUrl.searchParams.set('state', state)
-      authUrl.searchParams.set('prompt', 'none')
-      authUrl.searchParams.set('code_challenge', codeChallenge)
-      authUrl.searchParams.set('code_challenge_method', 'S256')
-
-      return await new Promise((resolve) => {
-        const iframe = document.createElement('iframe')
-        iframe.style.display = 'none'
-        iframe.src = authUrl.toString()
-
-        // If probe doesn't return within timeout, resolve as timeout (do not treat as explicit failure)
-        const timeout = setTimeout(() => {
-          cleanup()
-          resolve({ active: false, timeout: true })
-        }, 1500)
-
-        const handleMessage = (event) => {
-          if (event.origin !== window.location.origin) return
-          if (event.data?.type === 'SSO_SILENT_CALLBACK') {
-            const { code: returnedCode, state: returnedState, error } = event.data
-            if (returnedState !== state) { cleanup(); resolve({ active: false, error: 'state_mismatch' }); return }
-            cleanup()
-            if (error) {
-              resolve({ active: false, error })
-            } else if (returnedCode) {
-              resolve({ active: true })
-            } else {
-              resolve({ active: false, error: 'unknown_response' })
-            }
-          }
-        }
-
-        function cleanup() {
-          clearTimeout(timeout)
-          window.removeEventListener('message', handleMessage)
-          try { iframe.remove() } catch (e) {}
-          sessionStorage.removeItem('sso_silent_state')
-          sessionStorage.removeItem('sso_silent_code_verifier')
-          sessionStorage.removeItem('sso_silent_redirect_uri')
-        }
-
-        window.addEventListener('message', handleMessage)
-        document.body.appendChild(iframe)
-      })
-    } catch (e) {
-      return { active: false, error: 'exception' }
-    }
-  }, [])
 
   // SSO Login with popup window (PKCE flow)
   const loginWithSSO = useCallback(() => {
