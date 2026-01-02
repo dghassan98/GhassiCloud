@@ -1,8 +1,8 @@
-import initSqlJs from 'sql.js'
+import Database from 'better-sqlite3'
 import bcrypt from 'bcryptjs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs'
+import { mkdirSync, existsSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -17,74 +17,11 @@ if (!existsSync(dataDir)) {
 
 let db = null
 
-// Save database to file
-function saveDatabase() {
-  if (db) {
-    const data = db.export()
-    const buffer = Buffer.from(data)
-    writeFileSync(dbPath, buffer)
-  }
-}
-
-// Initialize sql.js and load/create database
-async function initSqlJsDb() {
-  const SQL = await initSqlJs()
-  
-  if (existsSync(dbPath)) {
-    const fileBuffer = readFileSync(dbPath)
-    db = new SQL.Database(fileBuffer)
-  } else {
-    db = new SQL.Database()
-  }
-  
-  return db
-}
-
-// Wrapper to make sql.js work like better-sqlite3 API
-function createDbWrapper(database) {
-  return {
-    exec: (sql) => {
-      database.run(sql)
-      saveDatabase()
-    },
-    prepare: (sql) => ({
-      run: (...params) => {
-        database.run(sql, params)
-        saveDatabase()
-      },
-      get: (...params) => {
-        const stmt = database.prepare(sql)
-        stmt.bind(params)
-        if (stmt.step()) {
-          const row = stmt.getAsObject()
-          stmt.free()
-          return row
-        }
-        stmt.free()
-        return undefined
-      },
-      all: (...params) => {
-        const stmt = database.prepare(sql)
-        stmt.bind(params)
-        const results = []
-        while (stmt.step()) {
-          results.push(stmt.getAsObject())
-        }
-        stmt.free()
-        return results
-      }
-    })
-  }
-}
-
-let dbWrapper = null
-
 export async function initDatabase() {
-  const database = await initSqlJsDb()
-  dbWrapper = createDbWrapper(database)
+  db = new Database(dbPath)
   
   // Create users table
-  dbWrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -101,51 +38,51 @@ export async function initDatabase() {
   
   // Add SSO columns if they don't exist (migration for existing DBs)
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN sso_provider TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN sso_provider TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN sso_id TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN sso_id TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   // Add first_name, last_name and avatar for richer profiles
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN first_name TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN first_name TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN last_name TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN last_name TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN avatar TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN avatar TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   // Add language column for user preference
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN language TEXT`)
+    db.exec(`ALTER TABLE users ADD COLUMN language TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   // Add tokens_invalid_before to allow invalidating tokens issued before a time
   try {
-    dbWrapper.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)
+    db.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)
   } catch (e) {
     // Column already exists, ignore
   }
 
   // Remove legacy logout_preference column if present (we no longer support this setting)
   try {
-    const cols = dbWrapper.prepare(`PRAGMA table_info(users)`).all()
+    const cols = db.prepare(`PRAGMA table_info(users)`).all()
     const hasLogout = cols && Array.isArray(cols) && cols.some(c => c.name === 'logout_preference')
     if (hasLogout) {
       // Recreate users table without logout_preference column
-      dbWrapper.exec(`BEGIN;
+      db.exec(`BEGIN;
         CREATE TABLE IF NOT EXISTS users_new (
           id TEXT PRIMARY KEY,
           username TEXT UNIQUE NOT NULL,
@@ -175,13 +112,13 @@ export async function initDatabase() {
   
   // Add pinned column to services if it doesn't exist
   try {
-    dbWrapper.exec(`ALTER TABLE services ADD COLUMN pinned INTEGER DEFAULT 0`)
+    db.exec(`ALTER TABLE services ADD COLUMN pinned INTEGER DEFAULT 0`)
   } catch (e) {
     // Column already exists, ignore
   }
 
   // Create services table
-  dbWrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS services (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -200,13 +137,13 @@ export async function initDatabase() {
   
   // Add use_favicon column if it doesn't exist (migration for existing DBs)
   try {
-    dbWrapper.exec(`ALTER TABLE services ADD COLUMN use_favicon INTEGER DEFAULT 1`)
+    db.exec(`ALTER TABLE services ADD COLUMN use_favicon INTEGER DEFAULT 1`)
   } catch (e) {
     // Column already exists, ignore
   }
 
   // Create settings table
-  dbWrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT,
@@ -215,7 +152,7 @@ export async function initDatabase() {
   `)
 
   // Create navidrome credentials table (single credential storage for Now Playing)
-  dbWrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS navidrome_credentials (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL,
@@ -231,7 +168,7 @@ export async function initDatabase() {
   `)
 
   // Create table to persist user session metadata captured during SSO login
-  dbWrapper.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS user_sessions (
       session_id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -243,40 +180,73 @@ export async function initDatabase() {
     )
   `)
 
+  // Create audit_logs table for tracking all user activities and access changes
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      username TEXT,
+      action TEXT NOT NULL,
+      category TEXT NOT NULL,
+      resource_type TEXT,
+      resource_id TEXT,
+      resource_name TEXT,
+      details TEXT,
+      ip_address TEXT,
+      user_agent TEXT,
+      status TEXT DEFAULT 'success',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // Create index for faster queries on audit_logs
+  try {
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`)
+  } catch (e) { /* Index may already exist */ }
+  try {
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`)
+  } catch (e) { /* Index may already exist */ }
+  try {
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_category ON audit_logs(category)`)
+  } catch (e) { /* Index may already exist */ }
+  try {
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`)
+  } catch (e) { /* Index may already exist */ }
+
   // Add new columns if migrating from older DB (safe to run on existing DB)
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_hashed TEXT`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_hashed TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_encrypted TEXT`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_encrypted TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN auth_method TEXT DEFAULT 'token'`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN auth_method TEXT DEFAULT 'token'`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_type TEXT`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_type TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN token TEXT`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN token TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
   try {
-    dbWrapper.exec(`ALTER TABLE navidrome_credentials ADD COLUMN salt TEXT`)
+    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN salt TEXT`)
   } catch (e) {
     // Column already exists, ignore
   }
 
   // Create default admin user if not exists
-  const adminUser = dbWrapper.prepare('SELECT * FROM users WHERE username = ?').get(
+  const adminUser = db.prepare('SELECT * FROM users WHERE username = ?').get(
     process.env.DEFAULT_ADMIN_USER || 'admin'
   )
 
@@ -285,7 +255,7 @@ export async function initDatabase() {
       process.env.DEFAULT_ADMIN_PASS || 'admin',
       10
     )
-    dbWrapper.prepare(`
+    db.prepare(`
       INSERT INTO users (id, username, password, role, display_name)
       VALUES (?, ?, ?, 'admin', 'Administrator')
     `).run(
@@ -298,11 +268,11 @@ export async function initDatabase() {
 
   console.log('✅ Database initialized')
   
-  return dbWrapper
+  return db
 }
 
 export function getDb() {
-  return dbWrapper
+  return db
 }
 
 export default { initDatabase, getDb }

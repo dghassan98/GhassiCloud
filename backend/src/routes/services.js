@@ -4,6 +4,7 @@ import { getDb } from '../db/index.js'
 import { v4 as uuidv4 } from 'uuid'
 import { authenticateToken } from '../middleware/auth.js'
 import fetch from 'node-fetch'
+import { logAuditEvent, getClientIp, AUDIT_ACTIONS, AUDIT_CATEGORIES } from './audit.js'
 
 const router = Router()
 
@@ -102,7 +103,7 @@ router.get('/:id', (req, res) => {
 })
 
 // Create service
-router.post('/', (req, res) => {
+router.post('/', authenticateToken, (req, res) => {
   try {
     const { name, description, url, icon, color, status, category, useFavicon, pinned } = req.body
     const db = getDb()
@@ -131,6 +132,21 @@ router.post('/', (req, res) => {
     
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(id)
     
+    // Log service creation
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SERVICE_CREATED,
+      category: AUDIT_CATEGORIES.SERVICE,
+      resourceType: 'service',
+      resourceId: id,
+      resourceName: name,
+      details: { url, category },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+    
     res.status(201).json({
       id: service.id,
       name: service.name,
@@ -150,7 +166,7 @@ router.post('/', (req, res) => {
 })
 
 // Update service
-router.put('/:id', (req, res) => {
+router.put('/:id', authenticateToken, (req, res) => {
   try {
     const { name, description, url, icon, color, status, category, sortOrder, useFavicon, pinned } = req.body
     const db = getDb()
@@ -181,6 +197,27 @@ router.put('/:id', (req, res) => {
     
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
     
+    // Log service update
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SERVICE_UPDATED,
+      category: AUDIT_CATEGORIES.SERVICE,
+      resourceType: 'service',
+      resourceId: service.id,
+      resourceName: service.name,
+      details: { 
+        changes: {
+          name: name !== existing.name ? name : undefined,
+          url: url !== existing.url ? url : undefined,
+          pinned: pinned !== (existing.pinned === 1) ? pinned : undefined
+        }
+      },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+    
     res.json({
       id: service.id,
       name: service.name,
@@ -200,7 +237,7 @@ router.put('/:id', (req, res) => {
 })
 
 // Delete service
-router.delete('/:id', (req, res) => {
+router.delete('/:id', authenticateToken, (req, res) => {
   try {
     const db = getDb()
     const existing = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
@@ -210,6 +247,21 @@ router.delete('/:id', (req, res) => {
     }
     
     db.prepare('DELETE FROM services WHERE id = ?').run(req.params.id)
+    
+    // Log service deletion
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SERVICE_DELETED,
+      category: AUDIT_CATEGORIES.SERVICE,
+      resourceType: 'service',
+      resourceId: existing.id,
+      resourceName: existing.name,
+      details: { url: existing.url },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
     
     res.json({ message: 'Service deleted successfully' })
   } catch (err) {
@@ -244,7 +296,26 @@ router.put('/order/bulk', (req, res) => {
 router.delete('/reset/all', authenticateToken, (req, res) => {
   try {
     const db = getDb()
+    
+    // Count services before deletion for audit log
+    const countResult = db.prepare('SELECT COUNT(*) as count FROM services').get()
+    const count = countResult?.count || 0
+    
     db.prepare('DELETE FROM services').run()
+    
+    // Log services reset
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SERVICES_RESET,
+      category: AUDIT_CATEGORIES.SERVICE,
+      resourceType: 'services',
+      details: { deletedCount: count },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+    
     res.json({ message: 'All services have been reset' })
   } catch (err) {
     console.error('Reset services error:', err)

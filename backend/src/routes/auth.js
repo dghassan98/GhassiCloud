@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { getDb } from '../db/index.js'
 import { authenticateToken, generateToken } from '../middleware/auth.js'
+import { logAuditEvent, getClientIp, AUDIT_ACTIONS, AUDIT_CATEGORIES } from './audit.js'
 
 const router = Router()
 
@@ -71,6 +72,19 @@ router.put('/sso/config', authenticateToken, async (req, res) => {
     const ok = await writeSSOConfig(newCfg)
     if (!ok) return res.status(500).json({ message: 'Failed to save SSO configuration' })
 
+    // Log SSO config update
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SSO_CONFIG_UPDATED,
+      category: AUDIT_CATEGORIES.SETTINGS,
+      resourceType: 'sso_config',
+      details: { clientId },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+
     res.json(newCfg)
   } catch (err) {
     console.error('Update SSO config error:', err)
@@ -89,6 +103,19 @@ router.delete('/sso/config', authenticateToken, async (req, res) => {
     } catch (e) {
       // ignore if missing
     }
+    
+    // Log SSO config reset
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SSO_CONFIG_RESET,
+      category: AUDIT_CATEGORIES.SETTINGS,
+      resourceType: 'sso_config',
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+    
     const cfg = await readSSOConfig()
     res.json(cfg)
   } catch (err) {
@@ -286,6 +313,19 @@ router.post('/sso/callback', async (req, res) => {
     // Generate our own JWT token and include the SSO session id when available
     const token = generateToken(user, sessionId || null)
 
+    // Log SSO login
+    const ssoIp = getClientIp(req)
+    logAuditEvent({
+      userId: user.id,
+      username: user.username,
+      action: AUDIT_ACTIONS.SSO_LOGIN,
+      category: AUDIT_CATEGORIES.AUTH,
+      details: { provider: 'keycloak', email: userInfo.email },
+      ipAddress: ssoIp,
+      userAgent: req.headers?.['user-agent'],
+      status: 'success'
+    })
+
     res.json({
       token,
       user: {
@@ -312,6 +352,8 @@ router.post('/login', (req, res) => {
   try {
     const { username, password } = req.body
     const db = getDb()
+    const ipAddress = getClientIp(req)
+    const userAgent = req.headers['user-agent']
 
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password required' })
@@ -320,16 +362,49 @@ router.post('/login', (req, res) => {
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username)
 
     if (!user) {
+      // Log failed login attempt
+      logAuditEvent({
+        username,
+        action: AUDIT_ACTIONS.LOGIN_FAILED,
+        category: AUDIT_CATEGORIES.AUTH,
+        details: { reason: 'User not found' },
+        ipAddress,
+        userAgent,
+        status: 'failure'
+      })
       return res.status(401).json({ message: 'Invalid credentials' })
     }
 
     const validPassword = bcrypt.compareSync(password, user.password)
 
     if (!validPassword) {
+      // Log failed login attempt
+      logAuditEvent({
+        userId: user.id,
+        username: user.username,
+        action: AUDIT_ACTIONS.LOGIN_FAILED,
+        category: AUDIT_CATEGORIES.AUTH,
+        details: { reason: 'Invalid password' },
+        ipAddress,
+        userAgent,
+        status: 'failure'
+      })
       return res.status(401).json({ message: 'Invalid credentials' })
     }
 
     const token = generateToken(user)
+
+    // Log successful login
+    logAuditEvent({
+      userId: user.id,
+      username: user.username,
+      action: AUDIT_ACTIONS.LOGIN,
+      category: AUDIT_CATEGORIES.AUTH,
+      details: { method: 'password' },
+      ipAddress,
+      userAgent,
+      status: 'success'
+    })
 
     res.json({
       token,
@@ -407,6 +482,17 @@ router.put('/password', authenticateToken, (req, res) => {
     const validPassword = bcrypt.compareSync(currentPassword, user.password)
 
     if (!validPassword) {
+      // Log failed password change attempt
+      logAuditEvent({
+        userId: user.id,
+        username: user.username,
+        action: AUDIT_ACTIONS.PASSWORD_CHANGED,
+        category: AUDIT_CATEGORIES.SECURITY,
+        details: { reason: 'Invalid current password' },
+        ipAddress: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        status: 'failure'
+      })
       return res.status(401).json({ message: 'Current password is incorrect' })
     }
 
@@ -414,6 +500,17 @@ router.put('/password', authenticateToken, (req, res) => {
 
     db.prepare('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
       .run(hashedPassword, req.user.id)
+
+    // Log successful password change
+    logAuditEvent({
+      userId: user.id,
+      username: user.username,
+      action: AUDIT_ACTIONS.PASSWORD_CHANGED,
+      category: AUDIT_CATEGORIES.SECURITY,
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
 
     res.json({ message: 'Password updated successfully' })
   } catch (err) {
@@ -446,6 +543,26 @@ router.put('/profile', authenticateToken, (req, res) => {
       .run(finalEmail, finalDisplay, finalFirst, finalLast, finalAvatar, finalLanguage, req.user.id)
 
     const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+
+    // Log profile update
+    logAuditEvent({
+      userId: updated.id,
+      username: updated.username,
+      action: AUDIT_ACTIONS.PROFILE_UPDATED,
+      category: AUDIT_CATEGORIES.USER,
+      details: { 
+        changes: {
+          email: email !== user.email ? email : undefined,
+          displayName: displayName !== user.display_name ? displayName : undefined,
+          firstName: firstName !== user.first_name ? firstName : undefined,
+          lastName: lastName !== user.last_name ? lastName : undefined,
+          language: language !== user.language ? language : undefined
+        }
+      },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
 
     res.json({
       user: {
@@ -864,6 +981,138 @@ router.get('/avatar-proxy', async (req, res) => {
   } catch (err) {
     console.error('Avatar proxy error:', err)
     res.status(500).json({ message: 'Failed to proxy avatar' })
+  }
+})
+
+// IP Geolocation endpoint - returns lat/lng/city/country for an IP address
+// Uses ip-api.com free tier (limited to 45 requests/minute)
+const geoCache = new Map()
+const GEO_CACHE_TTL = 1000 * 60 * 60 * 24 // 24 hours
+
+router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
+  try {
+    const ip = req.params.ip
+    
+    // Validate IP format (basic check)
+    if (!ip || !/^[\d.:a-fA-F]+$/.test(ip)) {
+      return res.status(400).json({ message: 'Invalid IP address' })
+    }
+    
+    // Check if it's a private/local IP
+    if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+      return res.json({ lat: null, lon: null, city: 'Local Network', country: null, private: true })
+    }
+    
+    // Check cache
+    const cached = geoCache.get(ip)
+    if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+      return res.json(cached.data)
+    }
+    
+    // Fetch from ip-api.com (free, no API key needed, 45 req/min limit)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
+    
+    const response = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,city,lat,lon`, {
+      signal: controller.signal
+    })
+    clearTimeout(timeout)
+    
+    if (!response.ok) {
+      return res.status(502).json({ message: 'Geolocation service unavailable' })
+    }
+    
+    const data = await response.json()
+    
+    if (data.status === 'fail') {
+      return res.json({ lat: null, lon: null, city: null, country: null, error: data.message })
+    }
+    
+    const result = {
+      lat: data.lat,
+      lon: data.lon,
+      city: data.city,
+      country: data.country
+    }
+    
+    // Cache the result
+    geoCache.set(ip, { timestamp: Date.now(), data: result })
+    
+    res.json(result)
+  } catch (err) {
+    console.error('IP geolocation error:', err)
+    res.status(500).json({ message: 'Failed to fetch geolocation' })
+  }
+})
+
+// Static map proxy endpoint - generates a map image for given coordinates
+// Uses OpenStreetMap tiles directly
+const mapCache = new Map()
+const MAP_CACHE_TTL = 1000 * 60 * 60 * 24 * 7 // 7 days
+
+// Convert lat/lon to tile coordinates
+function latLonToTile(lat, lon, zoom) {
+  const n = Math.pow(2, zoom)
+  const x = Math.floor((lon + 180) / 360 * n)
+  const latRad = lat * Math.PI / 180
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
+  return { x, y }
+}
+
+router.get('/static-map', async (req, res) => {
+  try {
+    const { lat, lon } = req.query
+    
+    if (!lat || !lon || isNaN(parseFloat(lat)) || isNaN(parseFloat(lon))) {
+      return res.status(400).json({ message: 'Invalid coordinates' })
+    }
+    
+    const latitude = parseFloat(lat)
+    const longitude = parseFloat(lon)
+    const zoom = 10
+    const cacheKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`
+    
+    // Check cache
+    const cached = mapCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < MAP_CACHE_TTL) {
+      res.setHeader('Content-Type', 'image/png')
+      res.setHeader('Cache-Control', 'public, max-age=604800')
+      return res.send(cached.data)
+    }
+    
+    // Get tile coordinates
+    const { x, y } = latLonToTile(latitude, longitude, zoom)
+    
+    // Fetch OSM tile directly (always available, no API key needed)
+    const tileUrl = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`
+    
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+    
+    const response = await fetch(tileUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'GhassiCloud/1.0 (https://ghassandarwish.com)'
+      }
+    })
+    clearTimeout(timeout)
+    
+    if (!response.ok) {
+      console.error('OSM tile fetch failed:', response.status)
+      return res.status(502).json({ message: 'Map service unavailable' })
+    }
+    
+    const buffer = Buffer.from(await response.arrayBuffer())
+    
+    // Cache the result
+    mapCache.set(cacheKey, { timestamp: Date.now(), data: buffer })
+    
+    res.setHeader('Content-Type', 'image/png')
+    res.setHeader('Cache-Control', 'public, max-age=604800')
+    res.send(buffer)
+  } catch (err) {
+    console.error('Static map error:', err)
+    res.status(500).json({ message: 'Failed to generate map' })
   }
 })
 

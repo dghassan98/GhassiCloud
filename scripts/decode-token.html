@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decode JWT Token</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        textarea { width: 100%; height: 150px; margin: 10px 0; padding: 10px; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>JWT Token Decoder</h1>
+    <p>Open browser console (F12), then paste this in console:</p>
+    <pre>localStorage.getItem('token')</pre>
+    <p>Then paste the token here:</p>
+    <textarea id="tokenInput" placeholder="Paste your JWT token here"></textarea>
+    <button onclick="decodeToken()">Decode Token</button>
+    <div id="result"></div>
+
+    <script>
+        function decodeToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            if (!token) {
+                alert('Please paste a token');
+                return;
+            }
+
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                document.getElementById('result').innerHTML = `
+                    <h2>Decoded Token:</h2>
+                    <pre>${JSON.stringify(payload, null, 2)}</pre>
+                `;
+            } catch (err) {
+                document.getElementById('result').innerHTML = `
+                    <h2 style="color: red;">Error:</h2>
+                    <pre>${err.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

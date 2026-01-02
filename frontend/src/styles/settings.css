@@ -790,7 +790,9 @@
   padding: 0.75rem;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
+  gap: 0.75rem;
 }
+.session-info { flex: 1; min-width: 0; }
 .session-info strong { display: block; }
 .session-info .muted { color: var(--text-muted); font-size: 0.9rem; display:flex; align-items:center; gap:0.5rem }
 .session-info .muted.small { font-size: 0.8rem; color: var(--text-muted); }
@@ -801,6 +803,29 @@
 .session-ip { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Segoe UI Mono', monospace; cursor: pointer; color: var(--text-muted); padding-top: 0.25rem; }
 .session-ip:hover { text-decoration: underline; color: var(--text-primary); }
 .session-actions .btn-secondary { padding: 0.35rem 0.75rem; }
+
+/* Session location with icon */
+.session-location { display: flex; align-items: center; gap: 0.35rem; padding-top: 0.15rem; }
+.session-location svg { color: var(--text-muted); flex-shrink: 0; }
+
+/* Session map thumbnail */
+.session-map {
+  flex-shrink: 0;
+  width: 180px;
+  height: 120px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  margin-left: 0.75rem;
+  margin-right: 0.5rem;
+}
+.session-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 /* Badges for current session and risk */
 .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.75rem; margin-right: 0.5rem; }

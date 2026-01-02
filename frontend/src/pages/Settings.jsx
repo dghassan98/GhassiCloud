@@ -39,6 +39,7 @@ export default function Settings() {
   // Sessions & security preferences (user-facing)
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
+  const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
 
   // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
@@ -283,7 +284,30 @@ export default function Settings() {
         return
       }
       const data = await r.json()
-      setSessions(data.sessions || [])
+      const sessionList = data.sessions || []
+      setSessions(sessionList)
+      
+      // Fetch geolocation for each unique IP address
+      const uniqueIPs = [...new Set(sessionList.map(s => s.ipAddress).filter(Boolean))]
+      const geoPromises = uniqueIPs.map(async (ip) => {
+        try {
+          const geoRes = await fetch(`/api/auth/ip-geo/${encodeURIComponent(ip)}`, { headers: { 'Authorization': token } })
+          if (geoRes.ok) {
+            const geo = await geoRes.json()
+            return { ip, geo }
+          }
+        } catch (e) {
+          console.warn('Failed to fetch geo for IP:', ip, e)
+        }
+        return { ip, geo: null }
+      })
+      
+      const geoResults = await Promise.all(geoPromises)
+      const geoMap = {}
+      geoResults.forEach(({ ip, geo }) => {
+        if (geo) geoMap[ip] = geo
+      })
+      setSessionGeoData(geoMap)
     } catch (err) {
       console.error('Load sessions error:', err)
       setSessions([])
@@ -696,7 +720,9 @@ export default function Settings() {
                     sessions.length === 0 ? (
                       <p className="muted">{t('settings.noActiveSessions') || 'No active sessions'}</p>
                     ) : (
-                      sessions.map(s => (
+                      sessions.map(s => {
+                        const geo = s.ipAddress ? sessionGeoData[s.ipAddress] : null
+                        return (
                         <div key={s.id} className="session-row">
                           <div className="session-info">
                             <strong title={s.rawClientId || s.clientId || ''}>{s.clientId || s.client || 'Unknown'}</strong>
@@ -704,19 +730,33 @@ export default function Settings() {
                               {s.userAgent ? (() => { const parsed = parseUserAgent(s.userAgent); const name = parsed.name + (parsed.version ? ` ${parsed.version}` : ''); const Icon = parsed.icon ? ({ 'Globe': Globe, 'Zap': Zap, 'Compass': Compass, 'Terminal': Terminal, 'Package': Package, 'Box': Box, 'Monitor': Monitor }[parsed.icon]) : Globe; return (<><Icon size={14} className="ua-icon" />&nbsp;{ name.length > 80 ? `${name.slice(0,80)}…` : name }</>) })() : ''}
                             </div>
                             <div className="muted small session-ip" title={t('settings.copyIpTooltip') || 'Click to copy IP'} onClick={(e) => { e.stopPropagation(); copyToClipboard(s.ipAddress) }}>{s.ipAddress || (t('settings.noIp') || 'No IP address')}</div>
+                            {geo && (geo.city || geo.country) && (
+                              <div className="muted small session-location">
+                                <Globe size={12} /> {[geo.city, geo.country].filter(Boolean).join(', ')}
+                              </div>
+                            )}
                             <div className="muted small">{s.createdAt ? `${t('settings.started') || 'Started'} ${new Date(s.createdAt).toLocaleString()}` : ''} {s.lastAccess ? ` • ${t('settings.lastActive') || 'Last active'} ${new Date(s.lastAccess).toLocaleString()}` : ''}</div>
                             <div className="session-flags">
-                              {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current'}</span>}
+                              {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current session'}</span>}
                               {s.risk && s.risk.map(r => (
                                 <span key={r} className={`badge risk ${r}`}>{t(`settings.risk.${r}`) || r}</span>
                               ))}
                             </div>
                           </div>
+                          {geo && geo.lat && geo.lon && (
+                            <div className="session-map" title={[geo.city, geo.country].filter(Boolean).join(', ')}>
+                              <img 
+                                src={`/api/auth/static-map?lat=${geo.lat}&lon=${geo.lon}`}
+                                alt={`Map showing ${geo.city || 'location'}`}
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
                           <div className="session-actions">
-                            <button className="btn-secondary" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign out'}</button>
+                            <button className="btn-secondary" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign Out'}</button>
                           </div>
                         </div>
-                      ))
+                      )})
                     )
                   )}
                 </div>

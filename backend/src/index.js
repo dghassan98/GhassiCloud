@@ -7,6 +7,7 @@ import { initDatabase } from './db/index.js'
 import authRoutes from './routes/auth.js'
 import servicesRoutes from './routes/services.js'
 import navidromeRoutes from './routes/navidrome.js'
+import auditRoutes from './routes/audit.js'
 import { authenticateToken } from './middleware/auth.js'
 
 // Load environment variables
@@ -30,6 +31,7 @@ async function startServer() {
   app.use('/api/auth', authRoutes)
   app.use('/api/services', servicesRoutes)
   app.use('/api/navidrome', navidromeRoutes)
+  app.use('/api/audit', auditRoutes)
 
   // Health check
   app.get('/api/health', (req, res) => {
