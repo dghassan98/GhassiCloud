@@ -116,6 +116,7 @@
     "signOutSessionSuccess": "Sitzung widerrufen",
     "signOutSessionFailed": "Fehler beim Widerrufen der Sitzung",
     "noActiveSessions": "Keine aktiven Sitzungen",
+    "localNetwork": "Lokales Netzwerk",
     "started": "Gestartet",
     "lastActive": "Zuletzt aktiv",
     "currentSession": "Aktuelle Sitzung",
@@ -124,6 +125,29 @@
       "differentDevice": "Anderes Gerät/Browser",
       "staleSession": "Lange nicht verwendete Sitzung",
       "unknownClient": "Unbekannter Client"
+    },
+    "userManagement": {
+      "title": "Benutzerverwaltung",
+      "description": "Benutzerkonten und Berechtigungen verwalten",
+      "loadingUsers": "Benutzer werden geladen...",
+      "noUsers": "Keine Benutzer gefunden",
+      "tableUser": "Benutzer",
+      "tableEmail": "E-Mail",
+      "tableRole": "Rolle",
+      "tableSSO": "SSO",
+      "tableActions": "Aktionen",
+      "roleUser": "Benutzer",
+      "roleAdmin": "Administrator",
+      "ssoEnabled": "SSO",
+      "localAccount": "Lokal",
+      "deleteUser": "Benutzer löschen",
+      "deleteConfirmTitle": "Benutzer löschen",
+      "deleteConfirmMessage": "Möchten Sie diesen Benutzer wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "roleUpdated": "Benutzerrolle erfolgreich aktualisiert",
+      "roleUpdateFailed": "Fehler beim Aktualisieren der Rolle",
+      "userDeleted": "Benutzer erfolgreich gelöscht",
+      "userDeleteFailed": "Fehler beim Löschen des Benutzers",
+      "loadFailed": "Fehler beim Laden der Benutzer"
     }
   },
   "profile": {

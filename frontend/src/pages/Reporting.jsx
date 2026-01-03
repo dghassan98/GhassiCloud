@@ -69,6 +69,10 @@ export default function Reporting() {
   // Export state
   const [exporting, setExporting] = useState(false)
   
+  // Detail modal
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedLog, setSelectedLog] = useState(null)
+  
   const token = localStorage.getItem('ghassicloud-token')
   
   // Fetch audit logs
@@ -534,7 +538,6 @@ export default function Reporting() {
                       <th>Category</th>
                       <th>Resource</th>
                       <th>Status</th>
-                      <th>Details</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -545,6 +548,11 @@ export default function Reporting() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.02 }}
                         className={log.status === 'failure' ? 'failure-row' : ''}
+                        onClick={() => {
+                          setSelectedLog(log)
+                          setShowDetailModal(true)
+                        }}
+                        style={{ cursor: 'pointer' }}
                       >
                         <td className="timestamp-cell">
                           <Clock size={14} />
@@ -579,21 +587,6 @@ export default function Reporting() {
                             {log.status === 'success' ? <CheckCircle size={14} /> : <XCircle size={14} />}
                             {log.status}
                           </span>
-                        </td>
-                        <td className="details-cell">
-                          {log.details ? (
-                            <button 
-                              className="details-btn"
-                              onClick={() => {
-                                const detail = typeof log.details === 'object' 
-                                  ? JSON.stringify(log.details, null, 2)
-                                  : log.details
-                                alert(detail)
-                              }}
-                            >
-                              View
-                            </button>
-                          ) : '-'}
                         </td>
                       </motion.tr>
                     ))}
@@ -860,6 +853,107 @@ export default function Reporting() {
           </div>
         </motion.div>
       )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedLog && (
+        <motion.div 
+          className="modal-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          onClick={() => setShowDetailModal(false)}
+        >
+          <motion.div 
+            className="log-detail-modal"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+          <div className="modal-header">
+            <h3>Activity Log Details</h3>
+            <button 
+              className="modal-close"
+              onClick={() => setShowDetailModal(false)}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="modal-body">
+            <div className="detail-grid">
+              <div className="detail-item">
+                <label>Timestamp</label>
+                <div>{formatTimestamp(selectedLog.created_at)}</div>
+              </div>
+              
+              <div className="detail-item">
+                <label>User</label>
+                <div>{selectedLog.username || 'System'}</div>
+              </div>
+              
+              <div className="detail-item">
+                <label>IP Address</label>
+                <div className="detail-code">{selectedLog.ip_address || '-'}</div>
+              </div>
+              
+              <div className="detail-item">
+                <label>User Agent</label>
+                <div className="detail-code">{selectedLog.user_agent || '-'}</div>
+              </div>
+              
+              <div className="detail-item">
+                <label>Action</label>
+                <div>
+                  <span className="action-badge">
+                    {getActionIcon(selectedLog.action)}
+                    {formatAction(selectedLog.action)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="detail-item">
+                <label>Category</label>
+                <div>
+                  <span 
+                    className="category-badge"
+                    style={{ '--category-color': CATEGORY_COLORS[selectedLog.category] || '#64748b' }}
+                  >
+                    {formatCategory(selectedLog.category)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="detail-item">
+                <label>Status</label>
+                <div>
+                  <span className={`status-badge ${selectedLog.status}`}>
+                    {selectedLog.status === 'success' ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                    {selectedLog.status}
+                  </span>
+                </div>
+              </div>
+              
+              {selectedLog.resource_name && (
+                <div className="detail-item">
+                  <label>Resource</label>
+                  <div>{selectedLog.resource_name}</div>
+                </div>
+              )}
+              
+              {selectedLog.details && (
+                <div className="detail-item full-width">
+                  <label>Additional Details</label>
+                  <pre className="detail-json">
+                    {typeof selectedLog.details === 'object' 
+                      ? JSON.stringify(selectedLog.details, null, 2)
+                      : selectedLog.details}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
     </div>
   )
 }

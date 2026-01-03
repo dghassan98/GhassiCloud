@@ -966,26 +966,42 @@ router.get('/avatar-proxy', async (req, res) => {
 const geoCache = new Map()
 const GEO_CACHE_TTL = 1000 * 60 * 60 * 24 // 24 hours
 
-router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
+// Helper function to get geolocation for an IP
+async function getIpGeolocation(ip) {
+  // Validate IP format (supports both IPv4 and IPv6)
+  if (!ip) return { error: 'No IP provided' }
+  
+  // More permissive regex for IPv6 (allows colons, dots, hex chars)
+  if (!/^[\d.:a-fA-F]+$/.test(ip)) {
+    return { error: 'Invalid IP address format' }
+  }
+  
+  // Check if it's a private/local IP (more comprehensive check)
+  const isPrivateIP = ip === '127.0.0.1' || 
+                      ip === '::1' || 
+                      ip === 'localhost' ||
+                      ip.startsWith('192.168.') || 
+                      ip.startsWith('10.') || 
+                      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) ||
+                      ip.startsWith('169.254.') ||  // Link-local
+                      ip.startsWith('fc') ||        // IPv6 ULA
+                      ip.startsWith('fd') ||        // IPv6 ULA
+                      ip.startsWith('fe80') ||      // IPv6 link-local
+                      ip.startsWith('::ffff:127.') || // IPv4-mapped loopback
+                      ip.startsWith('::ffff:192.168.') || // IPv4-mapped private
+                      ip.startsWith('::ffff:10.') // IPv4-mapped private
+  
+  if (isPrivateIP) {
+    return { lat: null, lon: null, city: 'Local Network', country: null, private: true }
+  }
+  
+  // Check cache
+  const cached = geoCache.get(ip)
+  if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+    return cached.data
+  }
+  
   try {
-    const ip = req.params.ip
-    
-    // Validate IP format (basic check)
-    if (!ip || !/^[\d.:a-fA-F]+$/.test(ip)) {
-      return res.status(400).json({ message: 'Invalid IP address' })
-    }
-    
-    // Check if it's a private/local IP
-    if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-      return res.json({ lat: null, lon: null, city: 'Local Network', country: null, private: true })
-    }
-    
-    // Check cache
-    const cached = geoCache.get(ip)
-    if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
-      return res.json(cached.data)
-    }
-    
     // Fetch from ip-api.com (free, no API key needed, 45 req/min limit)
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
@@ -996,13 +1012,13 @@ router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
     clearTimeout(timeout)
     
     if (!response.ok) {
-      return res.status(502).json({ message: 'Geolocation service unavailable' })
+      return { error: 'Geolocation service unavailable' }
     }
     
     const data = await response.json()
     
     if (data.status === 'fail') {
-      return res.json({ lat: null, lon: null, city: null, country: null, error: data.message })
+      return { lat: null, lon: null, city: null, country: null, error: data.message }
     }
     
     const result = {
@@ -1014,6 +1030,47 @@ router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
     
     // Cache the result
     geoCache.set(ip, { timestamp: Date.now(), data: result })
+    
+    return result
+  } catch (err) {
+    console.error('IP geolocation fetch error:', err)
+    return { error: 'Failed to fetch geolocation' }
+  }
+}
+
+// Query parameter version (better for IPv6)
+router.get('/ip-geo', authenticateToken, async (req, res) => {
+  try {
+    const ip = req.query.ip
+    if (!ip) {
+      return res.status(400).json({ message: 'IP address required' })
+    }
+    
+    const result = await getIpGeolocation(ip)
+    if (result.error && !result.lat && result.lat !== null) {
+      return res.status(400).json({ message: result.error })
+    }
+    
+    res.json(result)
+  } catch (err) {
+    console.error('IP geolocation error:', err)
+    res.status(500).json({ message: 'Failed to fetch geolocation' })
+  }
+})
+
+// Route parameter version (kept for backwards compatibility, may have issues with IPv6)
+router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
+  try {
+    const ip = req.params.ip
+    
+    if (!ip) {
+      return res.status(400).json({ message: 'Invalid IP address' })
+    }
+    
+    const result = await getIpGeolocation(ip)
+    if (result.error && !result.lat && result.lat !== null) {
+      return res.status(400).json({ message: result.error })
+    }
     
     res.json(result)
   } catch (err) {

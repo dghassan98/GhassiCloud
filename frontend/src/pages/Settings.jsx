@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   User, Lock, Palette, Bell, Shield, Database, 
   Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
-  Globe, Zap, Compass, Terminal, Package, Box
+  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -21,12 +21,16 @@ export default function Settings() {
   const { currentLogo, setLogo } = useLogo()
   const { currentAccent, setAccent } = useAccent()
   const { t, language, setLanguage } = useLanguage()
+  const { showToast } = useToast()
+  const isAdmin = user?.role === 'admin'
+  
   const settingsSections = [
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
     { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
     { id: 'security', label: t('settings.tabs.security'), icon: Shield },
     { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
-    { id: 'data', label: t('settings.tabs.data'), icon: Database }
+    { id: 'data', label: t('settings.tabs.data'), icon: Database },
+    ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : [])
   ]
   const [activeSection, setActiveSection] = useState('profile')
   const [saving, setSaving] = useState(false)
@@ -40,6 +44,12 @@ export default function Settings() {
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
+
+  // User management (admin only)
+  const [allUsers, setAllUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
   // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
@@ -105,8 +115,6 @@ export default function Settings() {
       setLightness(hsl.l)
     }
   }, [currentAccent])
-
-  const { showToast } = useToast()
 
   // Helper to proxy external avatar URLs through backend to avoid CORS and rate limiting
   const getProxiedAvatarUrl = (avatarUrl) => {
@@ -291,7 +299,8 @@ export default function Settings() {
       const uniqueIPs = [...new Set(sessionList.map(s => s.ipAddress).filter(Boolean))]
       const geoPromises = uniqueIPs.map(async (ip) => {
         try {
-          const geoRes = await fetch(`/api/auth/ip-geo/${encodeURIComponent(ip)}`, { headers: { 'Authorization': token } })
+          // Use query parameter instead of route parameter for better IPv6 support
+          const geoRes = await fetch(`/api/auth/ip-geo?ip=${encodeURIComponent(ip)}`, { headers: { 'Authorization': token } })
           if (geoRes.ok) {
             const geo = await geoRes.json()
             return { ip, geo }
@@ -392,6 +401,80 @@ export default function Settings() {
       setResetting(false)
     }
   }
+
+  // User Management Functions (Admin only)
+  const fetchUsers = async () => {
+    if (!isAdmin) return
+    setUsersLoading(true)
+    try {
+      const token = getAuthToken()
+      const res = await fetch('/api/auth/users', {
+        headers: { Authorization: token }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setAllUsers(data.users || [])
+      } else {
+        showToast({ message: t('settings.userManagement.loadFailed') || 'Failed to load users', type: 'error' })
+      }
+    } catch (err) {
+      console.error('Fetch users error:', err)
+      showToast({ message: t('settings.userManagement.loadFailed') || 'Failed to load users', type: 'error' })
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  const handleUpdateUserRole = async (userId, newRole) => {
+    try {
+      const token = getAuthToken()
+      const res = await fetch(`/api/auth/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: token
+        },
+        body: JSON.stringify({ role: newRole })
+      })
+      if (res.ok) {
+        showToast({ message: t('settings.userManagement.roleUpdated') || 'User role updated successfully', type: 'success' })
+        fetchUsers()
+      } else {
+        const data = await res.json()
+        showToast({ message: data.message || t('settings.userManagement.roleUpdateFailed') || 'Failed to update role', type: 'error' })
+      }
+    } catch (err) {
+      console.error('Update role error:', err)
+      showToast({ message: t('settings.userManagement.roleUpdateFailed') || 'Failed to update role', type: 'error' })
+    }
+  }
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      const token = getAuthToken()
+      const res = await fetch(`/api/auth/users/${userId}`, {
+        method: 'DELETE',
+        headers: { Authorization: token }
+      })
+      if (res.ok) {
+        showToast({ message: t('settings.userManagement.userDeleted') || 'User deleted successfully', type: 'success' })
+        setShowDeleteConfirm(null)
+        fetchUsers()
+      } else {
+        const data = await res.json()
+        showToast({ message: data.message || t('settings.userManagement.userDeleteFailed') || 'Failed to delete user', type: 'error' })
+      }
+    } catch (err) {
+      console.error('Delete user error:', err)
+      showToast({ message: t('settings.userManagement.userDeleteFailed') || 'Failed to delete user', type: 'error' })
+    }
+  }
+
+  useEffect(() => {
+    if (activeSection === 'users' && isAdmin) {
+      fetchUsers()
+    }
+  }, [activeSection, isAdmin])
 
   // Sync user into form state when loaded
   useEffect(() => {
@@ -636,7 +719,7 @@ export default function Settings() {
               onClick={() => handleSectionClick(id)}
             >
               <Icon size={20} />
-              <span>{t(`settings.${id}`) || label}</span>
+              <span>{label}</span>
             </button>
           ))}
 
@@ -750,6 +833,22 @@ export default function Settings() {
                                 alt={`Map showing ${geo.city || 'location'}`}
                                 loading="lazy"
                               />
+                            </div>
+                          )}
+                          {geo && geo.private && (
+                            <div className="session-map session-map-local" title={t('settings.localNetwork') || 'Local Network'}>
+                              <div className="local-network-indicator">
+                                <Monitor size={24} />
+                                <span>{t('settings.localNetwork') || 'Local'}</span>
+                              </div>
+                            </div>
+                          )}
+                          {!geo && s.ipAddress && (
+                            <div className="session-map session-map-local" title={s.ipAddress}>
+                              <div className="local-network-indicator">
+                                <Globe size={24} />
+                                <span>{s.ipAddress.length > 15 ? s.ipAddress.slice(0, 12) + '...' : s.ipAddress}</span>
+                              </div>
                             </div>
                           )}
                           <div className="session-actions">
@@ -1237,6 +1336,135 @@ export default function Settings() {
                   <button className="btn-danger">{t('settings.delete')}</button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* User Management Section (Admin Only) */}
+          {activeSection === 'users' && isAdmin && (
+            <div className="settings-section">
+              <div className="section-header">
+                <div>
+                  <h2>{t('settings.userManagement.title') || 'User Management'}</h2>
+                  <p>{t('settings.userManagement.description') || 'Manage user accounts and permissions'}</p>
+                </div>
+              </div>
+
+              {usersLoading ? (
+                <div className="loading-state">
+                  <div className="spinner" />
+                  <p>{t('settings.userManagement.loadingUsers') || 'Loading users...'}</p>
+                </div>
+              ) : (
+                <div className="users-table-container">
+                  <table className="users-table">
+                    <thead>
+                      <tr>
+                        <th>{t('settings.userManagement.tableUser') || 'User'}</th>
+                        <th>{t('settings.userManagement.tableEmail') || 'Email'}</th>
+                        <th>{t('settings.userManagement.tableRole') || 'Role'}</th>
+                        <th>{t('settings.userManagement.tableSSO') || 'SSO'}</th>
+                        <th>{t('settings.userManagement.tableActions') || 'Actions'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allUsers.map(u => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="user-info">
+                              {u.avatar ? (
+                                <img src={u.avatar} alt={u.username} className="user-avatar-small" />
+                              ) : (
+                                <div className="user-avatar-small placeholder">
+                                  <User size={16} />
+                                </div>
+                              )}
+                              <div>
+                                <div className="user-name">{u.display_name || u.username}</div>
+                                <div className="user-username">@{u.username}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{u.email}</td>
+                          <td>
+                            <select 
+                              className="role-select"
+                              value={u.role}
+                              onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                              disabled={u.id === user?.id}
+                            >
+                              <option value="user">{t('settings.userManagement.roleUser') || 'User'}</option>
+                              <option value="admin">{t('settings.userManagement.roleAdmin') || 'Admin'}</option>
+                            </select>
+                          </td>
+                          <td>
+                            {u.sso_provider ? (
+                              <span className="sso-badge">
+                                <Check size={14} />
+                                {t('settings.userManagement.ssoEnabled') || 'SSO'}
+                              </span>
+                            ) : (
+                              <span className="local-badge">{t('settings.userManagement.localAccount') || 'Local'}</span>
+                            )}
+                          </td>
+                          <td>
+                            {u.id !== user?.id && (
+                              <button 
+                                className="btn-icon-danger"
+                                onClick={() => setShowDeleteConfirm(u)}
+                                title={t('settings.userManagement.deleteUser') || 'Delete user'}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {allUsers.length === 0 && (
+                    <div className="empty-state">
+                      <Users size={48} />
+                      <p>{t('settings.userManagement.noUsers') || 'No users found'}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {showDeleteConfirm && (
+                <motion.div 
+                  className="modal-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => setShowDeleteConfirm(null)}
+                >
+                  <motion.div 
+                    className="modal-content"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <AlertTriangle size={48} className="warning-icon" />
+                    <h3>{t('settings.userManagement.deleteConfirmTitle') || 'Delete User'}</h3>
+                    <p>{t('settings.userManagement.deleteConfirmMessage') || 'Are you sure you want to delete this user? This action cannot be undone.'} <strong>{showDeleteConfirm.username}</strong></p>
+                    <div className="modal-actions">
+                      <button 
+                        className="btn-secondary" 
+                        onClick={() => setShowDeleteConfirm(null)}
+                      >
+                        {t('common.cancel') || 'Cancel'}
+                      </button>
+                      <button 
+                        className="btn-danger" 
+                        onClick={() => handleDeleteUser(showDeleteConfirm.id)}
+                      >
+                        {t('settings.userManagement.deleteUser') || 'Delete User'}
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
             </div>
           )}
 

@@ -133,6 +133,7 @@
     "signOutSessionSuccess": "Session revoked",
     "signOutSessionFailed": "Failed to revoke session",
     "noActiveSessions": "No active sessions",
+    "localNetwork": "Local Network",
     "started": "Started",
     "lastActive": "Last active",
     "currentSession": "Current session",
@@ -140,6 +141,29 @@
       "differentDevice": "Different device/browser",
       "staleSession": "Long unused session",
       "unknownClient": "Unknown client"
+    },
+    "userManagement": {
+      "title": "User Management",
+      "description": "Manage user accounts and permissions",
+      "loadingUsers": "Loading users...",
+      "noUsers": "No users found",
+      "tableUser": "User",
+      "tableEmail": "Email",
+      "tableRole": "Role",
+      "tableSSO": "SSO",
+      "tableActions": "Actions",
+      "roleUser": "User",
+      "roleAdmin": "Admin",
+      "ssoEnabled": "SSO",
+      "localAccount": "Local",
+      "deleteUser": "Delete User",
+      "deleteConfirmTitle": "Delete User",
+      "deleteConfirmMessage": "Are you sure you want to delete this user? This action cannot be undone.",
+      "roleUpdated": "User role updated successfully",
+      "roleUpdateFailed": "Failed to update role",
+      "userDeleted": "User deleted successfully",
+      "userDeleteFailed": "Failed to delete user",
+      "loadFailed": "Failed to load users"
     }
   },
   "profile": {
