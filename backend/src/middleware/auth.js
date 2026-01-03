@@ -1,6 +1,13 @@
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+// Auto-generate a persistent JWT secret if not provided
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  const secret = crypto.randomBytes(64).toString('hex')
+  console.log('⚠️  No JWT_SECRET provided. Auto-generated secret (this will change on restart):')
+  console.log('   Set JWT_SECRET in .env to persist across restarts')
+  return secret
+})()
 
 export async function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization']
@@ -50,5 +57,6 @@ export async function authenticateToken(req, res, next) {
 export function generateToken(user, sessionId = null) {
   const payload = { id: user.id, username: user.username, role: user.role }
   if (sessionId) payload.sessionId = sessionId
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  const expiresIn = process.env.JWT_EXPIRES_IN || '365d'
+  return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }
