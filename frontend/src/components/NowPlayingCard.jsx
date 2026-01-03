@@ -285,7 +285,7 @@ export default function NowPlayingCard({ endpoint, accent }) {
   const detectedAccent = (() => {
     if (accent) return accent
     if (typeof window !== 'undefined' && window.__FETCHED_SERVICES && Array.isArray(window.__FETCHED_SERVICES)) {
-      const found = window.__FETCHED_SERVICES.find(s => s.url && s.url.includes('music.ghassandarwish.com'))
+      const found = window.__FETCHED_SERVICES.find(s => s.url && s.url.includes('music.ghassi.cloud'))
       if (found && found.color) return found.color
     }
     return '#4fb0ff'

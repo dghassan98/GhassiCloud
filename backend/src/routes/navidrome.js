@@ -7,7 +7,7 @@ import { getDb } from '../db/index.js'
 const router = Router()
 
 // Fixed host for this project
-const NAV_HOST = process.env.NAV_HOST || 'https://music.ghassandarwish.com'
+const NAV_HOST = process.env.NAV_HOST || 'https://music.ghassi.cloud'
 const API_VERSION = '1.16.1'
 const CLIENT_NAME = 'ghassi-cloud'
 
@@ -159,7 +159,17 @@ router.get('/nowplaying', async (req, res) => {
 
     const r = await fetch(url)
     if (r.status === 401 || r.status === 403) return res.status(401).json({ message: 'Invalid credentials' })
-    const json = await r.json()
+    
+    // Safely parse response - check if it's JSON before parsing
+    const text = await r.text()
+    let json
+    try {
+      json = text ? JSON.parse(text) : null
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', text.substring(0, 200))
+      return res.status(500).json({ message: 'Invalid response from Navidrome server' })
+    }
+    
     if (!r.ok || json?.['subsonic-response']?.status !== 'ok') {
       // Consider invalid token
       return res.status(401).json({ message: 'Not authenticated' })
@@ -334,7 +344,17 @@ router.get('/check', async (req, res) => {
 
     const r = await fetch(url)
     if (!r.ok) return res.status(401).json({ message: 'Not authenticated' })
-    const json = await r.json()
+    
+    // Safely parse response - check if it's JSON before parsing
+    const text = await r.text()
+    let json
+    try {
+      json = text ? JSON.parse(text) : null
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', text.substring(0, 200))
+      return res.status(500).json({ message: 'Invalid response from Navidrome server' })
+    }
+    
     if (json?.['subsonic-response']?.status !== 'ok') return res.status(401).json({ message: 'Not authenticated' })
     res.json({ status: 'ok', username: cred.username })
   } catch (err) {

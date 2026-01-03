@@ -1,5 +1,11 @@
 /* ===== CSS Variables & Theme ===== */
 :root {
+  /* Safe area insets for notches/home indicators */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  
   /* Dark theme (default) */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -73,6 +79,8 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  /* Support for safe areas on iOS */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 body {
@@ -81,8 +89,21 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: contain;
+  /* Prevent text selection during gestures */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection in inputs and text content */
+input, textarea, [contenteditable="true"], .selectable {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 #root {
@@ -256,4 +277,82 @@ input::placeholder {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ===== Native App Styles ===== */
+
+/* Offline banner */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--warning);
+  color: #000;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  padding-top: calc(0.5rem + var(--sat));
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 10000;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Touch-friendly tap targets */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Disable bounce/overscroll on iOS */
+.no-bounce {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Native-feeling scrolling */
+.native-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Safe area padding helpers */
+.safe-top {
+  padding-top: var(--sat);
+}
+
+.safe-bottom {
+  padding-bottom: var(--sab);
+}
+
+.safe-left {
+  padding-left: var(--sal);
+}
+
+.safe-right {
+  padding-right: var(--sar);
+}
+
+.safe-all {
+  padding: var(--sat) var(--sar) var(--sab) var(--sal);
+}
+
+/* Active state for touch feedback */
+.touchable:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* Prevent 300ms tap delay */
+* {
+  touch-action: manipulation;
 }

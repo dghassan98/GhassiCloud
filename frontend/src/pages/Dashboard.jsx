@@ -42,7 +42,7 @@ const defaultServices = [
     name: 'GhassiDrive',
     description: 'Your personal cloud storage',
     descriptionKey: 'service.ghassiDriveDesc',
-    url: 'https://drive.ghassandarwish.com/api/auth/oidc/login?redirect=%2Ffiles%2F',
+    url: 'https://drive.ghassi.cloud/api/auth/oidc/login?redirect=%2Ffiles%2F',
     icon: 'cloud',
     color: '#0082c9',
     status: 'online',
@@ -55,7 +55,7 @@ const defaultServices = [
     name: 'GhassiGallery',
     description: 'Your personal cloud gallery',
     descriptionKey: 'service.ghassiGalleryDesc',
-    url: 'https://gallery.ghassandarwish.com',
+    url: 'https://gallery.ghassi.cloud',
     icon: 'photo',
     color: '#e5a00d',
     status: 'online',
@@ -67,7 +67,7 @@ const defaultServices = [
     name: 'GhassiMusic',
     description: 'Your personal music library',
     descriptionKey: 'service.ghassiMusicDesc',
-    url: 'https://music.ghassandarwish.com',
+    url: 'https://music.ghassi.cloud',
     icon: 'music',
     color: '#41bdf5',
     status: 'online',
@@ -80,7 +80,7 @@ const defaultServices = [
     name: 'GhassiStream',
     description: 'Your personal streaming service',
     descriptionKey: 'service.ghassiStreamDesc',
-    url: 'https://stream.ghassandarwish.com/sso/OID/start/keycloak',
+    url: 'https://stream.ghassi.cloud/sso/OID/start/keycloak',
     icon: 'media',
     color: '#13b9fd',
     status: 'online',
@@ -94,7 +94,7 @@ const defaultServices = [
     name: 'GhassiNotes',
     description: 'Your personal notes library',
     descriptionKey: 'service.ghassiNotesDesc',
-    url: 'https://notes.ghassandarwish.com/',
+    url: 'https://notes.ghassi.cloud/',
     icon: 'documents',
     color: '#f46800',
     status: 'online',
@@ -107,7 +107,7 @@ const defaultServices = [
     name: 'GhassiShare',
     description: 'Your personal file sharing service',
     descriptionKey: 'service.ghassiShareDesc',
-    url: 'https://share.ghassandarwish.com/api/oauth/auth/oidc',
+    url: 'https://share.ghassi.cloud/api/oauth/auth/oidc',
     icon: 'share-2',
     color: '#96060c',
     status: 'online',
@@ -531,7 +531,7 @@ export default function Dashboard() {
         ? 'status-red'
         : 'status-orange';
 
-  const musicAccent = (services.find(s => s.url && s.url.includes('music.ghassandarwish.com')) || services.find(s => s.icon === 'music'))?.color
+  const musicAccent = (services.find(s => s.url && s.url.includes('music.ghassi.cloud')) || services.find(s => s.icon === 'music'))?.color
 
   return (
     <div className="dashboard">

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw, AlertTriangle } from 'lucide-react' 
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
+import { useHaptics, isNative } from '../hooks/useCapacitor'
 
 // Common favicon paths to try
 const FAVICON_PATHS = [
@@ -14,6 +15,7 @@ const FAVICON_PATHS = [
 
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
   const { t } = useLanguage()
+  const { impact, notification } = useHaptics()
   // Localized description if a translation key is provided on the service
   const descText = service.descriptionKey ? t(service.descriptionKey) : service.description
   const [showMenu, setShowMenu] = useState(false)
@@ -176,6 +178,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   onClick={(e) => {
                     e.stopPropagation()
                     e.preventDefault()
+                    impact('light')
                     onPin(service.id, !service.pinned)
                   }}
                   title={service.pinned ? t('service.unpin') : t('service.pin')}
@@ -260,6 +263,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                 onClick={(e) => {
                   e.stopPropagation()
                   e.preventDefault()
+                  notification('warning')
                   onDelete()
                 }}
                 title={t('service.delete')}

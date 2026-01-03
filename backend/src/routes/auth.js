@@ -8,7 +8,7 @@ import { logAuditEvent, getClientIp, AUDIT_ACTIONS, AUDIT_CATEGORIES } from './a
 const router = Router()
 
 // Keycloak SSO Configuration
-const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'https://auth.ghassandarwish.com'
+const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'https://auth.ghassi.cloud'
 const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || 'master'
 const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || 'ghassicloud'
 
@@ -779,47 +779,24 @@ router.get('/sessions', authenticateToken, async (req, res) => {
         }
       })
 
-      // Include any local-only sessions (where KC didn't return an id)
-      local.forEach(l => {
-        if (!kcSessions.find(k => k.id === l.session_id)) {
-          const ipAddr = normalizeIp(l.ip)
-          const ua = l.user_agent
-          let isCurrent = false
-          let currentUAHeader = ''
-          try {
-            // sessionId match takes precedence when available
-            if (req.user && req.user.sessionId && req.user.sessionId === l.session_id) {
-              isCurrent = true
-            }
-
-            if (!isCurrent) {
-            const currentIpHeaderRaw = (req.headers && (req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.headers['x-forwarded-host'])) ? ((req.headers['cf-connecting-ip'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim()) : (req.ip || (req.connection && req.connection.remoteAddress) || null)
-              const currentIpHeader = normalizeIp(currentIpHeaderRaw)
-              currentUAHeader = req.headers && req.headers['user-agent'] ? req.headers['user-agent'] : ''
-              if (ipAddr && currentIpHeader && ipAddr === currentIpHeader) {
-                if (!ua || !currentUAHeader) isCurrent = true
-                else if (currentUAHeader === ua || currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30))) isCurrent = true
-              }
-            }
-          } catch (e) {}
-
-          const risk = []
-
-          if (ua && currentUAHeader && ua !== currentUAHeader && !(currentUAHeader.includes(ua) || ua.includes(currentUAHeader.substring(0, 30)))) risk.push('differentDevice')
-          const last = l.last_seen || l.created_at
-          if (last) {
-            const lastTs = new Date(last).getTime()
-            if (!isNaN(lastTs)) {
-              const days = (Date.now() - lastTs) / (1000 * 60 * 60 * 24)
-              if (days > 30) risk.push('staleSession')
-            }
-          }
-
-          merged.push({ id: l.session_id, ipAddress: ipAddr, clientId: l.client_id, userAgent: ua, createdAt: l.created_at, lastAccess: l.last_seen, local: true, isCurrent, risk })
+      // Clean up stale local sessions that no longer exist in Keycloak
+      const validSessionIds = new Set(kcSessions.map(k => k.id))
+      const staleSessions = local.filter(l => !validSessionIds.has(l.session_id))
+      
+      if (staleSessions.length > 0) {
+        try {
+          const staleIds = staleSessions.map(s => s.session_id)
+          db.prepare(`DELETE FROM user_sessions WHERE session_id IN (${staleIds.map(() => '?').join(',')})`).run(...staleIds)
+          console.log(`Cleaned up ${staleSessions.length} stale session(s) for user ${user.id}`)
+        } catch (cleanupErr) {
+          console.warn('Failed to cleanup stale sessions:', cleanupErr)
         }
-      })
+      }
 
-      return res.json({ sessions: merged })
+      // Only filter invalid/empty sessions from the response
+      const validMerged = merged.filter(s => s.ipAddress && s.ipAddress !== ':' && s.ipAddress !== '')
+
+      return res.json({ sessions: validMerged })
     } catch (err) {
       console.error('Sessions endpoint error:', err)
       return res.status(500).json({ message: 'Failed to fetch sessions' })
@@ -1092,7 +1069,7 @@ router.get('/static-map', async (req, res) => {
     const response = await fetch(tileUrl, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'GhassiCloud/1.0 (https://ghassandarwish.com)'
+        'User-Agent': 'GhassiCloud/1.0 (https://ghassi.cloud)'
       }
     })
     clearTimeout(timeout)

@@ -680,7 +680,7 @@ export default function Settings() {
                     <p>{t('settings.passwordManagedBySSO') || 'Your account uses single sign-on. To change your password, please visit your authentication provider.'}</p>
                   </div>
                   <div className="sso-card-actions">
-                    <a className="btn-primary btn-icon" href="https://auth.ghassandarwish.com/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
+                    <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
                   </div>
                 </div>
 

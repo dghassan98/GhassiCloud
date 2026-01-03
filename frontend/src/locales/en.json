@@ -218,7 +218,8 @@
     "ghassiShareDesc": "Your personal file sharing service"
   },
   "app": {
-    "loading": "Loading GhassiCloud..."
+    "loading": "Loading GhassiCloud...",
+    "offline": "You are offline"
   },
   "common": {
     "cancel": "Cancel",
