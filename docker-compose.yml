@@ -11,6 +11,14 @@ services:
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-365d}
+      - DATABASE_PATH=/app/data/ghassicloud.db
+      - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER:-admin}
+      - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS:-admin}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_ADMIN_CLIENT_ID=${KEYCLOAK_ADMIN_CLIENT_ID}
+      - KEYCLOAK_ADMIN_CLIENT_SECRET=${KEYCLOAK_ADMIN_CLIENT_SECRET}
     volumes:
       # Persist SQLite database
       - backend_data:/app/data
