@@ -32,6 +32,11 @@ RUN echo 'server { \
     root /usr/share/nginx/html; \
     index index.html; \
     \
+    # Set real IP from Cloudflare/Caddy \
+    set_real_ip_from 0.0.0.0/0; \
+    real_ip_header X-Forwarded-For; \
+    real_ip_recursive on; \
+    \
     location /api { \
         proxy_pass http://backend:3001; \
         proxy_http_version 1.1; \

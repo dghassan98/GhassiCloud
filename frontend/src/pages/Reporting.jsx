@@ -529,6 +529,7 @@ export default function Reporting() {
                     <tr>
                       <th>Timestamp</th>
                       <th>User</th>
+                      <th>IP Address</th>
                       <th>Action</th>
                       <th>Category</th>
                       <th>Resource</th>
@@ -552,6 +553,9 @@ export default function Reporting() {
                         <td className="user-cell">
                           <User size={14} />
                           {log.username || 'System'}
+                        </td>
+                        <td className="ip-cell">
+                          {log.ip_address || '-'}
                         </td>
                         <td className="action-cell">
                           <span className="action-badge">

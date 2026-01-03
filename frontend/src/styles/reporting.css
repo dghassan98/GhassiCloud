@@ -389,6 +389,12 @@
   color: var(--accent);
 }
 
+.ip-cell {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 .action-badge {
   display: inline-flex;
   align-items: center;
