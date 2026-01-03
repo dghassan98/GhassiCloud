@@ -28,7 +28,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ghassicloud-frontend
+    container_name: ghassicloud
     restart: unless-stopped
     ports:
       - "${GHASSICLOUD_PORT:-8090}:80"
