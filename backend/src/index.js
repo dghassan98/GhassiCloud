@@ -38,15 +38,6 @@ async function startServer() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() })
   })
 
-  // Serve static files in production
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(join(__dirname, '../../frontend/dist')))
-    
-    app.get('*', (req, res) => {
-      res.sendFile(join(__dirname, '../../frontend/dist/index.html'))
-    })
-  }
-
   // Error handling
   app.use((err, req, res, next) => {
     console.error(err.stack)
