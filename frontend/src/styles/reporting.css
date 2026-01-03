@@ -367,9 +367,6 @@
 
 /* Table Cells */
 .timestamp-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   color: var(--text-secondary);
   font-size: 0.85rem;
   white-space: nowrap;
@@ -377,22 +374,30 @@
 
 .timestamp-cell svg {
   color: var(--text-muted);
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .user-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-cell svg {
   color: var(--accent);
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .ip-cell {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.85rem;
   color: var(--text-secondary);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .action-badge {
