@@ -370,28 +370,22 @@
   color: var(--text-secondary);
   font-size: 0.85rem;
   white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .timestamp-cell svg {
   color: var(--text-muted);
-  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .user-cell {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .user-cell svg {
   color: var(--accent);
-  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .ip-cell {

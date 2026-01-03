@@ -216,7 +216,7 @@ export default function Reporting() {
   // Format action name
   const formatAction = (action) => {
     if (!action) return '-'
-    return action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    return action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bSso\b/g, 'SSO')
   }
   
   // Format category name
