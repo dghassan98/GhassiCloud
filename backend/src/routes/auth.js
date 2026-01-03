@@ -871,6 +871,124 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
   }
 })
 
+// Get all users (Admin only)
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' })
+    }
+
+    const db = getDb()
+    const users = db.prepare(`
+      SELECT id, username, email, display_name, first_name, last_name, 
+             role, avatar, sso_provider, created_at 
+      FROM users 
+      ORDER BY created_at DESC
+    `).all()
+
+    res.json({ users })
+  } catch (err) {
+    console.error('Fetch users error:', err)
+    res.status(500).json({ message: 'Failed to fetch users' })
+  }
+})
+
+// Update user role (Admin only)
+router.patch('/users/:userId/role', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' })
+    }
+
+    const { userId } = req.params
+    const { role } = req.body
+
+    if (!role || !['user', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be "user" or "admin"' })
+    }
+
+    // Prevent self-demotion
+    if (parseInt(userId) === req.user.id && role !== 'admin') {
+      return res.status(400).json({ message: 'Cannot change your own role' })
+    }
+
+    const db = getDb()
+    const targetUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId)
+    
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId)
+
+    // Log role change
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.USER_ROLE_CHANGED,
+      category: AUDIT_CATEGORIES.USER_MANAGEMENT,
+      resourceType: 'user',
+      resourceId: userId,
+      resourceName: targetUser.username,
+      details: { newRole: role },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+
+    res.json({ message: 'User role updated successfully' })
+  } catch (err) {
+    console.error('Update user role error:', err)
+    res.status(500).json({ message: 'Failed to update user role' })
+  }
+})
+
+// Delete user (Admin only)
+router.delete('/users/:userId', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' })
+    }
+
+    const { userId } = req.params
+
+    // Prevent self-deletion
+    if (parseInt(userId) === req.user.id) {
+      return res.status(400).json({ message: 'Cannot delete your own account' })
+    }
+
+    const db = getDb()
+    const targetUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId)
+    
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // Delete user and related data
+    db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId)
+    db.prepare('DELETE FROM users WHERE id = ?').run(userId)
+
+    // Log user deletion
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.USER_DELETED,
+      category: AUDIT_CATEGORIES.USER_MANAGEMENT,
+      resourceType: 'user',
+      resourceId: userId,
+      resourceName: targetUser.username,
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+
+    res.json({ message: 'User deleted successfully' })
+  } catch (err) {
+    console.error('Delete user error:', err)
+    res.status(500).json({ message: 'Failed to delete user' })
+  }
+})
+
 // Front-channel logout endpoint for SSO providers (Keycloak frontchannel logout can redirect here)
 // Example GET: /api/auth/sso/frontchannel-logout?session_state=<sessionId>
 // This will attempt to revoke the local session metadata for the provided session id and mark tokens invalid for the user.
