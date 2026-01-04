@@ -1279,6 +1279,7 @@
     border-bottom: 1px solid var(--border-color);
     padding: 0.75rem;
     gap: 0.5rem;
+    -webkit-overflow-scrolling: touch;
   }
   
   .settings-nav .nav-item {
@@ -1318,6 +1319,146 @@
   
   .settings-actions button {
     width: 100%;
+  }
+  
+  /* Session rows mobile improvements */
+  .session-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .session-info {
+    width: 100%;
+  }
+  
+  .session-info .muted {
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+  }
+  
+  /* Hide session maps on mobile for cleaner layout */
+  .session-map {
+    display: none;
+  }
+  
+  .session-actions {
+    width: 100%;
+  }
+  
+  .session-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .session-ip {
+    font-size: 0.75rem;
+    word-break: break-all;
+  }
+  
+  /* SSO card mobile */
+  .sso-card {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .sso-card-actions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+  
+  .sso-card-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Modal dialogs on mobile */
+  .sso-config-modal {
+    padding: 1rem;
+  }
+  
+  .sso-config-zone {
+    max-width: 100%;
+    padding: 1rem;
+  }
+  
+  .lang-confirm-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .lang-confirm-actions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 1rem;
+    flex-direction: column-reverse;
+  }
+  
+  .lang-confirm-actions button {
+    width: 100%;
+  }
+  
+  /* Custom color picker on mobile */
+  .custom-color-picker-panel {
+    padding: 1rem;
+  }
+  
+  .color-gradient-box {
+    height: 150px;
+  }
+  
+  .color-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  /* User management table on mobile */
+  .users-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding: 0 1.5rem;
+  }
+  
+  .users-table {
+    min-width: 600px;
+    font-size: 0.85rem;
+  }
+  
+  .users-table th,
+  .users-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  /* Stack user info vertically on very small screens */
+  .user-info {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+  
+  .user-avatar-small {
+    width: 32px;
+    height: 32px;
+  }
+  
+  /* Make role select full width on mobile table */
+  .role-select {
+    min-width: 100px;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.5rem;
+  }
+  
+  /* User action buttons */
+  .user-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+  
+  .user-actions button {
+    padding: 0.35rem 0.5rem;
   }
 }
 

@@ -195,6 +195,13 @@
   color: var(--text-muted);
 }
 
+/* Hide QR code on mobile devices */
+@media (max-width: 768px) {
+  .qr-code-widget {
+    display: none;
+  }
+}
+
 /* ===== Hero Section ===== */
 .dashboard-hero {
   margin-bottom: 2.5rem;

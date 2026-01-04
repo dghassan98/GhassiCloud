@@ -1086,6 +1086,13 @@
   
   .reporting-tabs {
     flex-wrap: wrap;
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .reporting-tabs button {
+    flex: 1;
+    min-width: 120px;
   }
   
   .filters-bar {
@@ -1101,13 +1108,29 @@
     flex-direction: column;
   }
   
+  /* Make tables scrollable horizontally on mobile */
+  .logs-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
   .logs-table {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    min-width: 600px;
   }
   
   .logs-table th,
   .logs-table td {
-    padding: 0.5rem;
+    padding: 0.5rem 0.35rem;
+    white-space: nowrap;
+  }
+  
+  /* Hide less critical columns on mobile */
+  .logs-table th:nth-child(4),
+  .logs-table td:nth-child(4),
+  .logs-table th:nth-child(5),
+  .logs-table td:nth-child(5) {
+    display: none;
   }
   
   .login-stats {
@@ -1116,6 +1139,56 @@
   
   .activity-timeline {
     height: 120px;
+  }
+  
+  /* Analytics cards improvements */
+  .breakdown-label {
+    min-width: 100px;
+    font-size: 0.8rem;
+  }
+  
+  .category-breakdown {
+    gap: 0.5rem;
+  }
+  
+  /* Detail modal on mobile */
+  .log-detail-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-item.full-width {
+    grid-column: span 1;
+  }
+  
+  /* Pagination on mobile */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .pagination button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  /* Export dropdown better placement on mobile */
+  .export-dropdown {
+    width: 100%;
+  }
+  
+  .export-dropdown .btn {
+    width: 100%;
+  }
+  
+  .export-menu {
+    left: 0;
+    right: 0;
+    min-width: auto;
   }
 }
 

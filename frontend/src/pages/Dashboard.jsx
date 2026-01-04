@@ -5,7 +5,8 @@ import {
   Plus, Search, Grid, List, ExternalLink, 
   Server, Database, Cloud, HardDrive, Shield, 
   Monitor, Film, Music, FileText, Image,
-  Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone
+  Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone,
+  AlignCenter
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -544,11 +545,11 @@ export default function Dashboard() {
       <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget">
         <img 
           src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://ghassi.cloud&bgcolor=1a1f2e&color=ffffff" 
-          alt="Scan to open mobile app"
+          alt="Scan to open GhassiCloud Mobile"
         />
         <div className="qr-code-text">
           <Smartphone size={14} />
-          <span>{t('general.scanMe')}</span>
+          <span>GhassiCloud-2Go</span>
         </div>
       </a>
       
