@@ -237,6 +237,7 @@
     "editTitle": "Edit Service",
     "fields": { "name": "Service Name", "description": "Description", "url": "URL", "icon": "Icon", "preview": "Preview:", "color": "Color" },
     "placeholders": { "name": "e.g., Jellyfin", "description": "e.g., Media streaming server", "url": "https://service.example.com" },
+    "icon": { "auto": "Use Favicon", "choose": "Choose Icon" },
     "faviconPreview": "Favicon preview",
     "extraAuth": "Requires additional authentication",
     "extraAuthShort": "Auth required",

@@ -116,11 +116,11 @@
 
 .sidebar-nav .nav-item.active {
   background: var(--accent-glow);
-  color: var(--accent);
+  color: var(--accent-readable, var(--accent));
 }
 
 .sidebar-nav .nav-item.active svg {
-  color: var(--accent);
+  color: var(--accent-readable, var(--accent));
 }
 
 /* Sidebar Footer */
@@ -170,7 +170,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--accent-text, white);
   font-weight: 600;
   font-size: 1rem;
   border: 1px solid rgba(255,255,255,0.04);
@@ -248,9 +248,21 @@
 }
 
 .mobile-header .logo-img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
+}
+
+.mobile-header .logo-img.wide {
+  width: auto;
+  height: 32px;
+  max-width: 180px;
+}
+
+.mobile-header .logo-img.full {
+  width: auto;
+  height: 50px;
+  max-width: 200px;
 }
 
 .menu-toggle,

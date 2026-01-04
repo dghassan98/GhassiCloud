@@ -462,7 +462,7 @@
 
 .view-toggle button.active {
   background: var(--bg-secondary);
-  color: var(--accent);
+  color: var(--accent-readable, var(--accent));
 }
 
 /* Add Service Button */
@@ -472,7 +472,7 @@
   gap: 0.5rem;
   padding: 0.625rem 1rem;
   background: var(--gradient-1);
-  color: white;
+  color: var(--accent-text, white);
   font-weight: 500;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -556,12 +556,12 @@
 }
 
 .pin-button:hover {
-  color: var(--np-accent, var(--accent));
+  color: var(--np-accent, var(--accent-readable, var(--accent)));
   background: rgba(79,176,255,0.08);
 }
 
 .pin-button.active {
-  color: var(--accent);
+  color: var(--accent-readable, var(--accent));
   opacity: 1;
 }
 
@@ -785,6 +785,17 @@
   padding: 1rem 1.25rem;
 }
 
+/* Hide mobile menu by default, show only on mobile */
+.list-actions-mobile {
+  display: none;
+}
+
+.list-actions-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* small header area removed for list mode, children align to grid */
 .service-card.list .card-header {
   margin: 0;
@@ -792,8 +803,8 @@
 }
 
 .service-card.list .service-icon {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   grid-column: 1;
   display: flex;
   align-items: center;
@@ -812,7 +823,7 @@
 .service-card.list .card-title-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   width: 100%;
 }
 
@@ -924,9 +935,8 @@
   color: var(--text-muted);
   font-size: 0.9rem; /* match grid mode paragraph size */
   align-self: flex-start;
-  /* indent the description so it lines up under the service name (after the status dot + pin)
-     reduced from 48px to 32px to match the stacked indicator+pin width */
-  margin-left: 32px;
+  /* indent the description so it lines up under the service name (after the status dot + pin) */
+  margin-left: 28px;
 }
 
 /* stack the status indicator and small pin under each other in list mode */
@@ -935,15 +945,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 28px; /* reserve a small column for the vertical stack */
-  margin-right: 6px;
+  gap: 4px;
+  width: 24px; /* reserve a small column for the vertical stack */
+  margin-right: 8px;
 }
 
 /* make sure the small pin has no extra right margin when stacked */
 .service-card.list .pin-button.small {
   margin-right: 0;
-  padding: 0.15rem;
+  padding: 0.2rem;
+  width: 20px;
+  height: 20px;
 }
 
 /* slight tweak for the indicator when inside the stacked layout */
@@ -951,6 +963,8 @@
   margin-left: 0; /* avoid shifting inside the small column */
   margin-right: 0;
   margin-bottom: 0;
+  width: 10px;
+  height: 10px;
 }
 
 /* actions sit in column 3, keep them compact */
@@ -1013,7 +1027,7 @@
   gap: 0.5rem;
   background: var(--gradient-1);
   border: none;
-  color: white;
+  color: var(--accent-text, white);
   cursor: pointer;
   font-size: 0.95rem;
   padding: 0.35rem 0.9rem;
@@ -1027,7 +1041,7 @@
 
 .service-card.list .card-actions.list-actions .check-text svg {
   display: block;
-  color: white; /* ensure icon is visible */
+  color: var(--accent-text, white); /* ensure icon is visible */
   width: 16px;
   height: 16px;
 }
@@ -1083,7 +1097,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: var(--gradient-1);
-  color: white;
+  color: var(--accent-text, white);
   font-weight: 500;
   border-radius: var(--radius-md);
 }
@@ -1188,7 +1202,7 @@
 
 .icon-mode-toggle .mode-btn.active {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-readable, var(--accent));
   background: var(--accent-glow);
 }
 
@@ -1432,5 +1446,71 @@
 
   .search-box input:focus {
     width: 100%;
+  }
+
+  /* Fix list mode for mobile */
+  .service-card.list {
+    grid-template-columns: 64px 1fr auto;
+    grid-template-rows: auto;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .service-card.list .service-icon {
+    grid-column: 1;
+    grid-row: 1;
+    width: 48px;
+    height: 48px;
+  }
+
+  .service-card.list .card-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .service-card.list .card-actions.list-actions {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+  }
+
+  /* Hide desktop action buttons on mobile */
+  .list-actions-desktop {
+    display: none !important;
+  }
+
+  /* Show mobile three-dot menu */
+  .list-actions-mobile {
+    display: flex !important;
+    position: relative;
+  }
+
+  .list-menu-button {
+    opacity: 1 !important;
+  }
+
+  .list-card-menu {
+    right: 0;
+    left: auto;
+  }
+
+  .service-link-right {
+    display: none;
+  }
+
+  .service-card.list .muted-desc {
+    margin-left: 32px;
+    font-size: 0.85rem;
+  }
+
+  /* Make grid mode buttons always visible on mobile/touch */
+  .service-card .pin-button,
+  .service-card .menu-button {
+    opacity: 1;
+  }
+
+  .service-card .card-glow {
+    opacity: 1;
   }
 }

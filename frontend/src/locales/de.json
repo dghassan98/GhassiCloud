@@ -210,6 +210,7 @@
     "editTitle": "Dienst bearbeiten",
     "fields": { "name": "Dienstname", "description": "Beschreibung", "url": "URL", "icon": "Icon", "preview": "Vorschau:", "color": "Farbe" },
     "placeholders": { "name": "z. B. Jellyfin", "description": "z. B. Media-Streaming-Server", "url": "https://service.beispiel.de" },
+    "icon": { "auto": "Favicon verwenden", "choose": "Symbol wählen" },
     "faviconPreview": "Favicon-Vorschau",
     "extraAuth": "Erfordert zusätzliche Authentifizierung",
     "extraAuthShort": "Auth erforderlich",

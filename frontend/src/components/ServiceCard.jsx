@@ -161,10 +161,10 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                 src={faviconUrl}
                 alt={`${service.name} icon`}
                 onError={handleFaviconError}
-                style={{ width: 20, height: 20, objectFit: 'contain' }}
+                style={{ width: 28, height: 28, objectFit: 'contain' }}
               />
             ) : (
-              <Icon size={20} />
+              <Icon size={28} />
             )}
           </div>
 
@@ -222,70 +222,126 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
           </div>
 
           <div className="card-actions list-actions">
+            {/* Desktop buttons - hidden on mobile */}
+            <div className="list-actions-desktop">
+              {onCheck && (
+                <button
+                  type="button"
+                  className="check-text"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onCheck(service)
+                  }}
+                  title={t('service.check')}
+                  aria-label={t('service.check')}
+                >
+                  <RefreshCw size={16} />
+                  <span style={{ marginLeft: 8 }}>{t('service.check')}</span>
+                </button>
+              )}
 
-            {onCheck && (
-              <button
+              {onEdit && (
+                <button
+                  type="button"
+                  className="check-text list-action"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onEdit(service)
+                  }}
+                  title={t('service.edit')}
+                >
+                  <Edit2 size={14} />
+                  <span style={{ marginLeft: 8 }}>{t('service.edit')}</span>
+                </button>
+              )}
+
+              {onDelete && (
+                <button
+                  type="button"
+                  className="check-text list-action"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    notification('warning')
+                    onDelete()
+                  }}
+                  title={t('service.delete')}
+                >
+                  <Trash2 size={14} />
+                  <span style={{ marginLeft: 8 }}>{t('service.delete')}</span>
+                </button>
+              )}
+
+              {service.url && (
+                <a
+                  className="service-link-right"
+                  href={service.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title={t('service.open')}
+                >
+                  <span className="service-url-right">{new URL(service.url).hostname}</span>
+                  <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+
+            {/* Mobile three-dot menu */}
+            <div className="list-actions-mobile">
+              <button 
                 type="button"
-                className="check-text"
+                className="menu-button list-menu-button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  e.preventDefault()
-                  onCheck(service)
+                  impact('light')
+                  setShowMenu(!showMenu)
                 }}
-                title={t('service.check')}
-                aria-label={t('service.check')}
               >
-                <RefreshCw size={16} />
-                <span style={{ marginLeft: 8 }}>{t('service.check')}</span>
+                <MoreVertical size={18} />
               </button>
-            )}
 
-            {onEdit && (
-              <button
-                type="button"
-                className="check-text list-action"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  onEdit(service)
-                }}
-                title={t('service.edit')}
-              >
-                <Edit2 size={14} />
-                <span style={{ marginLeft: 8 }}>{t('service.edit')}</span>
-              </button>
-            )}
-
-            {onDelete && (
-              <button
-                type="button"
-                className="check-text list-action"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  notification('warning')
-                  onDelete()
-                }}
-                title={t('service.delete')}
-              >
-                <Trash2 size={14} />
-                <span style={{ marginLeft: 8 }}>{t('service.delete')}</span>
-              </button>
-            )}
-
-            {service.url && (
-              <a
-                className="service-link-right"
-                href={service.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                title={t('service.open')}
-              >
-                <span className="service-url-right">{new URL(service.url).hostname}</span>
-                <ExternalLink size={14} />
-              </a>
-            )}
+              {showMenu && (
+                <motion.div 
+                  className="card-menu list-card-menu"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  {onCheck && (
+                    <button onClick={(e) => { 
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      onCheck(service)
+                    }}>
+                      <RefreshCw size={14} />
+                      {t('service.check')}
+                    </button>
+                  )}
+                  <button onClick={(e) => { 
+                    e.stopPropagation()
+                    setShowMenu(false)
+                    onEdit(service)
+                  }}>
+                    <Edit2 size={14} />
+                    {t('service.edit')}
+                  </button>
+                  <button 
+                    className="danger"
+                    onClick={(e) => { 
+                      e.stopPropagation()
+                      setShowMenu(false)
+                      notification('warning')
+                      onDelete()
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    {t('service.delete')}
+                  </button>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       ) : (

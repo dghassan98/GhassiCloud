@@ -15,9 +15,9 @@ export const logoOptions = [
   },
   { 
     id: 'square-dark', 
-    name: 'Square Dark', 
+    name: 'Circle Dark', 
     path: '/logos/logo-square-dark.png',
-    description: 'Rounded square dark background'
+    description: 'Rounded circle with dark background'
   },
   { 
     id: 'full-logo', 
