@@ -7,7 +7,7 @@ services:
     container_name: ghassicloud-backend-dev
     restart: unless-stopped
     environment:
-      - TIMEZONE=Europe/Vienna
+      - TZ=Europe/Vienna
       - NODE_ENV=development
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
@@ -30,7 +30,7 @@ services:
     container_name: ghassicloud-frontend-dev
     restart: unless-stopped
     environment:
-      - TIMEZONE=Europe/Vienna
+      - TZ=Europe/Vienna
       - NODE_ENV=development
     volumes:
       # Mount source code for hot reload
