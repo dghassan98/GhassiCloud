@@ -15,19 +15,26 @@ export default function SSOCallback() {
     // Debug: log callback params for investigation
     try { console.debug('SSOCallback loaded', { code, state, error, errorDescription }) } catch (e) {}
 
-    // If running inside a popup (normal interactive flow), post to opener and close
-    if (window.opener) {
-      window.opener.postMessage({
+    // Check if this is a silent refresh in an iframe
+    const isSilentRefresh = sessionStorage.getItem('sso_silent_refresh') === 'true'
+    
+    // If running inside a popup or iframe (normal interactive flow or silent refresh), post to parent
+    if (window.opener || window.parent !== window) {
+      const targetWindow = window.opener || window.parent
+      
+      targetWindow.postMessage({
         type: 'SSO_CALLBACK',
         code,
         state,
         error: error ? (errorDescription || error) : null
       }, window.location.origin)
       
-      // Close this popup window
-      window.close()
+      // Close this popup window (iframes don't need closing)
+      if (window.opener) {
+        window.close()
+      }
     } else {
-      // If no opener and not a silent iframe (direct navigation), redirect to login
+      // If no opener/parent and not a silent iframe (direct navigation), redirect to login
       window.location.href = '/login'
     }
   }, [])

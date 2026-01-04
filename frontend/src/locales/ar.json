@@ -1,6 +1,13 @@
 {
   "nav": { "dashboard": "لوحة القيادة", "reporting": "التقارير", "settings": "الإعدادات" },
   "general": { "welcome": "مرحبًا بك في GhassiCloud. اعتمد السيادة الرقمية.", "scanMe": "امسحني", "userFallback": "مستخدم", "memberFallback": "عضو" },
+  "sessionWarning": {
+    "title": "ستنتهي الجلسة قريبًا",
+    "description": "جلسة تسجيل الدخول الخاصة بك على وشك الانتهاء بسبب عدم النشاط. هل تريد البقاء مسجل الدخول؟",
+    "logout": "تسجيل الخروج",
+    "stayLoggedIn": "البقاء مسجل الدخول",
+    "helperText": "انقر على 'البقاء مسجل الدخول' لمتابعة جلستك"
+  },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "غائم جزئيًا", "openProfile": "فتح إعدادات الملف الشخصي", "notifications": "الإشعارات", "signOutLocal": "تسجيل الخروج (محلي)", "signOutProvider": "تسجيل الخروج من مزود الهوية", "signedOut": "تم تسجيل الخروج" },
 
   "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },

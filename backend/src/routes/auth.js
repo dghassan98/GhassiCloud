@@ -1031,6 +1031,104 @@ router.get('/sso/frontchannel-logout', async (req, res) => {
   }
 })
 
+// SSO Session validation endpoint - checks if the user's SSO session is still active
+// This uses Keycloak's userinfo endpoint as a lightweight session check
+// Returns: { valid: true/false, expiresIn?: number (seconds), canRefresh?: boolean }
+router.get('/sso/validate', authenticateToken, async (req, res) => {
+  try {
+    const db = getDb()
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+    
+    if (!user) {
+      return res.status(404).json({ valid: false, message: 'User not found' })
+    }
+    
+    // For non-SSO users, always return valid (they use local auth)
+    if (!user.sso_provider || !user.sso_id) {
+      return res.json({ valid: true, ssoUser: false })
+    }
+    
+    // Check if we have a session ID in the JWT
+    const sessionId = req.user.sessionId
+    if (!sessionId) {
+      // No session ID means we can't validate with Keycloak directly
+      // Fall back to checking if the session exists in our local DB
+      return res.json({ valid: true, ssoUser: true, sessionId: null })
+    }
+    
+    try {
+      // Check if the session still exists in Keycloak
+      const sessionsRes = await callKeycloakAdmin(`/users/${encodeURIComponent(user.sso_id)}/sessions`, { method: 'GET' })
+      
+      if (!sessionsRes.ok) {
+        // If we can't reach Keycloak, assume session is valid to avoid false logouts
+        console.warn('SSO validate: Could not reach Keycloak, assuming valid')
+        return res.json({ valid: true, ssoUser: true, checkFailed: true })
+      }
+      
+      const sessions = await sessionsRes.json()
+      const currentSession = sessions.find(s => s.id === sessionId)
+      
+      if (!currentSession) {
+        // Session no longer exists in Keycloak - user should be logged out
+        return res.json({ valid: false, ssoUser: true, reason: 'session_expired' })
+      }
+      
+      // Calculate time until session expires (if lastAccess available)
+      let expiresIn = null
+      if (currentSession.lastAccess) {
+        // Keycloak default SSO session idle is 30 minutes
+        const ssoIdleTimeout = parseInt(process.env.KEYCLOAK_SSO_IDLE_TIMEOUT) || 1800 // 30 min default
+        const lastAccess = new Date(currentSession.lastAccess).getTime()
+        const expiresAt = lastAccess + (ssoIdleTimeout * 1000)
+        expiresIn = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+      }
+      
+      return res.json({ 
+        valid: true, 
+        ssoUser: true, 
+        sessionId,
+        expiresIn,
+        lastAccess: currentSession.lastAccess || null
+      })
+    } catch (kcErr) {
+      console.error('SSO validate Keycloak error:', kcErr)
+      // Don't fail the user if Keycloak is temporarily unreachable
+      return res.json({ valid: true, ssoUser: true, checkFailed: true })
+    }
+  } catch (err) {
+    console.error('SSO validate error:', err)
+    res.status(500).json({ valid: false, message: 'Validation failed' })
+  }
+})
+
+// SSO Token refresh endpoint - attempts to refresh the SSO session using silent auth
+// This initiates a redirect flow that the frontend handles in an iframe
+router.get('/sso/refresh-config', authenticateToken, async (req, res) => {
+  try {
+    const db = getDb()
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+    
+    if (!user || !user.sso_provider) {
+      return res.status(400).json({ message: 'Not an SSO user' })
+    }
+    
+    // Return the config needed for silent refresh
+    const cfg = await readSSOConfig()
+    
+    res.json({
+      authUrl: cfg.authUrl,
+      clientId: cfg.clientId,
+      scope: cfg.scope,
+      // Keycloak supports prompt=none for silent auth
+      silentCheckSsoRedirectUri: `${req.protocol}://${req.get('host')}/sso-callback`
+    })
+  } catch (err) {
+    console.error('SSO refresh config error:', err)
+    res.status(500).json({ message: 'Failed to get refresh config' })
+  }
+})
+
 // Avatar proxy endpoint to bypass CORS and rate limiting issues with external avatar URLs
 router.get('/avatar-proxy', async (req, res) => {
   try {

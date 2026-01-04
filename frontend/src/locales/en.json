@@ -10,6 +10,13 @@
     "userFallback": "User",
     "memberFallback": "Member"
   },
+  "sessionWarning": {
+    "title": "Session Expiring Soon",
+    "description": "Your login session is about to expire due to inactivity. Would you like to stay logged in?",
+    "logout": "Log Out",
+    "stayLoggedIn": "Stay Logged In",
+    "helperText": "Click 'Stay Logged In' to continue your session"
+  },
   "layout": {
     "weatherTemp": "18°C",
     "weatherDesc": "Partly Cloudy",

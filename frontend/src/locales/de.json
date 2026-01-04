@@ -10,6 +10,13 @@
     "userFallback": "Benutzer",
     "memberFallback": "Mitglied"
   },
+  "sessionWarning": {
+    "title": "Sitzung läuft bald ab",
+    "description": "Ihre Anmeldesitzung läuft aufgrund von Inaktivität bald ab. Möchten Sie angemeldet bleiben?",
+    "logout": "Abmelden",
+    "stayLoggedIn": "Angemeldet bleiben",
+    "helperText": "Klicken Sie auf 'Angemeldet bleiben', um Ihre Sitzung fortzusetzen"
+  },
   "layout": {
     "weatherTemp": "18°C",
     "weatherDesc": "Teilweise bewölkt",

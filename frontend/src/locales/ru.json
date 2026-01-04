@@ -1,6 +1,13 @@
 {
   "nav": { "dashboard": "Панель", "reporting": "Отчёты", "settings": "Настройки" },
   "general": { "welcome": "Добро пожаловать в GhassiCloud. Примите цифровой суверенитет.", "scanMe": "Отсканируйте меня", "userFallback": "Пользователь", "memberFallback": "Участник" },
+  "sessionWarning": {
+    "title": "Сессия скоро истечёт",
+    "description": "Ваша сессия скоро истечёт из-за неактивности. Хотите остаться в системе?",
+    "logout": "Выйти",
+    "stayLoggedIn": "Остаться в системе",
+    "helperText": "Нажмите 'Остаться в системе', чтобы продолжить сессию"
+  },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "Переменная облачность", "openProfile": "Открыть настройки профиля", "notifications": "Уведомления", "signOutLocal": "Выйти (локально)", "signOutProvider": "Выйти у провайдера идентификации", "signedOut": "Вы вышли" },
 
   "dashboard": { "servicesOnline": "Сервисы онлайн", "addService": "Добавить сервис", "searchPlaceholder": "Поиск сервисов...", "noServices": "Сервисы не найдены", "loadingServices": "Загрузка сервисов...", "getStarted": "Добавьте ваш первый сервис, чтобы начать", "noServicesPopover": "Нет сервисов", "lastChecked": "Последняя проверка", "checking": "Проверка...", "never": "Никогда", "yourServices": "Ваши сервисы" },

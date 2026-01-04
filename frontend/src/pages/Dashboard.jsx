@@ -8,6 +8,7 @@ import {
   Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import ServiceCard from '../components/ServiceCard'
 import StatsCard from '../components/StatsCard'
 import { RefreshCw, Loader2 } from 'lucide-react'
@@ -491,7 +492,7 @@ export default function Dashboard() {
     setEditingService(null)
   }
 
-  function getGreeting() {
+  function getGreeting(firstName) {
     const hour = new Date().getHours()
     const locale = navigator.language || 'en'
     const lang = locale.split('-')[0]
@@ -512,14 +513,19 @@ export default function Dashboard() {
       tr: ['Günaydın', 'İyi günler', 'İyi akşamlar', 'İyi geceler']
     }
     const msgs = greetings[lang] || greetings.en
-    if (hour < 12) return msgs[0]
-    if (hour < 18) return msgs[1]
-    if (hour < 22) return msgs[2]
-    return msgs[3]
+    let greeting
+    // Night: 22:00 - 05:59, Morning: 06:00 - 11:59, Afternoon: 12:00 - 17:59, Evening: 18:00 - 21:59
+    if (hour >= 6 && hour < 12) greeting = msgs[0]       // Morning
+    else if (hour >= 12 && hour < 18) greeting = msgs[1] // Afternoon
+    else if (hour >= 18 && hour < 22) greeting = msgs[2] // Evening
+    else greeting = msgs[3]                               // Night (22-5)
+    
+    return firstName ? `${greeting}, ${firstName}!` : greeting
   }
 
   const { t } = useLanguage()
-  const greeting = getGreeting();
+  const { user } = useAuth()
+  const greeting = getGreeting(user?.firstName);
 
   // compute status class for styling the existing top-right pill
   const offlineCount = servicesStatus.offline || 0;

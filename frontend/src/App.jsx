@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
 import Reporting from './pages/Reporting'
 import Layout from './components/Layout'
+import SSOSessionManager from './components/SSOSessionManager'
 import { 
   initializeNativeFeatures, 
   useAppLifecycle, 
@@ -77,6 +78,7 @@ function App() {
   return (
     <BrowserRouter>
       {!isConnected && <OfflineBanner />}
+      <SSOSessionManager />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/sso-callback" element={<SSOCallback />} />

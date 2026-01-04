@@ -1,6 +1,13 @@
 {
   "nav": { "dashboard": "Panel", "reporting": "Informes", "settings": "Ajustes" },
   "general": { "welcome": "Bienvenido a GhassiCloud. Adopta la soberanía digital.", "scanMe": "Escanéame", "userFallback": "Usuario", "memberFallback": "Miembro" },
+  "sessionWarning": {
+    "title": "La sesión expira pronto",
+    "description": "Tu sesión de inicio de sesión está a punto de expirar debido a la inactividad. ¿Deseas seguir conectado?",
+    "logout": "Cerrar sesión",
+    "stayLoggedIn": "Continuar conectado",
+    "helperText": "Haz clic en 'Continuar conectado' para mantener tu sesión"
+  },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "Parcialmente nublado", "openProfile": "Abrir configuración de perfil", "notifications": "Notificaciones", "signOutLocal": "Cerrar sesión (local)", "signOutProvider": "Cerrar sesión en el proveedor de identidad", "signedOut": "Sesión cerrada" },
 
   "dashboard": { "servicesOnline": "Servicios en línea", "addService": "Agregar servicio", "searchPlaceholder": "Buscar servicios...", "noServices": "No se encontraron servicios", "loadingServices": "Cargando servicios...", "getStarted": "Agrega tu primer servicio para comenzar", "noServicesPopover": "Sin servicios", "lastChecked": "Última verificación", "checking": "Comprobando...", "never": "Nunca", "yourServices": "Tus servicios" },
