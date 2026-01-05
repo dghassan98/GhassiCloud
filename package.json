@@ -16,6 +16,7 @@
     "start": "cd backend && npm start"
   },
   "devDependencies": {
-    "npm-run-all2": "^8.0.4"
+    "npm-run-all2": "^8.0.4",
+    "png-to-ico": "^3.0.1"
   }
 }

@@ -2,13 +2,14 @@
 
 /**
  * Generates properly sized favicon files from existing logo PNGs
- * Requires sharp package: npm install sharp
+ * Requires: npm install sharp png-to-ico
  */
 
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pngToIco from 'png-to-ico';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,26 @@ const sizes = [16, 32, 48];
 async function generateFavicons() {
   console.log('🎨 Generating favicons...\n');
 
+  // Clean up old PNG favicon files
+  console.log('🧹 Cleaning up old favicon files...');
+  const files = fs.readdirSync(outputDir);
+  let cleanedCount = 0;
+  
+  for (const file of files) {
+    if (file.startsWith('favicon-') && file.endsWith('.png')) {
+      const filePath = path.join(outputDir, file);
+      fs.unlinkSync(filePath);
+      cleanedCount++;
+      console.log(`   ✓ Removed ${file}`);
+    }
+  }
+  
+  if (cleanedCount > 0) {
+    console.log(`   Removed ${cleanedCount} old favicon file(s)\n`);
+  } else {
+    console.log('   No old favicon files to remove\n');
+  }
+
   for (const logo of logos) {
     const inputPath = path.join(publicDir, logo.input);
     
@@ -42,30 +63,35 @@ async function generateFavicons() {
     console.log(`📸 Processing ${logo.input}...`);
 
     try {
-      // Generate different sizes
+      // Generate temporary PNG files at different sizes
+      const tempPngs = [];
+      
       for (const size of sizes) {
-        const outputPath = path.join(outputDir, `${logo.output}-${size}x${size}.png`);
+        const tempPath = path.join(outputDir, `temp-${logo.output}-${size}x${size}.png`);
         await sharp(inputPath)
           .resize(size, size, {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 }
           })
           .png()
-          .toFile(outputPath);
-        console.log(`   ✓ Generated ${size}x${size} → ${path.basename(outputPath)}`);
+          .toFile(tempPath);
+        tempPngs.push(tempPath);
+        console.log(`   ✓ Generated ${size}x${size} temp PNG`);
       }
 
-      // Also create a multi-size ICO file (requires ico-convert or png-to-ico)
-      // For now, we'll use the 32x32 as the default favicon
-      const defaultFaviconPath = path.join(outputDir, `${logo.output}.png`);
-      await sharp(inputPath)
-        .resize(32, 32, {
-          fit: 'contain',
-          background: { r: 0, g: 0, b: 0, alpha: 0 }
-        })
-        .png()
-        .toFile(defaultFaviconPath);
-      console.log(`   ✓ Generated default 32x32 → ${path.basename(defaultFaviconPath)}`);
+      // Convert PNGs to a single .ico file with multiple sizes
+      const icoPath = path.join(outputDir, `${logo.output}.ico`);
+      const icoBuffer = await pngToIco(tempPngs);
+      fs.writeFileSync(icoPath, icoBuffer);
+      console.log(`   ✓ Generated ICO file → ${path.basename(icoPath)}`);
+
+      // Clean up temporary PNG files
+      tempPngs.forEach(tempPath => {
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      });
+      console.log(`   ✓ Cleaned up temp files`);
 
     } catch (error) {
       console.error(`   ✗ Error processing ${logo.input}:`, error.message);
@@ -75,12 +101,12 @@ async function generateFavicons() {
   }
 
   console.log('✅ Favicon generation complete!\n');
-  console.log('Generated files are in the public/ directory.');
-  console.log('\nTo use them, update your code to reference:');
-  console.log('  - favicon-square-dark.png (32x32 default)');
-  console.log('  - favicon-square-dark-16x16.png');
-  console.log('  - favicon-square-dark-32x32.png');
-  console.log('  - favicon-square-dark-48x48.png');
+  console.log('Generated .ico files in the public/ directory.');
+  console.log('\nGenerated files:');
+  console.log('  - favicon-square-dark.ico');
+  console.log('  - favicon-circle-dark.ico');
+  console.log('  - favicon-circle-cyan.ico');
+  console.log('  - favicon-circle-yellow.ico');
 }
 
 // Run the favicon generation

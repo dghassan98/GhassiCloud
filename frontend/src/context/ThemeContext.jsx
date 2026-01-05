@@ -8,21 +8,21 @@ function updateFavicon(theme) {
   if (favicon) {
     if (theme === 'dark') {
       // Always use square-dark for dark theme
-      favicon.href = '/favicon-square-dark.png'
+      favicon.href = '/favicon-square-dark.ico'
     } else {
       // For light theme, use the user's selected logo from localStorage
       const savedLogo = localStorage.getItem('ghassicloud-logo') || 'circle'
       
       // Map logo IDs to their favicon paths
       const logoMap = {
-        'circle': '/favicon-circle-cyan.png',
-        'square-dark': '/favicon-square-dark.png',
-        'circle-yellow': '/favicon-circle-yellow.png',
-        'full-logo': '/favicon-circle-cyan.png',   // Default to circle-cyan
-        'cloud-only': '/favicon-circle-cyan.png'   // Default to circle-cyan
+        'circle': '/favicon-circle-cyan.ico',
+        'square-dark': '/favicon-square-dark.ico',
+        'circle-yellow': '/favicon-circle-yellow.ico',
+        'full-logo': '/favicon-circle-cyan.ico',   // Default to circle-cyan
+        'cloud-only': '/favicon-circle-cyan.ico'   // Default to circle-cyan
       }
       
-      favicon.href = logoMap[savedLogo] || '/favicon-circle-cyan.png'
+      favicon.href = logoMap[savedLogo] || '/favicon-circle-cyan.ico'
     }
   }
 }
