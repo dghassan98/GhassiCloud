@@ -80,6 +80,8 @@ export function AccentProvider({ children }) {
     const saved = localStorage.getItem('ghassicloud-custom-accent')
     return saved || '#6366f1'
   })
+  
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const currentAccent = accentId === 'custom' 
     ? { id: 'custom', color: customColor, name: 'Custom' }
@@ -102,6 +104,28 @@ export function AccentProvider({ children }) {
     root.style.setProperty('--accent-dark', HSLToHex(hsl.h, hsl.s, Math.max(hsl.l - 15, 20)))
     root.style.setProperty('--accent-glow', `${currentAccent.color}15`)
     root.style.setProperty('--gradient-1', `linear-gradient(135deg, ${currentAccent.color} 0%, ${HSLToHex(hsl.h + 30, hsl.s, hsl.l)} 100%)`)
+    
+    // Skip logging on initial load
+    if (isInitialLoad) {
+      setIsInitialLoad(false)
+      return
+    }
+    
+    // Log accent change to backend (if user is authenticated)
+    const token = localStorage.getItem('ghassicloud-token')
+    if (token) {
+      fetch('/api/auth/appearance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          accent: accentId,
+          customAccent: accentId === 'custom' ? customColor : undefined
+        })
+      }).catch(err => console.debug('Failed to log accent change:', err))
+    }
   }, [accentId, currentAccent, customColor])
 
   const setAccent = (id, color) => {

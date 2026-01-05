@@ -2,15 +2,28 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const ThemeContext = createContext()
 
-// Update favicon based on theme
+// Update favicon based on theme and user's logo preference
 function updateFavicon(theme) {
   const favicon = document.querySelector('link[rel="icon"]')
   if (favicon) {
-    // Use circle-dark for dark theme, circle-cyan for light theme
-    const faviconPath = theme === 'dark' 
-      ? '/logos/logo-circle-dark.png' 
-      : '/logos/logo-circle-cyan.png'
-    favicon.href = faviconPath
+    if (theme === 'dark') {
+      // Always use square-dark for dark theme
+      favicon.href = '/favicon-square-dark.png'
+    } else {
+      // For light theme, use the user's selected logo from localStorage
+      const savedLogo = localStorage.getItem('ghassicloud-logo') || 'circle'
+      
+      // Map logo IDs to their favicon paths
+      const logoMap = {
+        'circle': '/favicon-circle-cyan.png',
+        'square-dark': '/favicon-square-dark.png',
+        'circle-yellow': '/favicon-circle-yellow.png',
+        'full-logo': '/favicon-circle-cyan.png',   // Default to circle-cyan
+        'cloud-only': '/favicon-circle-cyan.png'   // Default to circle-cyan
+      }
+      
+      favicon.href = logoMap[savedLogo] || '/favicon-circle-cyan.png'
+    }
   }
 }
 
@@ -19,11 +32,31 @@ export function ThemeProvider({ children }) {
     const saved = localStorage.getItem('ghassicloud-theme')
     return saved || 'dark'
   })
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   useEffect(() => {
     localStorage.setItem('ghassicloud-theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
     updateFavicon(theme)
+    
+    // Skip logging on initial load
+    if (isInitialLoad) {
+      setIsInitialLoad(false)
+      return
+    }
+    
+    // Log theme change to backend (if user is authenticated)
+    const token = localStorage.getItem('ghassicloud-token')
+    if (token) {
+      fetch('/api/auth/appearance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ theme })
+      }).catch(err => console.debug('Failed to log theme change:', err))
+    }
   }, [theme])
 
   const toggleTheme = () => {

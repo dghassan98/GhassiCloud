@@ -12,7 +12,8 @@ export const AUDIT_CATEGORIES = {
   SERVICE: 'service_management',
   SETTINGS: 'settings',
   DATA: 'data_management',
-  SECURITY: 'security'
+  SECURITY: 'security',
+  APPEARANCE: 'appearance'
 }
 
 // Audit log actions
@@ -45,6 +46,11 @@ export const AUDIT_ACTIONS = {
   SETTINGS_UPDATED: 'settings_updated',
   SSO_CONFIG_UPDATED: 'sso_config_updated',
   SSO_CONFIG_RESET: 'sso_config_reset',
+  
+  // Appearance
+  THEME_CHANGED: 'theme_changed',
+  ACCENT_CHANGED: 'accent_changed',
+  LOGO_CHANGED: 'logo_changed',
   
   // Data
   DATA_EXPORTED: 'data_exported',

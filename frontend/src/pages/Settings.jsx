@@ -632,7 +632,7 @@ export default function Settings() {
       {/* Confirmation modal: Sign out everywhere */}
       {showConfirmSignOutAll && (
         <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowConfirmSignOutAll(false) }}>
-          <div className="sso-config-zone danger-zone" role="dialog" aria-modal="true">
+          <div className="sso-config-zone danger-zone" role="dialog" aria-modal="true" >
             <h3>{t('settings.signOutEverywhereConfirm') || 'Sign out from all devices?'}</h3>
             <p className="muted">{t('settings.signOutEverywhereDesc') || 'You will be logged out from all active sessions.'}</p>
             <div className="danger-action">
@@ -852,7 +852,7 @@ export default function Settings() {
                             </div>
                           )}
                           <div className="session-actions">
-                            <button className="btn-secondary" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign Out'}</button>
+                            <button className="btn-danger" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign Out'}</button>
                           </div>
                         </div>
                       )})
@@ -861,7 +861,7 @@ export default function Settings() {
                 </div>
 
                 <div className="sessions-actions sessions-actions-bottom" style={{ marginTop: '0.75rem' }}>
-                  <button className="btn-secondary" onClick={() => setShowConfirmSignOutAll(true)}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
+                  <button className="btn-danger" onClick={() => setShowConfirmSignOutAll(true)}>{t('settings.signOutEverywhere') || 'Sign out everywhere'}</button>
                 </div>
 
               </div>

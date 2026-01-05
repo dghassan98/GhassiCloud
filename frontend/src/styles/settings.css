@@ -778,6 +778,10 @@
 .sessions-actions {
   margin-bottom: 1rem;
 }
+.sessions-actions .btn-danger {
+  background: var(--error);
+  color: white;
+}
 .sessions-list {
   display: flex;
   flex-direction: column;
@@ -803,6 +807,7 @@
 .session-ip { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Segoe UI Mono', monospace; cursor: pointer; color: var(--text-muted); padding-top: 0.25rem; }
 .session-ip:hover { text-decoration: underline; color: var(--text-primary); }
 .session-actions .btn-secondary { padding: 0.35rem 0.75rem; }
+.session-actions .btn-danger { padding: 0.35rem 0.75rem; }
 
 /* Session location with icon */
 .session-location { display: flex; align-items: center; gap: 0.35rem; padding-top: 0.15rem; }

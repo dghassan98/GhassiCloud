@@ -15,9 +15,15 @@ export const logoOptions = [
   },
   { 
     id: 'square-dark', 
-    name: 'Circle Dark', 
+    name: 'Square Dark', 
     path: '/logos/logo-square-dark.png',
-    description: 'Rounded circle with dark background'
+    description: 'Rounded square with dark background'
+  },
+  { 
+    id: 'circle-yellow', 
+    name: 'Circle Yellow', 
+    path: '/logos/logo-circle-yellow.png',
+    description: 'Circle with yellow background'
   },
   { 
     id: 'full-logo', 
@@ -60,9 +66,29 @@ export function LogoProvider({ children }) {
   }
 
   const currentLogo = getLogoWithPath()
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   useEffect(() => {
     localStorage.setItem('ghassicloud-logo', logoId)
+    
+    // Skip logging on initial load
+    if (isInitialLoad) {
+      setIsInitialLoad(false)
+      return
+    }
+    
+    // Log logo change to backend (if user is authenticated)
+    const token = localStorage.getItem('ghassicloud-token')
+    if (token) {
+      fetch('/api/auth/appearance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ logo: logoId })
+      }).catch(err => console.debug('Failed to log logo change:', err))
+    }
   }, [logoId])
 
   const setLogo = (id) => {

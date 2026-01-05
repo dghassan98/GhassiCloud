@@ -544,25 +544,27 @@ router.put('/profile', authenticateToken, (req, res) => {
 
     const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
 
-    // Log profile update
-    logAuditEvent({
-      userId: updated.id,
-      username: updated.username,
-      action: AUDIT_ACTIONS.PROFILE_UPDATED,
-      category: AUDIT_CATEGORIES.USER,
-      details: { 
-        changes: {
-          email: email !== user.email ? email : undefined,
-          displayName: displayName !== user.display_name ? displayName : undefined,
-          firstName: firstName !== user.first_name ? firstName : undefined,
-          lastName: lastName !== user.last_name ? lastName : undefined,
-          language: language !== user.language ? language : undefined
-        }
-      },
-      ipAddress: getClientIp(req),
-      userAgent: req.headers['user-agent'],
-      status: 'success'
-    })
+    // Build changes object
+    const changes = {}
+    if (email !== undefined && email !== user.email) changes.email = email
+    if (displayName !== undefined && displayName !== user.display_name) changes.displayName = displayName
+    if (firstName !== undefined && firstName !== user.first_name) changes.firstName = firstName
+    if (lastName !== undefined && lastName !== user.last_name) changes.lastName = lastName
+    if (language !== undefined && language !== user.language) changes.language = language
+
+    // Only log profile update if there were actual changes
+    if (Object.keys(changes).length > 0) {
+      logAuditEvent({
+        userId: updated.id,
+        username: updated.username,
+        action: AUDIT_ACTIONS.PROFILE_UPDATED,
+        category: AUDIT_CATEGORIES.USER,
+        details: { changes },
+        ipAddress: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        status: 'success'
+      })
+    }
 
     res.json({
       user: {
@@ -580,6 +582,52 @@ router.put('/profile', authenticateToken, (req, res) => {
     })
   } catch (err) {
     console.error('Update profile error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Update appearance preferences (theme, accent, logo)
+router.post('/appearance', authenticateToken, (req, res) => {
+  try {
+    const { theme, accent, customAccent, logo } = req.body
+    
+    // Build changes object - only track actual changes
+    const changes = {}
+    if (theme !== undefined) changes.theme = theme
+    if (accent !== undefined) changes.accent = accent
+    if (customAccent !== undefined) changes.customAccent = customAccent
+    if (logo !== undefined) changes.logo = logo
+    
+    // Only log if there are actual changes
+    if (Object.keys(changes).length > 0) {
+      // Determine which action to log (prioritize the most significant change)
+      let action = AUDIT_ACTIONS.THEME_CHANGED
+      let changeType = 'theme'
+      
+      if (accent !== undefined || customAccent !== undefined) {
+        action = AUDIT_ACTIONS.ACCENT_CHANGED
+        changeType = 'accent'
+      }
+      if (logo !== undefined) {
+        action = AUDIT_ACTIONS.LOGO_CHANGED
+        changeType = 'logo'
+      }
+      
+      logAuditEvent({
+        userId: req.user.id,
+        username: req.user.username,
+        action,
+        category: AUDIT_CATEGORIES.APPEARANCE,
+        details: { changes },
+        ipAddress: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        status: 'success'
+      })
+    }
+    
+    res.json({ message: 'Appearance preferences updated', changes })
+  } catch (err) {
+    console.error('Update appearance error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })

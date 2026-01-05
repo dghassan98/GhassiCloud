@@ -35,7 +35,8 @@ const CATEGORY_COLORS = {
   service_management: '#10b981',
   settings: '#f59e0b',
   data_management: '#06b6d4',
-  security: '#ef4444'
+  security: '#ef4444',
+  appearance: '#ec4899'
 }
 
 export default function Reporting() {
@@ -536,7 +537,7 @@ export default function Reporting() {
                       <th>IP Address</th>
                       <th>Action</th>
                       <th>Category</th>
-                      <th>Resource</th>
+                      {logs.some(log => log.resource_name || log.resource_type) && <th>Resource</th>}
                       <th>Status</th>
                     </tr>
                   </thead>
@@ -579,9 +580,11 @@ export default function Reporting() {
                             {formatCategory(log.category)}
                           </span>
                         </td>
-                        <td className="resource-cell">
-                          {log.resource_name || log.resource_type || '-'}
-                        </td>
+                        {logs.some(log => log.resource_name || log.resource_type) && (
+                          <td className="resource-cell">
+                            {log.resource_name || log.resource_type || '-'}
+                          </td>
+                        )}
                         <td className="status-cell">
                           <span className={`status-badge ${log.status}`}>
                             {log.status === 'success' ? <CheckCircle size={14} /> : <XCircle size={14} />}
