@@ -1,10 +1,8 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function SSOCallback() {
   const { t } = useLanguage()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -31,43 +29,34 @@ export default function SSOCallback() {
       // Check if this is a silent refresh in an iframe
       const isSilentRefresh = sessionStorage.getItem('sso_silent_refresh') === 'true'
       
-      // Determine if we should handle directly or via postMessage
-      // Use direct handling if:
-      // 1. We explicitly used redirect flow
-      // 2. There's no opener (popup was closed or never existed)
-      // 3. We're not in an iframe (unless it's PWA which can look like iframe)
-      const shouldHandleDirectly = usedRedirectFlow || 
-                                    (!window.opener && window.parent === window) ||
-                                    (!window.opener && !isSilentRefresh)
-      
-      if (!shouldHandleDirectly && (window.opener || window.parent !== window)) {
-        // Popup or iframe flow - post message to parent
-        const targetWindow = window.opener || window.parent
-        
+      // If we have a popup opener, always try to communicate back and close
+      if (window.opener) {
         try {
-          targetWindow.postMessage({
+          window.opener.postMessage({
             type: 'SSO_CALLBACK',
             code,
             state,
             error: error ? (errorDescription || error) : null
           }, window.location.origin)
-        } catch (e) {
-          console.error('Failed to post message to opener:', e)
-          // Fall through to direct handling
-        }
-        
-        // Close this popup window
-        if (window.opener) {
+          
+          // Try to close this popup/tab
           window.close()
-          // If close didn't work after 500ms, handle directly
+          
+          // If window.close() didn't work (some browsers block it), 
+          // wait a moment then handle directly
           setTimeout(() => {
+            // If we're still here, the window didn't close
+            // Handle the callback directly
             handleDirectCallback()
-          }, 500)
+          }, 1000)
           return
+        } catch (e) {
+          console.error('Failed to communicate with opener:', e)
+          // Fall through to direct handling
         }
       }
       
-      // Handle callback directly (redirect flow or fallback)
+      // Handle callback directly (redirect flow, no opener, or fallback)
       await handleDirectCallback()
       
       async function handleDirectCallback() {
@@ -76,7 +65,8 @@ export default function SSOCallback() {
           console.error('SSO error:', errorDescription || error)
           localStorage.setItem('sso_error', errorDescription || error)
           cleanupSSOData()
-          navigate('/login', { replace: true })
+          // Use full page reload to ensure clean state
+          window.location.href = '/login'
           return
         }
 
@@ -88,7 +78,7 @@ export default function SSOCallback() {
           console.error('No saved state found - session may have expired')
           localStorage.setItem('sso_error', 'Session expired. Please try logging in again.')
           cleanupSSOData()
-          navigate('/login', { replace: true })
+          window.location.href = '/login'
           return
         }
         
@@ -96,7 +86,7 @@ export default function SSOCallback() {
           console.error('Invalid state parameter', { received: state, expected: savedState })
           localStorage.setItem('sso_error', 'Security validation failed. Please try again.')
           cleanupSSOData()
-          navigate('/login', { replace: true })
+          window.location.href = '/login'
           return
         }
 
@@ -150,19 +140,20 @@ export default function SSOCallback() {
             cleanupSSOData()
             localStorage.removeItem('sso_error')
             
-            // Navigate to dashboard - the auth context will pick up the new token
-            console.debug('SSO authentication successful, navigating to dashboard')
-            navigate('/', { replace: true })
+            // Use full page reload to ensure AuthContext picks up the new token
+            // This is critical - React Router navigate() won't trigger AuthContext re-initialization
+            console.debug('SSO authentication successful, redirecting to dashboard...')
+            window.location.href = '/'
           } catch (err) {
             console.error('SSO token exchange failed:', err)
             localStorage.setItem('sso_error', err.message || 'Authentication failed')
             cleanupSSOData()
-            navigate('/login', { replace: true })
+            window.location.href = '/login'
           }
         } else {
           // No code provided, redirect to login
           cleanupSSOData()
-          navigate('/login', { replace: true })
+          window.location.href = '/login'
         }
       }
       
@@ -180,7 +171,7 @@ export default function SSOCallback() {
     }
 
     handleCallback()
-  }, [navigate])
+  }, []) // No dependencies - we use window.location for navigation
 
   return (
     <div style={{
