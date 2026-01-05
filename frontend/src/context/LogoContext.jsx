@@ -14,10 +14,10 @@ export const logoOptions = [
     description: 'Circle background - adapts to theme'
   },
   { 
-    id: 'square-dark', 
-    name: 'Square Dark', 
-    path: '/logos/logo-square-dark.png',
-    description: 'Rounded square with dark background'
+    id: 'circle-dark-alternative', 
+    name: 'Circle Dark Alternative', 
+    path: '/logos/logo-circle-dark-alternative.png',
+    description: 'Alternative circle with dark background'
   },
   { 
     id: 'circle-yellow', 

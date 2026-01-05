@@ -19,7 +19,7 @@ const outputDir = path.join(__dirname, 'public');
 
 // Logos to convert
 const logos = [
-  { input: 'logo-square-dark.png', output: 'favicon-square-dark' },
+  { input: 'logo-circle-dark-alternative.png', output: 'favicon-circle-dark-alternative' },
   { input: 'logo-circle-dark.png', output: 'favicon-circle-dark' },
   { input: 'logo-circle-cyan.png', output: 'favicon-circle-cyan' },
   { input: 'logo-circle-yellow.png', output: 'favicon-circle-yellow' },

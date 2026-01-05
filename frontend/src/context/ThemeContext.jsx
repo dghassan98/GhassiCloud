@@ -7,8 +7,8 @@ function updateFavicon(theme) {
   const favicon = document.querySelector('link[rel="icon"]')
   if (favicon) {
     if (theme === 'dark') {
-      // Always use square-dark for dark theme
-      favicon.href = '/favicon-square-dark.ico'
+      // Always use circle-dark-alternative for dark theme
+      favicon.href = '/favicon-circle-dark-alternative.ico'
     } else {
       // For light theme, use the user's selected logo from localStorage
       const savedLogo = localStorage.getItem('ghassicloud-logo') || 'circle'
@@ -16,7 +16,7 @@ function updateFavicon(theme) {
       // Map logo IDs to their favicon paths
       const logoMap = {
         'circle': '/favicon-circle-cyan.ico',
-        'square-dark': '/favicon-square-dark.ico',
+        'circle-dark-alternative': '/favicon-circle-dark-alternative.ico',
         'circle-yellow': '/favicon-circle-yellow.ico',
         'full-logo': '/favicon-circle-cyan.ico',   // Default to circle-cyan
         'cloud-only': '/favicon-circle-cyan.ico'   // Default to circle-cyan

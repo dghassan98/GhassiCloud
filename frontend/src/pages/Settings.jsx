@@ -1194,9 +1194,12 @@ export default function Settings() {
                 <div className="logo-selector">
                   {logoOptions.map((logo) => {
                     // For circle logo, show the current theme's version
-                    const previewPath = logo.id === 'circle' 
-                      ? (theme === 'dark' ? logo.pathDark : logo.pathLight)
-                      : logo.path
+                    let previewPath
+                    if (logo.id === 'circle') {
+                      previewPath = theme === 'dark' ? logo.pathDark : logo.pathLight
+                    } else {
+                      previewPath = logo.path
+                    }
                     
                     return (
                       <button
