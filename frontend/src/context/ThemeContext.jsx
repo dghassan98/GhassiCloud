@@ -17,6 +17,8 @@ function updateFavicon(theme) {
       const logoMap = {
         'circle': '/favicon-circle-cyan.ico',
         'circle-dark-alternative': '/favicon-circle-dark-alternative.ico',
+        'circle-dark': '/favicon-circle-dark.ico',
+        'circle-cyan': '/favicon-circle-cyan.ico',
         'circle-yellow': '/favicon-circle-yellow.ico',
         'full-logo': '/favicon-circle-cyan.ico',   // Default to circle-cyan
         'cloud-only': '/favicon-circle-cyan.ico'   // Default to circle-cyan
@@ -28,36 +30,49 @@ function updateFavicon(theme) {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
+  const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem('ghassicloud-theme')
     return saved || 'dark'
   })
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [isPreview, setIsPreview] = useState(false)
+
+  const setTheme = (newTheme, preview = false) => {
+    setThemeState(newTheme)
+    setIsPreview(preview)
+  }
 
   useEffect(() => {
-    localStorage.setItem('ghassicloud-theme', theme)
+    // Only persist if not in preview mode
+    if (!isPreview) {
+      localStorage.setItem('ghassicloud-theme', theme)
+    }
+    
     document.documentElement.setAttribute('data-theme', theme)
     updateFavicon(theme)
     
-    // Skip logging on initial load
+    // Skip logging on initial load or preview
     if (isInitialLoad) {
       setIsInitialLoad(false)
       return
     }
     
-    // Log theme change to backend (if user is authenticated)
-    const token = localStorage.getItem('ghassicloud-token')
-    if (token) {
-      fetch('/api/auth/appearance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ theme })
-      }).catch(err => console.debug('Failed to log theme change:', err))
+    // Only log if not in preview mode
+    if (!isPreview) {
+      // Log theme change to backend (if user is authenticated)
+      const token = localStorage.getItem('ghassicloud-token')
+      if (token) {
+        fetch('/api/auth/appearance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ theme })
+        }).catch(err => console.debug('Failed to log theme change:', err))
+      }
     }
-  }, [theme])
+  }, [theme, isPreview])
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')

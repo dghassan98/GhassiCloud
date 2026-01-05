@@ -104,6 +104,12 @@
     "languageConfirmTitle": "Sprache ändern?",
     "languageConfirmMsg": "Die ausgewählte Sprache auf die Benutzeroberfläche anwenden? Wenn Sie nicht anwenden, wird sie auf die vorherige Sprache zurückgesetzt.",
     "languageConfirmApply": "Anwenden",
+    "unsavedChanges": {
+      "title": "Nicht gespeicherte Änderungen",
+      "message": "Sie haben nicht gespeicherte Darstellungs-Änderungen. Möchten Sie diese verwerfen oder weiter bearbeiten?",
+      "discard": "Änderungen verwerfen",
+      "keepEditing": "Weiter bearbeiten"
+    },
     "usernameSSOHint": "Der Benutzername wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
     "emailSSOHint": "Die E-Mail wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
     "passwordManagedBySSOTitle": "Passwort wird vom Identitätsanbieter verwaltet",

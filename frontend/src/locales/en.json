@@ -125,6 +125,12 @@
     "passwordManagedBySSOTitle": "Password managed by identity provider",
     "passwordManagedBySSO": "Your account uses single sign-on. To change your password, please visit your authentication provider.",
     "changeOnAuthPlatform": "Change password",
+    "unsavedChanges": {
+      "title": "Unsaved Changes",
+      "message": "You have unsaved appearance changes. Do you want to discard them or keep editing?",
+      "discard": "Discard Changes",
+      "keepEditing": "Keep Editing"
+    },
 
     "resetSuccess": "All services have been reset successfully!",
     "resetFailed": "Failed to reset services",

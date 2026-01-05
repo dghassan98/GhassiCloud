@@ -70,6 +70,12 @@
     "languageConfirmTitle": "Changer la langue ?",
     "languageConfirmMsg": "Appliquer la langue sélectionnée à l'interface ? Si vous n'appliquez pas, elle reviendra à la langue précédente.",
     "languageConfirmApply": "Appliquer",
+    "unsavedChanges": {
+      "title": "Modifications non enregistrées",
+      "message": "Vous avez des modifications d'apparence non enregistrées. Voulez-vous les annuler ou continuer l'édition ?",
+      "discard": "Annuler les modifications",
+      "keepEditing": "Continuer l'édition"
+    },
     "usernameSSOHint": "Le nom d'utilisateur est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
     "emailSSOHint": "L'email est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",    "passwordManagedBySSOTitle": "Mot de passe géré par le fournisseur d'identité",
     "passwordManagedBySSO": "Votre compte utilise l'authentification unique. Pour modifier votre mot de passe, veuillez visiter votre fournisseur d'authentification.",

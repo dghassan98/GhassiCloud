@@ -68,8 +68,12 @@
     "saveFailed": "Error al guardar el perfil",
     "languageConfirmTitle": "¿Cambiar idioma?",
     "languageConfirmMsg": "¿Aplicar el idioma seleccionado a la interfaz? Si no lo aplica, se revertirá al idioma anterior.",
-    "languageConfirmApply": "Aplicar",
-    "usernameSSOHint": "El nombre de usuario lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
+    "languageConfirmApply": "Aplicar",    "unsavedChanges": {
+      "title": "Cambios sin guardar",
+      "message": "Tienes cambios de apariencia sin guardar. ¿Quieres descartarlos o seguir editando?",
+      "discard": "Descartar cambios",
+      "keepEditing": "Seguir editando"
+    },    "usernameSSOHint": "El nombre de usuario lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
     "emailSSOHint": "El correo lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
     "passwordManagedBySSOTitle": "Contraseña administrada por el proveedor de identidad",
     "passwordManagedBySSO": "Tu cuenta usa inicio de sesión único. Para cambiar tu contraseña, visita a tu proveedor de autenticación.",
