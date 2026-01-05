@@ -69,7 +69,10 @@ export default function Login() {
     setSsoLoading(true)
     
     try {
+      // loginWithSSO may navigate away for redirect flow (mobile/PWA)
+      // In that case, this promise never resolves
       await loginWithSSO()
+      // Only reached for popup flow that succeeds
       navigate('/')
     } catch (err) {
       setError(err.message)

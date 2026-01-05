@@ -15,50 +15,87 @@ export default function SSOCallback() {
       const error = params.get('error')
       const errorDescription = params.get('error_description')
 
+      // Check if we used redirect flow (mobile/PWA)
+      const usedRedirectFlow = localStorage.getItem('sso_redirect_flow') === 'true'
+      
       // Debug: log callback params for investigation
-      try { console.debug('SSOCallback loaded', { code, state, error, errorDescription, isPWA: window.matchMedia('(display-mode: standalone)').matches }) } catch (e) {}
-
-      // Check if running in PWA/standalone mode
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                     window.navigator.standalone === true
+      console.debug('SSOCallback loaded', { 
+        code: !!code, 
+        state, 
+        error, 
+        usedRedirectFlow,
+        hasOpener: !!window.opener,
+        isInFrame: window.parent !== window
+      })
 
       // Check if this is a silent refresh in an iframe
       const isSilentRefresh = sessionStorage.getItem('sso_silent_refresh') === 'true'
       
-      // If running inside a popup or iframe (normal interactive flow or silent refresh), post to parent
-      if (window.opener || (window.parent !== window && !isPWA)) {
+      // Determine if we should handle directly or via postMessage
+      // Use direct handling if:
+      // 1. We explicitly used redirect flow
+      // 2. There's no opener (popup was closed or never existed)
+      // 3. We're not in an iframe (unless it's PWA which can look like iframe)
+      const shouldHandleDirectly = usedRedirectFlow || 
+                                    (!window.opener && window.parent === window) ||
+                                    (!window.opener && !isSilentRefresh)
+      
+      if (!shouldHandleDirectly && (window.opener || window.parent !== window)) {
+        // Popup or iframe flow - post message to parent
         const targetWindow = window.opener || window.parent
         
-        targetWindow.postMessage({
-          type: 'SSO_CALLBACK',
-          code,
-          state,
-          error: error ? (errorDescription || error) : null
-        }, window.location.origin)
+        try {
+          targetWindow.postMessage({
+            type: 'SSO_CALLBACK',
+            code,
+            state,
+            error: error ? (errorDescription || error) : null
+          }, window.location.origin)
+        } catch (e) {
+          console.error('Failed to post message to opener:', e)
+          // Fall through to direct handling
+        }
         
-        // Close this popup window (iframes don't need closing)
+        // Close this popup window
         if (window.opener) {
           window.close()
+          // If close didn't work after 500ms, handle directly
+          setTimeout(() => {
+            handleDirectCallback()
+          }, 500)
+          return
         }
-      } else {
-        // In PWA mode or direct navigation - handle the callback directly
+      }
+      
+      // Handle callback directly (redirect flow or fallback)
+      await handleDirectCallback()
+      
+      async function handleDirectCallback() {
+        // Handle errors
         if (error) {
           console.error('SSO error:', errorDescription || error)
-          // Store error for login page to display
-          try {
-            localStorage.setItem('sso_error', errorDescription || error)
-          } catch (e) {}
+          localStorage.setItem('sso_error', errorDescription || error)
+          cleanupSSOData()
           navigate('/login', { replace: true })
           return
         }
 
-        // Verify state
+        // Get saved state from storage (try sessionStorage first, then localStorage)
         const savedState = sessionStorage.getItem('sso_state') || localStorage.getItem('sso_state')
+        
+        // Verify state
+        if (!savedState) {
+          console.error('No saved state found - session may have expired')
+          localStorage.setItem('sso_error', 'Session expired. Please try logging in again.')
+          cleanupSSOData()
+          navigate('/login', { replace: true })
+          return
+        }
+        
         if (state !== savedState) {
-          console.error('Invalid state parameter')
-          try {
-            localStorage.setItem('sso_error', 'Security validation failed. Please try again.')
-          } catch (e) {}
+          console.error('Invalid state parameter', { received: state, expected: savedState })
+          localStorage.setItem('sso_error', 'Security validation failed. Please try again.')
+          cleanupSSOData()
           navigate('/login', { replace: true })
           return
         }
@@ -76,7 +113,7 @@ export default function SSOCallback() {
               throw new Error('Missing authentication data. Please try logging in again.')
             }
 
-            console.debug('Exchanging code for token in PWA mode...')
+            console.debug('Exchanging code for token...')
             
             const res = await fetch('/api/auth/sso/callback', {
               method: 'POST',
@@ -110,12 +147,7 @@ export default function SSOCallback() {
             }
             
             // Clean up SSO session data
-            sessionStorage.removeItem('sso_state')
-            sessionStorage.removeItem('sso_redirect_uri')
-            sessionStorage.removeItem('sso_code_verifier')
-            localStorage.removeItem('sso_state')
-            localStorage.removeItem('sso_redirect_uri')
-            localStorage.removeItem('sso_code_verifier')
+            cleanupSSOData()
             localStorage.removeItem('sso_error')
             
             // Navigate to dashboard - the auth context will pick up the new token
@@ -123,15 +155,27 @@ export default function SSOCallback() {
             navigate('/', { replace: true })
           } catch (err) {
             console.error('SSO token exchange failed:', err)
-            try {
-              localStorage.setItem('sso_error', err.message || 'Authentication failed')
-            } catch (e) {}
+            localStorage.setItem('sso_error', err.message || 'Authentication failed')
+            cleanupSSOData()
             navigate('/login', { replace: true })
           }
         } else {
           // No code provided, redirect to login
+          cleanupSSOData()
           navigate('/login', { replace: true })
         }
+      }
+      
+      // Helper to clean up all SSO-related storage
+      function cleanupSSOData() {
+        sessionStorage.removeItem('sso_state')
+        sessionStorage.removeItem('sso_redirect_uri')
+        sessionStorage.removeItem('sso_code_verifier')
+        sessionStorage.removeItem('sso_silent_refresh')
+        localStorage.removeItem('sso_state')
+        localStorage.removeItem('sso_redirect_uri')
+        localStorage.removeItem('sso_code_verifier')
+        localStorage.removeItem('sso_redirect_flow')
       }
     }
 

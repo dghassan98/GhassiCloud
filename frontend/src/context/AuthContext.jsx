@@ -100,7 +100,29 @@ export function AuthProvider({ children }) {
     return { codeVerifier, codeChallenge }
   }
 
-  // SSO Login with popup window (PKCE flow)
+  // Detect if we should use redirect flow instead of popup
+  // Mobile browsers and PWAs don't handle popups well
+  const shouldUseRedirectFlow = () => {
+    // PWA/standalone mode detection
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                  window.navigator.standalone === true
+    
+    // Mobile device detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
+    // Touch device with small screen (likely mobile)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    const isSmallScreen = window.innerWidth < 768
+    
+    // Firefox on Android has issues with popups in PWA context
+    const isFirefoxAndroid = /Android.*Firefox/i.test(navigator.userAgent)
+    
+    console.debug('SSO flow detection:', { isPWA, isMobile, isTouchDevice, isSmallScreen, isFirefoxAndroid })
+    
+    return isPWA || isMobile || isFirefoxAndroid || (isTouchDevice && isSmallScreen)
+  }
+
+  // SSO Login with popup window (PKCE flow) or redirect flow for mobile/PWA
   const loginWithSSO = useCallback(() => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -111,31 +133,29 @@ export function AuthProvider({ children }) {
         }
         const config = await configRes.json()
 
-        // Check if running in PWA/standalone mode
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      window.navigator.standalone === true
+        // Determine if we should use redirect flow
+        const useRedirect = shouldUseRedirectFlow()
 
         // Generate state for CSRF protection
         const state = crypto.randomUUID()
         sessionStorage.setItem('sso_state', state)
-        // Also store in localStorage for PWA mode where navigation loses sessionStorage
-        if (isPWA) {
-          localStorage.setItem('sso_state', state)
-        }
+        // Always store in localStorage as backup for redirect flow
+        localStorage.setItem('sso_state', state)
 
         // Generate PKCE code verifier and challenge
         const { codeVerifier, codeChallenge } = await generatePKCE()
         sessionStorage.setItem('sso_code_verifier', codeVerifier)
-        // Also store in localStorage for PWA mode
-        if (isPWA) {
-          localStorage.setItem('sso_code_verifier', codeVerifier)
-        }
+        // Always store in localStorage as backup
+        localStorage.setItem('sso_code_verifier', codeVerifier)
 
-        // Build redirect URI for the popup callback
+        // Build redirect URI for the callback
         const redirectUri = `${window.location.origin}/sso-callback`
         sessionStorage.setItem('sso_redirect_uri', redirectUri)
-        if (isPWA) {
-          localStorage.setItem('sso_redirect_uri', redirectUri)
+        localStorage.setItem('sso_redirect_uri', redirectUri)
+        
+        // Mark that we're using redirect flow so callback knows how to handle it
+        if (useRedirect) {
+          localStorage.setItem('sso_redirect_flow', 'true')
         }
 
         // Build authorization URL with PKCE
@@ -148,20 +168,24 @@ export function AuthProvider({ children }) {
         authUrl.searchParams.set('code_challenge', codeChallenge)
         authUrl.searchParams.set('code_challenge_method', 'S256')
 
+        // Use redirect flow for mobile/PWA
+        if (useRedirect) {
+          console.debug('Using redirect flow for SSO (mobile/PWA detected)')
+          // Navigate directly to the SSO provider - this replaces the current page
+          window.location.href = authUrl.toString()
+          // Promise won't resolve here - the page navigates away
+          // Authentication will be completed by SSOCallback page
+          return
+        }
+
+        // Desktop: use popup flow
+        console.debug('Using popup flow for SSO (desktop detected)')
+        
         // Calculate popup position (centered)
         const width = 500
         const height = 600
         const left = window.screenX + (window.outerWidth - width) / 2
         const top = window.screenY + (window.outerHeight - height) / 2
-
-        // In PWA mode, use direct navigation instead of popup
-        if (isPWA) {
-          console.debug('PWA mode detected, using direct navigation for SSO')
-          // Navigate directly to the SSO provider
-          window.location.href = authUrl.toString()
-          // Return a pending promise that will be resolved by the callback page
-          return
-        }
 
         // Open popup window
         const popup = window.open(
@@ -171,7 +195,11 @@ export function AuthProvider({ children }) {
         )
 
         if (!popup) {
-          throw new Error('Popup blocked. Please allow popups for this site.')
+          // Popup blocked - fall back to redirect flow
+          console.debug('Popup blocked, falling back to redirect flow')
+          localStorage.setItem('sso_redirect_flow', 'true')
+          window.location.href = authUrl.toString()
+          return
         }
 
         // Listen for messages from popup
