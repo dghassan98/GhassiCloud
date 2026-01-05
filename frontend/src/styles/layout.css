@@ -321,5 +321,6 @@
   .main-content {
     margin-left: 0;
     padding-top: var(--header-height);
+    overflow-x: hidden;
   }
 }

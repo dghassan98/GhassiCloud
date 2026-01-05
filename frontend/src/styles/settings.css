@@ -1266,6 +1266,7 @@
 @media (max-width: 768px) {
   .settings-page {
     padding: 1.5rem 1rem;
+    overflow-x: hidden;
   }
   
   .settings-container {
@@ -1297,6 +1298,7 @@
   
   .settings-content {
     padding: 1.5rem;
+    overflow-x: hidden;
   }
   
   .theme-selector {
@@ -1432,9 +1434,7 @@
   .users-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding: 0 1.5rem;
+    max-width: 100%;
   }
   
   .users-table {

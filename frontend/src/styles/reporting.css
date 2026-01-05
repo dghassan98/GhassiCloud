@@ -1073,6 +1073,7 @@
 @media (max-width: 768px) {
   .reporting-page {
     padding: 1rem;
+    overflow-x: hidden;
   }
   
   .stats-overview {
@@ -1112,6 +1113,8 @@
   .logs-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
   }
   
   .logs-table {
