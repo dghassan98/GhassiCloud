@@ -111,17 +111,32 @@ export function AuthProvider({ children }) {
         }
         const config = await configRes.json()
 
+        // Check if running in PWA/standalone mode
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      window.navigator.standalone === true
+
         // Generate state for CSRF protection
         const state = crypto.randomUUID()
         sessionStorage.setItem('sso_state', state)
+        // Also store in localStorage for PWA mode where navigation loses sessionStorage
+        if (isPWA) {
+          localStorage.setItem('sso_state', state)
+        }
 
         // Generate PKCE code verifier and challenge
         const { codeVerifier, codeChallenge } = await generatePKCE()
         sessionStorage.setItem('sso_code_verifier', codeVerifier)
+        // Also store in localStorage for PWA mode
+        if (isPWA) {
+          localStorage.setItem('sso_code_verifier', codeVerifier)
+        }
 
         // Build redirect URI for the popup callback
         const redirectUri = `${window.location.origin}/sso-callback`
         sessionStorage.setItem('sso_redirect_uri', redirectUri)
+        if (isPWA) {
+          localStorage.setItem('sso_redirect_uri', redirectUri)
+        }
 
         // Build authorization URL with PKCE
         const authUrl = new URL(config.authUrl)
@@ -138,6 +153,15 @@ export function AuthProvider({ children }) {
         const height = 600
         const left = window.screenX + (window.outerWidth - width) / 2
         const top = window.screenY + (window.outerHeight - height) / 2
+
+        // In PWA mode, use direct navigation instead of popup
+        if (isPWA) {
+          console.debug('PWA mode detected, using direct navigation for SSO')
+          // Navigate directly to the SSO provider
+          window.location.href = authUrl.toString()
+          // Return a pending promise that will be resolved by the callback page
+          return
+        }
 
         // Open popup window
         const popup = window.open(

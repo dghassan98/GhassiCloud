@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
@@ -14,13 +14,40 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [ssoLoading, setSsoLoading] = useState(false)
-  const { login, loginWithSSO } = useAuth()
+  const { login, loginWithSSO, checkAuth, user } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
   const navigate = useNavigate()
   
   const showBrandText = currentLogo.id !== 'cloud-only'
   const isWideLogo = currentLogo.id === 'cloud-only'
+
+  // Check for SSO errors from callback page
+  useEffect(() => {
+    try {
+      const ssoError = localStorage.getItem('sso_error')
+      if (ssoError) {
+        setError(ssoError)
+        localStorage.removeItem('sso_error')
+      }
+    } catch (e) {}
+  }, [])
+
+  // If user is already authenticated (e.g., after SSO callback), redirect to dashboard
+  useEffect(() => {
+    const token = localStorage.getItem('ghassicloud-token')
+    if (token && !user) {
+      // Check if authentication is valid
+      checkAuth()
+    }
+  }, [checkAuth, user])
+
+  // Redirect when user becomes authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
