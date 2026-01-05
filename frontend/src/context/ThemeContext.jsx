@@ -32,7 +32,7 @@ function updateFavicon(theme) {
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem('ghassicloud-theme')
-    return saved || 'dark'
+    return saved || 'system' // Default to system auto-detection
   })
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isPreview, setIsPreview] = useState(false)
@@ -42,14 +42,23 @@ export function ThemeProvider({ children }) {
     setIsPreview(preview)
   }
 
+  // Get the effective theme (resolve 'system' to actual theme)
+  const getEffectiveTheme = (themeValue) => {
+    if (themeValue === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    return themeValue
+  }
+
   useEffect(() => {
     // Only persist if not in preview mode
     if (!isPreview) {
       localStorage.setItem('ghassicloud-theme', theme)
     }
     
-    document.documentElement.setAttribute('data-theme', theme)
-    updateFavicon(theme)
+    const effectiveTheme = getEffectiveTheme(theme)
+    document.documentElement.setAttribute('data-theme', effectiveTheme)
+    updateFavicon(effectiveTheme)
     
     // Skip logging on initial load or preview
     if (isInitialLoad) {
@@ -72,10 +81,37 @@ export function ThemeProvider({ children }) {
         }).catch(err => console.debug('Failed to log theme change:', err))
       }
     }
-  }, [theme, isPreview])
+  }, [theme, isPreview, isInitialLoad])
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (theme !== 'system') return
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => {
+      const effectiveTheme = mediaQuery.matches ? 'dark' : 'light'
+      document.documentElement.setAttribute('data-theme', effectiveTheme)
+      updateFavicon(effectiveTheme)
+    }
+
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange)
+      return () => mediaQuery.removeEventListener('change', handleChange)
+    }
+    // Fallback for older browsers
+    else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange)
+      return () => mediaQuery.removeListener(handleChange)
+    }
+  }, [theme])
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    setTheme(prev => {
+      if (prev === 'light') return 'dark'
+      if (prev === 'dark') return 'system'
+      return 'light'
+    })
   }
 
   return (
