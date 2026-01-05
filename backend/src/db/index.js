@@ -31,8 +31,8 @@ export async function initDatabase() {
       role TEXT DEFAULT 'user',
       sso_provider TEXT,
       sso_id TEXT,
-      created_at DATETIME DEFAULT (datetime('now','localtime')),
-      updated_at DATETIME DEFAULT (datetime('now','localtime'))
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
   
@@ -92,8 +92,8 @@ export async function initDatabase() {
           role TEXT DEFAULT 'user',
           sso_provider TEXT,
           sso_id TEXT,
-          created_at DATETIME DEFAULT (datetime('now','localtime')),
-          updated_at DATETIME DEFAULT (datetime('now','localtime')),
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           first_name TEXT,
           last_name TEXT,
           avatar TEXT,
@@ -130,8 +130,8 @@ export async function initDatabase() {
       category TEXT,
       use_favicon INTEGER DEFAULT 1,
       sort_order INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT (datetime('now','localtime')),
-      updated_at DATETIME DEFAULT (datetime('now','localtime'))
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
   
@@ -147,7 +147,7 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT,
-      updated_at DATETIME DEFAULT (datetime('now','localtime'))
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 
@@ -162,8 +162,8 @@ export async function initDatabase() {
       password_type TEXT,
       token TEXT,
       salt TEXT,
-      created_at DATETIME DEFAULT (datetime('now','localtime')),
-      updated_at DATETIME DEFAULT (datetime('now','localtime'))
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 
@@ -175,8 +175,8 @@ export async function initDatabase() {
       client_id TEXT,
       ip TEXT,
       user_agent TEXT,
-      created_at DATETIME DEFAULT (datetime('now','localtime')),
-      last_seen DATETIME DEFAULT (datetime('now','localtime'))
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_seen DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 
@@ -195,7 +195,7 @@ export async function initDatabase() {
       ip_address TEXT,
       user_agent TEXT,
       status TEXT DEFAULT 'success',
-      created_at DATETIME DEFAULT (datetime('now','localtime'))
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 

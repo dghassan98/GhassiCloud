@@ -1338,11 +1338,25 @@
     font-size: 0.8rem;
   }
   
-  /* Hide session maps on mobile for cleaner layout */
+  /* Show session maps on mobile with adjusted sizing */
   .session-map {
-    display: none;
+    width: 100%;
+    height: 100px;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: var(--radius-sm);
   }
   
+  .session-map img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .session-map.session-map-local {
+    height: 60px;
+  }
+
   .session-actions {
     width: 100%;
   }

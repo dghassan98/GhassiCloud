@@ -213,9 +213,11 @@ router.get('/', authenticateToken, (req, res) => {
     `
     const logs = db.prepare(logsQuery).all(...params, limitNum, offset)
     
-    // Parse details JSON for each log
+    // Parse details JSON for each log and ensure timestamps are properly formatted as UTC
     const parsedLogs = logs.map(log => ({
       ...log,
+      // SQLite CURRENT_TIMESTAMP is UTC but doesn't include 'Z', so we need to add it
+      created_at: log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : log.created_at,
       details: log.details ? tryParseJSON(log.details) : null
     }))
     
@@ -329,6 +331,7 @@ router.get('/stats', authenticateToken, (req, res) => {
       topUsers,
       recentFailures: recentFailures.map(log => ({
         ...log,
+        created_at: log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : log.created_at,
         details: log.details ? tryParseJSON(log.details) : null
       })),
       loginStats: loginStats || { successful_logins: 0, failed_logins: 0, sso_logins: 0 }
@@ -384,9 +387,11 @@ router.get('/export/csv', authenticateToken, (req, res) => {
     const csvRows = [headers.join(',')]
     
     for (const log of logs) {
+      // Fix timestamp by adding Z if not present
+      const timestamp = log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : ''
       const row = [
         escapeCSV(log.id),
-        escapeCSV(log.created_at),
+        escapeCSV(timestamp),
         escapeCSV(log.user_id || ''),
         escapeCSV(log.username || ''),
         escapeCSV(log.action),
@@ -465,9 +470,10 @@ router.get('/export/json', authenticateToken, (req, res) => {
       SELECT * FROM audit_logs ${whereClause} ORDER BY created_at DESC LIMIT 10000
     `).all(...params)
     
-    // Parse details for each log
+    // Parse details for each log and fix timestamps
     const parsedLogs = logs.map(log => ({
       ...log,
+      created_at: log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : log.created_at,
       details: log.details ? tryParseJSON(log.details) : null
     }))
     

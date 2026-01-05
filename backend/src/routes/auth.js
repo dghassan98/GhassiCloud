@@ -133,8 +133,11 @@ function normalizeIp(ip) {
   // If header contains a list (e.g., X-Forwarded-For), take the first value
   if (s.includes(',')) s = s.split(',')[0].trim()
 
-  // Remove surrounding brackets (e.g., [::1])
-  if (s.startsWith('[') && s.endsWith(']')) s = s.slice(1, -1)
+  // Handle [IPv6]:port format - extract IPv6 and optionally strip port
+  const bracketMatch = s.match(/^\[([^\]]+)\](?::(\d+))?$/)
+  if (bracketMatch) {
+    s = bracketMatch[1] // Extract IPv6 from brackets
+  }
 
   // Strip IPv6 zone identifiers (fe80::1%eth0)
   const pct = s.indexOf('%')
@@ -144,15 +147,12 @@ function normalizeIp(ip) {
   const mapped = s.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/i)
   if (mapped) s = mapped[1]
 
-  // Remove trailing port when present (IPv4:port or [IPv6]:port or IPv6:port)
-  const lastColon = s.lastIndexOf(':')
-  if (lastColon !== -1) {
-    const after = s.slice(lastColon + 1)
-    if (/^\d+$/.test(after)) {
-      const before = s.slice(0, lastColon)
-      // If before contains dots it's IPv4:port, otherwise IPv6:port — in both cases strip the port
-      s = before
-    }
+  // Only strip port for IPv4 addresses (x.x.x.x:port format)
+  // IPv6 addresses contain colons as part of the address, so we can't use lastColon logic
+  // IPv6 with port should use [IPv6]:port format which is handled above
+  const ipv4WithPort = s.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)$/)
+  if (ipv4WithPort) {
+    s = ipv4WithPort[1]
   }
 
   s = s.trim()
@@ -886,7 +886,13 @@ router.get('/users', authenticateToken, async (req, res) => {
       ORDER BY created_at DESC
     `).all()
 
-    res.json({ users })
+    // Fix timestamps to include timezone indicator
+    const usersWithFixedTimestamps = users.map(user => ({
+      ...user,
+      created_at: user.created_at ? (user.created_at.endsWith('Z') ? user.created_at : user.created_at + 'Z') : user.created_at
+    }))
+
+    res.json({ users: usersWithFixedTimestamps })
   } catch (err) {
     console.error('Fetch users error:', err)
     res.status(500).json({ message: 'Failed to fetch users' })
@@ -1257,9 +1263,15 @@ async function getIpGeolocation(ip) {
 // Query parameter version (better for IPv6)
 router.get('/ip-geo', authenticateToken, async (req, res) => {
   try {
-    const ip = req.query.ip
-    if (!ip) {
+    const rawIp = req.query.ip
+    if (!rawIp) {
       return res.status(400).json({ message: 'IP address required' })
+    }
+    
+    // Normalize the IP address (handles brackets, zone IDs, ports, etc.)
+    const ip = normalizeIp(rawIp)
+    if (!ip) {
+      return res.status(400).json({ message: 'Invalid IP address format' })
     }
     
     const result = await getIpGeolocation(ip)
@@ -1277,10 +1289,16 @@ router.get('/ip-geo', authenticateToken, async (req, res) => {
 // Route parameter version (kept for backwards compatibility, may have issues with IPv6)
 router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
   try {
-    const ip = req.params.ip
+    const rawIp = req.params.ip
     
-    if (!ip) {
+    if (!rawIp) {
       return res.status(400).json({ message: 'Invalid IP address' })
+    }
+    
+    // Normalize the IP address
+    const ip = normalizeIp(rawIp)
+    if (!ip) {
+      return res.status(400).json({ message: 'Invalid IP address format' })
     }
     
     const result = await getIpGeolocation(ip)
