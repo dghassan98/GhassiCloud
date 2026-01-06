@@ -46,15 +46,18 @@ export default function SSOSessionManager() {
 
   // Handle extend session from warning modal
   const handleExtendSession = useCallback(async () => {
+    console.log('User clicked "Stay Logged In", attempting silent refresh...')
     const success = await attemptSilentRefresh()
     if (success) {
+      console.log('Session extended successfully')
       setShowWarning(false)
       return true
     }
-    // If silent refresh fails, logout
-    handleSessionExpired()
+    // If silent refresh fails, just log it but don't logout immediately
+    // Let the warning stay open so user can try again or choose to logout
+    console.warn('Failed to extend session - user may need to re-authenticate')
     return false
-  }, [attemptSilentRefresh, handleSessionExpired])
+  }, [attemptSilentRefresh])
 
   // Get translated strings for the warning modal
   const warningStrings = {

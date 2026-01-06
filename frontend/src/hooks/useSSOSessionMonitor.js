@@ -28,6 +28,8 @@ export function useSSOSessionMonitor({
   const intervalRef = useRef(null)
   const warningShownRef = useRef(false)
   const lastCheckRef = useRef(0)
+  const refreshInProgressRef = useRef(false)
+  const lastRefreshAttemptRef = useRef(0)
   const [sessionStatus, setSessionStatus] = useState({
     valid: true,
     expiresIn: null,
@@ -95,6 +97,25 @@ export function useSSOSessionMonitor({
     const token = localStorage.getItem('ghassicloud-token')
     if (!token) return false
 
+    // Prevent multiple simultaneous refresh attempts
+    if (refreshInProgressRef.current) {
+      console.log('Refresh already in progress, skipping...')
+      return false
+    }
+
+    // Cooldown period - {
+        refreshInProgressRef.current = false
+        return false
+      }t refresh more than once every 10 seconds
+    const timeSinceLastAttempt = Date.now() - lastRefreshAttemptRef.current
+    if (timeSinceLastAttempt < 10000) {
+      console.log('Refresh cooldown active, skipping...')
+      return false
+    }
+
+    refreshInProgressRef.current = true
+    lastRefreshAttemptRef.current = Date.now()
+
     try {
       // Get refresh config from backend
       const configRes = await fetch('/api/auth/sso/refresh-config', {
@@ -149,8 +170,11 @@ export function useSSOSessionMonitor({
           // Create hidden iframe for silent refresh
           const iframe = document.createElement('iframe')
           iframe.style.display = 'none'
-          iframe.setAttribute('aria-hidden', 'true')
-
+          iftry {
+              document.body.removeChild(iframe)
+            } catch (e) {}
+            sessionStorage.removeItem('sso_silent_refresh')
+            refreshInProgressRef.current = false
           const timeout = setTimeout(() => {
             document.body.removeChild(iframe)
             sessionStorage.removeItem('sso_silent_refresh')
@@ -173,13 +197,15 @@ export function useSSOSessionMonitor({
             sessionStorage.removeItem('sso_silent_refresh')
 
             const { code, state: returnedState, error } = event.data
-
-            if (error || !code) {
-              console.log('Silent refresh failed:', error || 'no code')
+freshInProgressRef.current = false
               resolve(false)
               return
             }
 
+            // Verify state
+            const savedState = sessionStorage.getItem('sso_state')
+            if (returnedState !== savedState) {
+              refreshInProgressRef.current = false
             // Verify state
             const savedState = sessionStorage.getItem('sso_state')
             if (returnedState !== savedState) {
@@ -204,12 +230,15 @@ export function useSSOSessionMonitor({
 
               if (res.ok) {
                 const data = await res.json()
-                localStorage.setItem('ghassicloud-token', data.token)
-                console.log('Silent token refresh successful')
+                lofreshInProgressRef.current = false
                 resolve(true)
               } else {
+                refreshInProgressRef.current = false
                 resolve(false)
               }
+            } catch (err) {
+              console.error('Silent refresh token exchange failed:', err)
+              refreshInProgressRef.current = false
             } catch (err) {
               console.error('Silent refresh token exchange failed:', err)
               resolve(false)
@@ -224,7 +253,8 @@ export function useSSOSessionMonitor({
           document.body.appendChild(iframe)
           iframe.src = authUrl.toString()
         })
-      })
+      })freshInProgressRef.current = false
+      re
     } catch (err) {
       console.error('Silent refresh error:', err)
       return false
