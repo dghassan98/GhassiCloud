@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Lock, User, Eye, EyeOff, ArrowRight, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
+import { useLanguage } from '../context/LanguageContext'
 import '../styles/login.css'
 
 export default function Login() {
@@ -14,9 +15,11 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [ssoLoading, setSsoLoading] = useState(false)
+  const [showSessionExpired, setShowSessionExpired] = useState(false)
   const { login, loginWithSSO, checkAuth, user } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   
   const showBrandText = currentLogo.id !== 'cloud-only'
@@ -29,6 +32,17 @@ export default function Login() {
       if (ssoError) {
         setError(ssoError)
         localStorage.removeItem('sso_error')
+      }
+    } catch (e) {}
+  }, [])
+
+  // Check for session expired flag
+  useEffect(() => {
+    try {
+      const sessionExpired = localStorage.getItem('session_expired')
+      if (sessionExpired) {
+        setShowSessionExpired(true)
+        localStorage.removeItem('session_expired')
       }
     } catch (e) {}
   }, [])
@@ -224,6 +238,39 @@ export default function Login() {
         >
         </motion.div>
       </motion.div>
+
+      {/* Session Expired Modal */}
+      <AnimatePresence>
+        {showSessionExpired && (
+          <motion.div
+            className="session-expired-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSessionExpired(false)}
+          >
+            <motion.div
+              className="session-expired-modal"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="session-expired-icon">
+                <AlertTriangle size={48} />
+              </div>
+              <h2>{t('sessionExpired.title') || 'Session Expired'}</h2>
+              <p>{t('sessionExpired.message') || 'Your session has expired. Please sign in again to continue.'}</p>
+              <button 
+                className="session-expired-button"
+                onClick={() => setShowSessionExpired(false)}
+              >
+                {t('sessionExpired.ok') || 'OK'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

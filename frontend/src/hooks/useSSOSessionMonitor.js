@@ -296,16 +296,13 @@ export function useSSOSessionMonitor({
       return
     }
 
-    // Initial check after a short delay
-    const initialTimeout = setTimeout(() => {
-      performCheck()
-    }, 5000)
+    // Immediate check on mount - no delay for better UX
+    performCheck()
 
     // Set up periodic checks
     intervalRef.current = setInterval(performCheck, checkIntervalMs)
 
     return () => {
-      clearTimeout(initialTimeout)
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -319,9 +316,9 @@ export function useSSOSessionMonitor({
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Debounce - don't check too frequently
+        // Debounce - don't check too frequently (5 seconds minimum)
         const timeSinceLastCheck = Date.now() - lastCheckRef.current
-        if (timeSinceLastCheck > 30000) { // At least 30 seconds since last check
+        if (timeSinceLastCheck > 5000) {
           performCheck()
         }
       }

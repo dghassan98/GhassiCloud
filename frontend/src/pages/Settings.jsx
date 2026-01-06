@@ -40,22 +40,6 @@ export default function Settings() {
   const [showLangConfirm, setShowLangConfirm] = useState(false)
   const [langToConfirm, setLangToConfirm] = useState(null)
 
-  // Unsaved appearance changes confirmation
-  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false)
-  const [pendingSection, setPendingSection] = useState(null)
-
-  // Track original saved values for unsaved changes detection
-  const [savedTheme, setSavedTheme] = useState(theme)
-  const [savedLogoId, setSavedLogoId] = useState(currentLogo.id)
-  const [savedAccentId, setSavedAccentId] = useState(currentAccent.id)
-  const [savedAccentColor, setSavedAccentColor] = useState(currentAccent.color)
-
-  // Appearance preview state
-  const [previewTheme, setPreviewTheme] = useState(theme)
-  const [previewLogo, setPreviewLogo] = useState(currentLogo.id)
-  const [previewAccent, setPreviewAccent] = useState(currentAccent.id)
-  const [previewAccentColor, setPreviewAccentColor] = useState(currentAccent.color)
-
   // Sessions & security preferences (user-facing)
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
@@ -121,81 +105,6 @@ export default function Settings() {
 
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
   }
-
-  // Sync preview state with actual state
-  useEffect(() => {
-    setPreviewTheme(theme)
-  }, [theme])
-
-  useEffect(() => {
-    setPreviewLogo(currentLogo.id)
-  }, [currentLogo])
-
-  useEffect(() => {
-    setPreviewAccent(currentAccent.id)
-    setPreviewAccentColor(currentAccent.color)
-  }, [currentAccent])
-
-  // Apply preview changes visually (CSS variables only, no persistence)
-  useEffect(() => {
-    if (activeSection === 'appearance') {
-      // Apply preview theme
-      if (previewTheme === 'system') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light')
-      } else {
-        document.documentElement.setAttribute('data-theme', previewTheme)
-      }
-
-      // Apply preview accent color - only call setAccent if it's different from current
-      const needsAccentUpdate = previewAccent !== currentAccent.id || 
-        (previewAccent === 'custom' && previewAccentColor !== currentAccent.color)
-      
-      if (needsAccentUpdate) {
-        setAccent(previewAccent, previewAccent === 'custom' ? previewAccentColor : undefined, true)
-      }
-
-      // Apply preview logo
-      if (previewLogo !== currentLogo.id) {
-        setLogo(previewLogo, true) // true = preview mode
-      }
-
-      // Update favicon based on preview settings
-      const effectiveTheme = previewTheme === 'system' 
-        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : previewTheme
-      
-      const faviconMap = {
-        'circle': effectiveTheme === 'dark' ? '/favicon-circle-dark.ico' : '/favicon-circle-cyan.ico',
-        'circle-dark': '/favicon-circle-dark.ico',
-        'circle-dark-alternative': '/favicon-circle-dark-alternative.ico',
-        'circle-cyan': '/favicon-circle-cyan.ico',
-        'circle-yellow': '/favicon-circle-yellow.ico',
-        'full-logo': '/favicon-circle-cyan.ico', // fallback
-        'cloud-only': '/favicon-circle-cyan.ico'  // fallback
-      }
-      
-      const faviconPath = faviconMap[previewLogo] || '/favicon-circle-cyan.ico'
-      const link = document.querySelector('link[rel="icon"]')
-      if (link) link.href = faviconPath
-    } else {
-      // When leaving appearance tab, restore actual saved values
-      if (theme === 'system') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light')
-      } else {
-        document.documentElement.setAttribute('data-theme', theme)
-      }
-
-      // Always restore actual accent color when leaving appearance tab
-      setAccent(currentAccent.id, currentAccent.id === 'custom' ? currentAccent.color : undefined, false)
-
-      // Restore actual logo
-      if (previewLogo !== currentLogo.id) {
-        setLogo(currentLogo.id, false)
-      }
-    }
-  }, [previewTheme, previewAccent, previewAccentColor, previewLogo, activeSection, theme, currentAccent.id, currentAccent.color, currentLogo.id, setLogo, setAccent])
 
   // Update HSL when custom color changes
   useEffect(() => {
@@ -629,22 +538,6 @@ export default function Settings() {
         updates.email = emailVal
       }
       await updateUser(updates)
-      
-      // Persist appearance settings (remove preview mode)
-      setTheme(previewTheme, false) // false = persist mode, save and log
-      setLogo(previewLogo, false)
-      if (previewAccent === 'custom') {
-        setAccent('custom', previewAccentColor, false)
-      } else {
-        setAccent(previewAccent, undefined, false)
-      }
-      
-      // Update saved values to match what was just persisted
-      setSavedTheme(previewTheme)
-      setSavedLogoId(previewLogo)
-      setSavedAccentId(previewAccent)
-      setSavedAccentColor(previewAccentColor)
-      
       showToast({ message: t('settings.profileSaved') || 'Profile saved', type: 'success' })
     } catch (err) {
       console.error('Save profile error:', err)
@@ -655,41 +548,9 @@ export default function Settings() {
   }
 
   const handleSectionClick = (id) => {
-    // Check if leaving appearance tab with unsaved changes
-    if (activeSection === 'appearance' && id !== 'appearance') {
-      const hasUnsavedTheme = savedTheme !== previewTheme
-      const hasUnsavedLogo = savedLogoId !== previewLogo
-      const hasUnsavedAccent = savedAccentId !== previewAccent || 
-        (previewAccent === 'custom' && savedAccentColor !== previewAccentColor)
-      
-      if (hasUnsavedTheme || hasUnsavedLogo || hasUnsavedAccent) {
-        setPendingSection(id)
-        setShowUnsavedConfirm(true)
-        return
-      }
-    }
-    
     // lightweight debug logging to help reproduce tab-switching issues
     console.debug('Settings: switch to', id)
     setActiveSection(id)
-  }
-
-  const handleDiscardChanges = () => {
-    // Revert preview changes to current saved values
-    setPreviewTheme(savedTheme)
-    setPreviewLogo(savedLogoId)
-    setPreviewAccent(savedAccentId)
-    setPreviewAccentColor(savedAccentColor)
-    
-    // Switch to the pending section
-    setActiveSection(pendingSection)
-    setShowUnsavedConfirm(false)
-    setPendingSection(null)
-  }
-
-  const handleKeepEditing = () => {
-    setShowUnsavedConfirm(false)
-    setPendingSection(null)
   }
 
   return (
@@ -702,29 +563,6 @@ export default function Settings() {
         <h1>{t('settings.title')}</h1>
         <p>{t('settings.description')}</p>
       </motion.div>
-
-      {/* Unsaved appearance changes confirmation */}
-      {showUnsavedConfirm && (
-        <div className="unsaved-confirm-overlay" role="dialog" aria-modal="true">
-          <div className="unsaved-confirm-content">
-            <div className="unsaved-confirm-icon">
-              <AlertTriangle size={56} strokeWidth={1.5} />
-            </div>
-            <div className="unsaved-confirm-body">
-              <h2>{t('settings.unsavedChanges.title')}</h2>
-              <p>{t('settings.unsavedChanges.message')}</p>
-            </div>
-            <div className="unsaved-confirm-actions">
-              <button className="btn-secondary" onClick={handleDiscardChanges}>
-                {t('settings.unsavedChanges.discard')}
-              </button>
-              <button className="btn-primary" onClick={handleKeepEditing}>
-                {t('settings.unsavedChanges.keepEditing')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Language change confirmation (in-app popup) */}
       {showLangConfirm && (
@@ -1135,22 +973,22 @@ export default function Settings() {
                 <label>{t('settings.theme')}</label>
                 <div className="theme-selector">
                   <button
-                    className={`theme-option ${previewTheme === 'light' ? 'active' : ''}`}
-                    onClick={() => setPreviewTheme('light')}
+                    className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+                    onClick={() => setTheme('light')}
                   >
                     <Sun size={24} />
                     <span>{t('settings.theme.light')}</span>
                   </button>
                   <button
-                    className={`theme-option ${previewTheme === 'dark' ? 'active' : ''}`}
-                    onClick={() => setPreviewTheme('dark')}
+                    className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+                    onClick={() => setTheme('dark')}
                   >
                     <Moon size={24} />
                     <span>{t('settings.theme.dark')}</span>
                   </button>
                   <button
-                    className={`theme-option ${previewTheme === 'system' ? 'active' : ''}`}
-                    onClick={() => setPreviewTheme('system')}
+                    className={`theme-option ${theme === 'system' ? 'active' : ''}`}
+                    onClick={() => setTheme('system')}
                   >
                     <Monitor size={24} />
                     <span>{t('settings.theme.system')}</span>
@@ -1163,15 +1001,12 @@ export default function Settings() {
                   {accentColors.map(({ id, color, name }) => (
                     <button
                       key={id}
-                      className={`color-option ${previewAccent === id ? 'active' : ''}`}
+                      className={`color-option ${currentAccent.id === id ? 'active' : ''}`}
                       style={{ backgroundColor: color }}
-                      onClick={() => {
-                        setPreviewAccent(id)
-                        setPreviewAccentColor(color)
-                      }}
+                      onClick={() => setAccent(id)}
                       title={name}
                     >
-                      {previewAccent === id && <Check size={14} />}
+                      {currentAccent.id === id && <Check size={14} />}
                     </button>
                   ))}
                 </div>
@@ -1182,15 +1017,15 @@ export default function Settings() {
                 <div className="custom-color-picker-container">
                   <button 
                     type="button"
-                    className={`custom-color-trigger ${previewAccent === 'custom' ? 'active' : ''} ${showColorPicker ? 'expanded' : ''}`}
+                    className={`custom-color-trigger ${currentAccent.id === 'custom' ? 'active' : ''} ${showColorPicker ? 'expanded' : ''}`}
                     onClick={() => setShowColorPicker(!showColorPicker)}
                   >
                     <div 
                       className="color-preview" 
-                      style={{ backgroundColor: previewAccent === 'custom' ? previewAccentColor : '#6366f1' }}
+                      style={{ backgroundColor: currentAccent.id === 'custom' ? currentAccent.color : '#6366f1' }}
                     ></div>
-                    <span className="color-label">{previewAccent === 'custom' ? previewAccentColor.toUpperCase() : '#6366F1'}</span>
-                    {previewAccent === 'custom' && <Check size={16} />}
+                    <span className="color-label">{currentAccent.id === 'custom' ? currentAccent.color.toUpperCase() : '#6366F1'}</span>
+                    {currentAccent.id === 'custom' && <Check size={16} />}
                   </button>
                   
                   {showColorPicker && (
@@ -1239,8 +1074,7 @@ export default function Settings() {
                                 setSaturation(newSat)
                                 setLightness(newLight)
                                 const hex = hslToHex(hue, newSat, newLight)
-                                setPreviewAccent('custom')
-                                setPreviewAccentColor(hex)
+                                setAccent('custom', hex)
                                 setHexInput(hex)
                               }
                               
@@ -1284,8 +1118,7 @@ export default function Settings() {
                                 const newHue = parseInt(e.target.value)
                                 setHue(newHue)
                                 const hex = hslToHex(newHue, saturation, lightness)
-                                setPreviewAccent('custom')
-                                setPreviewAccentColor(hex)
+                                setAccent('custom', hex)
                                 setHexInput(hex)
                               }}
                               className="hue-slider"
@@ -1298,15 +1131,14 @@ export default function Settings() {
                           <div className="hex-input-wrapper">
                             <input
                               type="text"
-                              value={hexInput || (previewAccent === 'custom' ? previewAccentColor : '#6366f1')}
+                              value={hexInput || (currentAccent.id === 'custom' ? currentAccent.color : '#6366f1')}
                               onChange={(e) => {
                                 let value = e.target.value.toUpperCase()
                                 if (!value.startsWith('#')) value = '#' + value
                                 if (/^#[0-9A-F]{0,6}$/.test(value)) {
                                   setHexInput(value)
                                   if (value.length === 7) {
-                                    setPreviewAccent('custom')
-                                    setPreviewAccentColor(value)
+                                    setAccent('custom', value)
                                     const hsl = hexToHSL(value)
                                     setHue(hsl.h)
                                     setSaturation(hsl.s)
@@ -1315,8 +1147,8 @@ export default function Settings() {
                                 }
                               }}
                               onBlur={() => {
-                                if (previewAccent === 'custom') {
-                                  setHexInput(previewAccentColor)
+                                if (currentAccent.id === 'custom') {
+                                  setHexInput(currentAccent.color)
                                 } else {
                                   setHexInput('')
                                 }
@@ -1327,7 +1159,7 @@ export default function Settings() {
                             />
                             <div 
                               className="hex-preview" 
-                              style={{ backgroundColor: (hexInput && hexInput.length === 7) ? hexInput : (previewAccent === 'custom' ? previewAccentColor : '#6366f1') }}
+                              style={{ backgroundColor: (hexInput && hexInput.length === 7) ? hexInput : (currentAccent.id === 'custom' ? currentAccent.color : '#6366f1') }}
                             ></div>
                           </div>
                         </div>
@@ -1344,8 +1176,7 @@ export default function Settings() {
                               className="color-swatch"
                               style={{ backgroundColor: color }}
                               onClick={() => {
-                                setPreviewAccent('custom')
-                                setPreviewAccentColor(color)
+                                setAccent('custom', color)
                                 setHexInput(color.toUpperCase())
                               }}
                               title={color.toUpperCase()}
@@ -1363,18 +1194,15 @@ export default function Settings() {
                 <div className="logo-selector">
                   {logoOptions.map((logo) => {
                     // For circle logo, show the current theme's version
-                    let previewPath
-                    if (logo.id === 'circle') {
-                      previewPath = previewTheme === 'dark' ? logo.pathDark : logo.pathLight
-                    } else {
-                      previewPath = logo.path
-                    }
+                    const previewPath = logo.id === 'circle' 
+                      ? (theme === 'dark' ? logo.pathDark : logo.pathLight)
+                      : logo.path
                     
                     return (
                       <button
                         key={logo.id}
-                        className={`logo-option ${previewLogo === logo.id ? 'active' : ''}`}
-                        onClick={() => setPreviewLogo(logo.id)}
+                        className={`logo-option ${currentLogo.id === logo.id ? 'active' : ''}`}
+                        onClick={() => setLogo(logo.id)}
                         title={logo.id === 'circle' ? `${logo.name} (adapts to theme)` : logo.name}
                       >
                         <div className="logo-preview">
@@ -1384,7 +1212,7 @@ export default function Settings() {
                         {logo.id === 'circle' && (
                           <span className="logo-hint">Auto</span>
                         )}
-                        {previewLogo === logo.id && (
+                        {currentLogo.id === logo.id && (
                           <div className="logo-selected">
                             <Check size={14} />
                           </div>

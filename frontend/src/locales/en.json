@@ -17,6 +17,11 @@
     "stayLoggedIn": "Stay Logged In",
     "helperText": "Click 'Stay Logged In' to continue your session"
   },
+  "sessionExpired": {
+    "title": "Session Expired",
+    "message": "Your session has expired. Please sign in again to continue.",
+    "ok": "OK"
+  },
   "layout": {
     "weatherTemp": "18°C",
     "weatherDesc": "Partly Cloudy",

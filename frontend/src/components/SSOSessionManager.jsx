@@ -27,6 +27,10 @@ export default function SSOSessionManager() {
   const handleSessionExpired = useCallback(() => {
     console.log('SSO session expired, logging out')
     setShowWarning(false)
+    // Set flag so login page can show "session expired" message
+    try {
+      localStorage.setItem('session_expired', 'true')
+    } catch (e) {}
     logout()
   }, [logout])
 
