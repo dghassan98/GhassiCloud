@@ -170,14 +170,14 @@ export function useSSOSessionMonitor({
           // Create hidden iframe for silent refresh
           const iframe = document.createElement('iframe')
           iframe.style.display = 'none'
-          iftry {
+          iframe.setAttribute('aria-hidden', 'true')
+
+          const timeout = setTimeout(() => {
+            try {
               document.body.removeChild(iframe)
             } catch (e) {}
             sessionStorage.removeItem('sso_silent_refresh')
             refreshInProgressRef.current = false
-          const timeout = setTimeout(() => {
-            document.body.removeChild(iframe)
-            sessionStorage.removeItem('sso_silent_refresh')
             resolve(false)
           }, 10000) // 10 second timeout
 
@@ -197,7 +197,10 @@ export function useSSOSessionMonitor({
             sessionStorage.removeItem('sso_silent_refresh')
 
             const { code, state: returnedState, error } = event.data
-freshInProgressRef.current = false
+
+            if (error || !code) {
+              console.log('Silent refresh failed:', error || 'no code')
+              refreshInProgressRef.current = false
               resolve(false)
               return
             }
@@ -206,9 +209,6 @@ freshInProgressRef.current = false
             const savedState = sessionStorage.getItem('sso_state')
             if (returnedState !== savedState) {
               refreshInProgressRef.current = false
-            // Verify state
-            const savedState = sessionStorage.getItem('sso_state')
-            if (returnedState !== savedState) {
               resolve(false)
               return
             }
@@ -230,7 +230,9 @@ freshInProgressRef.current = false
 
               if (res.ok) {
                 const data = await res.json()
-                lofreshInProgressRef.current = false
+                localStorage.setItem('ghassicloud-token', data.token)
+                console.log('Silent token refresh successful')
+                refreshInProgressRef.current = false
                 resolve(true)
               } else {
                 refreshInProgressRef.current = false
@@ -239,8 +241,6 @@ freshInProgressRef.current = false
             } catch (err) {
               console.error('Silent refresh token exchange failed:', err)
               refreshInProgressRef.current = false
-            } catch (err) {
-              console.error('Silent refresh token exchange failed:', err)
               resolve(false)
             } finally {
               sessionStorage.removeItem('sso_state')
@@ -253,10 +253,10 @@ freshInProgressRef.current = false
           document.body.appendChild(iframe)
           iframe.src = authUrl.toString()
         })
-      })freshInProgressRef.current = false
-      re
+      })
     } catch (err) {
       console.error('Silent refresh error:', err)
+      refreshInProgressRef.current = false
       return false
     }
   }, [isSSO])
