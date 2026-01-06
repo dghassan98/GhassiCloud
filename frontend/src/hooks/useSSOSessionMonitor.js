@@ -103,10 +103,7 @@ export function useSSOSessionMonitor({
       return false
     }
 
-    // Cooldown period - {
-        refreshInProgressRef.current = false
-        return false
-      }t refresh more than once every 10 seconds
+    // Cooldown period - don't attempt refresh more than once every 10 seconds
     const timeSinceLastAttempt = Date.now() - lastRefreshAttemptRef.current
     if (timeSinceLastAttempt < 10000) {
       console.log('Refresh cooldown active, skipping...')
@@ -122,7 +119,10 @@ export function useSSOSessionMonitor({
         headers: { Authorization: `Bearer ${token}` }
       })
 
-      if (!configRes.ok) return false
+      if (!configRes.ok) {
+        refreshInProgressRef.current = false
+        return false
+      }
       const config = await configRes.json()
 
       return new Promise((resolve) => {
