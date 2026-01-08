@@ -32,20 +32,22 @@ export function usePWAUpdate() {
   useEffect(() => {
     const currentVersion = import.meta.env.VITE_APP_VERSION || '1.0.0';
     const lastSeenVersion = localStorage.getItem('lastSeenVersion');
+    const changelogShownThisSession = sessionStorage.getItem('changelogShown');
     
-    console.log('📦 Version check:', { currentVersion, lastSeenVersion });
+    console.log('📦 Version check:', { currentVersion, lastSeenVersion, changelogShownThisSession });
 
-    if (lastSeenVersion && lastSeenVersion !== currentVersion) {
+    if (lastSeenVersion && lastSeenVersion !== currentVersion && !changelogShownThisSession) {
       // New version detected, show changelog
       console.log('🎉 New version detected! Showing changelog...');
       setShowChangelog(true);
       localStorage.setItem('lastSeenVersion', currentVersion);
+      sessionStorage.setItem('changelogShown', 'true');
     } else if (!lastSeenVersion) {
       // First time user
       console.log('👋 First time user, saving version');
       localStorage.setItem('lastSeenVersion', currentVersion);
     } else {
-      console.log('✅ Version unchanged');
+      console.log('✅ Version unchanged or changelog already shown this session');
     }
   }, []);
 

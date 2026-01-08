@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  User, Lock, Palette, Bell, Shield, Database, 
+import {
+  User, Lock, Palette, Bell, Shield, Database,
   Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
   Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw
 } from 'lucide-react'
@@ -25,15 +25,15 @@ export default function Settings() {
   const { showToast } = useToast()
   const { checkForUpdate, showChangelog, dismissChangelog } = usePWAUpdate()
   const isAdmin = user?.role === 'admin'
-  
+
   const settingsSections = [
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
     { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
     { id: 'security', label: t('settings.tabs.security'), icon: Shield },
     { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
-    { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw },
     { id: 'data', label: t('settings.tabs.data'), icon: Database },
-    ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : [])
+    ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : []),
+    { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw }
   ]
   const [activeSection, setActiveSection] = useState('profile')
   const [saving, setSaving] = useState(false)
@@ -298,7 +298,7 @@ export default function Settings() {
       const data = await r.json()
       const sessionList = data.sessions || []
       setSessions(sessionList)
-      
+
       // Fetch geolocation for each unique IP address
       const uniqueIPs = [...new Set(sessionList.map(s => s.ipAddress).filter(Boolean))]
       const geoPromises = uniqueIPs.map(async (ip) => {
@@ -314,7 +314,7 @@ export default function Settings() {
         }
         return { ip, geo: null }
       })
-      
+
       const geoResults = await Promise.all(geoPromises)
       const geoMap = {}
       geoResults.forEach(({ ip, geo }) => {
@@ -434,7 +434,7 @@ export default function Settings() {
       const token = getAuthToken()
       const res = await fetch(`/api/auth/users/${userId}/role`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Authorization: token
         },
@@ -559,7 +559,7 @@ export default function Settings() {
 
   return (
     <div className={`settings-page ${isSSO ? 'sso-user' : ''} section-${activeSection}`}>
-      <motion.div 
+      <motion.div
         className="settings-header"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -649,7 +649,7 @@ export default function Settings() {
                   const r = await fetch('/api/auth/sessions/revoke', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token }, body: JSON.stringify({ all: true }) })
                   if (r.ok) {
                     showToast({ message: t('settings.signOutEverywhereSuccess') || 'Signed out everywhere', type: 'success' })
-                    try { logout() } catch (e) {}
+                    try { logout() } catch (e) { }
                     setTimeout(() => { window.location.href = '/login' }, 350)
                   } else {
                     const data = await r.json()
@@ -685,7 +685,7 @@ export default function Settings() {
                   if (r.ok) {
                     showToast({ message: t('settings.signOutSessionSuccess') || 'Session revoked', type: 'success' })
                     if (confirmSession.isCurrent) {
-                      try { logout() } catch (e) {}
+                      try { logout() } catch (e) { }
                       setTimeout(() => { window.location.href = '/login' }, 350)
                     } else {
                       handleLoadSessions()
@@ -710,7 +710,7 @@ export default function Settings() {
 
       <div className="settings-container">
         {/* Sidebar */}
-        <motion.nav 
+        <motion.nav
           className="settings-nav"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -731,7 +731,7 @@ export default function Settings() {
               Keeping the sidebar compact prevents DOM duplication, layout issues, and unexpected side-effects when switching sections. */}
 
           <div className="settings-actions">
-            <motion.button 
+            <motion.button
               className="btn-primary"
               onClick={handleSave}
               disabled={saving}
@@ -760,16 +760,16 @@ export default function Settings() {
 
               {isSSO ? (
                 <>
-                <div className="sso-card sso-top-card">
-                  <div className="sso-card-left"><Lock size={22} /></div>
-                  <div className="sso-card-body">
-                    <h4>{t('settings.passwordManagedBySSOTitle') || 'Password managed by your identity provider'}</h4>
-                    <p>{t('settings.passwordManagedBySSO') || 'Your account uses single sign-on. To change your password, please visit your authentication provider.'}</p>
+                  <div className="sso-card sso-top-card">
+                    <div className="sso-card-left"><Lock size={22} /></div>
+                    <div className="sso-card-body">
+                      <h4>{t('settings.passwordManagedBySSOTitle') || 'Password managed by your identity provider'}</h4>
+                      <p>{t('settings.passwordManagedBySSO') || 'Your account uses single sign-on. To change your password, please visit your authentication provider.'}</p>
+                    </div>
+                    <div className="sso-card-actions">
+                      <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
+                    </div>
                   </div>
-                  <div className="sso-card-actions">
-                    <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
-                  </div>
-                </div>
 
 
                 </>
@@ -810,56 +810,57 @@ export default function Settings() {
                       sessions.map(s => {
                         const geo = s.ipAddress ? sessionGeoData[s.ipAddress] : null
                         return (
-                        <div key={s.id} className="session-row">
-                          <div className="session-info">
-                            <strong title={s.rawClientId || s.clientId || ''}>{s.clientId || s.client || 'Unknown'}</strong>
-                            <div className="muted" title={s.userAgent || ''}>
-                              {s.userAgent ? (() => { const parsed = parseUserAgent(s.userAgent); const name = parsed.name + (parsed.version ? ` ${parsed.version}` : ''); const Icon = parsed.icon ? ({ 'Globe': Globe, 'Zap': Zap, 'Compass': Compass, 'Terminal': Terminal, 'Package': Package, 'Box': Box, 'Monitor': Monitor }[parsed.icon]) : Globe; return (<><Icon size={14} className="ua-icon" />&nbsp;{ name.length > 80 ? `${name.slice(0,80)}…` : name }</>) })() : ''}
+                          <div key={s.id} className="session-row">
+                            <div className="session-info">
+                              <strong title={s.rawClientId || s.clientId || ''}>{s.clientId || s.client || 'Unknown'}</strong>
+                              <div className="muted" title={s.userAgent || ''}>
+                                {s.userAgent ? (() => { const parsed = parseUserAgent(s.userAgent); const name = parsed.name + (parsed.version ? ` ${parsed.version}` : ''); const Icon = parsed.icon ? ({ 'Globe': Globe, 'Zap': Zap, 'Compass': Compass, 'Terminal': Terminal, 'Package': Package, 'Box': Box, 'Monitor': Monitor }[parsed.icon]) : Globe; return (<><Icon size={14} className="ua-icon" />&nbsp;{name.length > 80 ? `${name.slice(0, 80)}…` : name}</>) })() : ''}
+                              </div>
+                              <div className="muted small session-ip" title={t('settings.copyIpTooltip') || 'Click to copy IP'} onClick={(e) => { e.stopPropagation(); copyToClipboard(s.ipAddress) }}>{s.ipAddress || (t('settings.noIp') || 'No IP address')}</div>
+                              {geo && (geo.city || geo.country) && (
+                                <div className="muted small session-location">
+                                  <Globe size={12} /> {[geo.city, geo.country].filter(Boolean).join(', ')}
+                                </div>
+                              )}
+                              <div className="muted small">{s.createdAt ? `${t('settings.started') || 'Started'} ${new Date(s.createdAt).toLocaleString()}` : ''} {s.lastAccess ? ` • ${t('settings.lastActive') || 'Last active'} ${new Date(s.lastAccess).toLocaleString()}` : ''}</div>
+                              <div className="session-flags">
+                                {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current session'}</span>}
+                                {s.risk && s.risk.map(r => (
+                                  <span key={r} className={`badge risk ${r}`}>{t(`settings.risk.${r}`) || r}</span>
+                                ))}
+                              </div>
                             </div>
-                            <div className="muted small session-ip" title={t('settings.copyIpTooltip') || 'Click to copy IP'} onClick={(e) => { e.stopPropagation(); copyToClipboard(s.ipAddress) }}>{s.ipAddress || (t('settings.noIp') || 'No IP address')}</div>
-                            {geo && (geo.city || geo.country) && (
-                              <div className="muted small session-location">
-                                <Globe size={12} /> {[geo.city, geo.country].filter(Boolean).join(', ')}
+                            {geo && geo.lat && geo.lon && (
+                              <div className="session-map" title={[geo.city, geo.country].filter(Boolean).join(', ')}>
+                                <img
+                                  src={`/api/auth/static-map?lat=${geo.lat}&lon=${geo.lon}`}
+                                  alt={`Map showing ${geo.city || 'location'}`}
+                                  loading="lazy"
+                                />
                               </div>
                             )}
-                            <div className="muted small">{s.createdAt ? `${t('settings.started') || 'Started'} ${new Date(s.createdAt).toLocaleString()}` : ''} {s.lastAccess ? ` • ${t('settings.lastActive') || 'Last active'} ${new Date(s.lastAccess).toLocaleString()}` : ''}</div>
-                            <div className="session-flags">
-                              {s.isCurrent && <span className="badge current">{t('settings.currentSession') || 'Current session'}</span>}
-                              {s.risk && s.risk.map(r => (
-                                <span key={r} className={`badge risk ${r}`}>{t(`settings.risk.${r}`) || r}</span>
-                              ))}
+                            {geo && geo.private && (
+                              <div className="session-map session-map-local" title={t('settings.localNetwork') || 'Local Network'}>
+                                <div className="local-network-indicator">
+                                  <Monitor size={24} />
+                                  <span>{t('settings.localNetwork') || 'Local'}</span>
+                                </div>
+                              </div>
+                            )}
+                            {!geo && s.ipAddress && (
+                              <div className="session-map session-map-local" title={s.ipAddress}>
+                                <div className="local-network-indicator">
+                                  <Globe size={24} />
+                                  <span>{s.ipAddress.length > 15 ? s.ipAddress.slice(0, 12) + '...' : s.ipAddress}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="session-actions">
+                              <button className="btn-danger" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign Out'}</button>
                             </div>
                           </div>
-                          {geo && geo.lat && geo.lon && (
-                            <div className="session-map" title={[geo.city, geo.country].filter(Boolean).join(', ')}>
-                              <img 
-                                src={`/api/auth/static-map?lat=${geo.lat}&lon=${geo.lon}`}
-                                alt={`Map showing ${geo.city || 'location'}`}
-                                loading="lazy"
-                              />
-                            </div>
-                          )}
-                          {geo && geo.private && (
-                            <div className="session-map session-map-local" title={t('settings.localNetwork') || 'Local Network'}>
-                              <div className="local-network-indicator">
-                                <Monitor size={24} />
-                                <span>{t('settings.localNetwork') || 'Local'}</span>
-                              </div>
-                            </div>
-                          )}
-                          {!geo && s.ipAddress && (
-                            <div className="session-map session-map-local" title={s.ipAddress}>
-                              <div className="local-network-indicator">
-                                <Globe size={24} />
-                                <span>{s.ipAddress.length > 15 ? s.ipAddress.slice(0, 12) + '...' : s.ipAddress}</span>
-                              </div>
-                            </div>
-                          )}
-                          <div className="session-actions">
-                            <button className="btn-danger" onClick={() => setConfirmSession(s)}>{t('settings.signOut') || 'Sign Out'}</button>
-                          </div>
-                        </div>
-                      )})
+                        )
+                      })
                     )
                   )}
                 </div>
@@ -891,8 +892,8 @@ export default function Settings() {
                 <div className="profile-avatar">
                   <div className="avatar-preview">
                     {avatarPreview && !avatarError ? (
-                      <img 
-                        src={avatarPreview} 
+                      <img
+                        src={avatarPreview}
                         alt="Avatar"
                         loading="eager"
                         onError={() => {
@@ -1019,21 +1020,21 @@ export default function Settings() {
                 <label>{t('settings.customAccentColor') || 'Custom Accent Color'}</label>
                 <p className="form-hint">{t('settings.customAccentHint') || 'Choose your own accent color'}</p>
                 <div className="custom-color-picker-container">
-                  <button 
+                  <button
                     type="button"
                     className={`custom-color-trigger ${currentAccent.id === 'custom' ? 'active' : ''} ${showColorPicker ? 'expanded' : ''}`}
                     onClick={() => setShowColorPicker(!showColorPicker)}
                   >
-                    <div 
-                      className="color-preview" 
+                    <div
+                      className="color-preview"
                       style={{ backgroundColor: currentAccent.id === 'custom' ? currentAccent.color : '#6366f1' }}
                     ></div>
                     <span className="color-label">{currentAccent.id === 'custom' ? currentAccent.color.toUpperCase() : '#6366F1'}</span>
                     {currentAccent.id === 'custom' && <Check size={16} />}
                   </button>
-                  
+
                   {showColorPicker && (
-                    <motion.div 
+                    <motion.div
                       className="custom-color-picker-panel"
                       initial={{ opacity: 0, height: 0, y: -10 }}
                       animate={{ opacity: 1, height: 'auto', y: 0 }}
@@ -1046,13 +1047,13 @@ export default function Settings() {
                         <button type="button" onClick={() => setShowColorPicker(false)} className="close-btn">×</button>
                       </div>
                       <div className="color-picker-body">
-                        
+
                         {/* Visual Color Picker */}
                         <div className="visual-color-picker">
                           {/* Saturation/Lightness Picker */}
-                          <div 
+                          <div
                             className="color-gradient-box"
-                            style={{ 
+                            style={{
                               background: `
                                 linear-gradient(to top, #000, transparent),
                                 linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))
@@ -1064,40 +1065,40 @@ export default function Settings() {
                                 const rect = box.getBoundingClientRect()
                                 const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
                                 const y = Math.max(0, Math.min(clientY - rect.top, rect.height))
-                                
+
                                 // Calculate saturation (0-100% from left to right)
                                 const newSat = Math.round((x / rect.width) * 100)
-                                
+
                                 // Calculate lightness based on both gradients
                                 // Left side: white (100% lightness) to black (0% lightness)
                                 // Right side: pure hue (50% lightness) to black (0% lightness)
                                 const yPercent = y / rect.height
                                 const baseLightness = 100 - (newSat * 0.5) // 100% at left, 50% at right
                                 const newLight = Math.round(baseLightness * (1 - yPercent * 0.95)) // Keep 5% min
-                                
+
                                 setSaturation(newSat)
                                 setLightness(newLight)
                                 const hex = hslToHex(hue, newSat, newLight)
                                 setAccent('custom', hex)
                                 setHexInput(hex)
                               }
-                              
+
                               updateColor(e.clientX, e.clientY)
-                              
+
                               const handleMouseMove = (moveEvent) => {
                                 updateColor(moveEvent.clientX, moveEvent.clientY)
                               }
-                              
+
                               const handleMouseUp = () => {
                                 document.removeEventListener('mousemove', handleMouseMove)
                                 document.removeEventListener('mouseup', handleMouseUp)
                               }
-                              
+
                               document.addEventListener('mousemove', handleMouseMove)
                               document.addEventListener('mouseup', handleMouseUp)
                             }}
                           >
-                            <div 
+                            <div
                               className="color-picker-thumb"
                               style={{
                                 left: `${saturation}%`,
@@ -1161,8 +1162,8 @@ export default function Settings() {
                               className="hex-input"
                               maxLength={7}
                             />
-                            <div 
-                              className="hex-preview" 
+                            <div
+                              className="hex-preview"
                               style={{ backgroundColor: (hexInput && hexInput.length === 7) ? hexInput : (currentAccent.id === 'custom' ? currentAccent.color : '#6366f1') }}
                             ></div>
                           </div>
@@ -1170,7 +1171,7 @@ export default function Settings() {
                         <div className="color-swatches-label">Quick Colors</div>
                         <div className="color-grid">
                           {[
-                            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', 
+                            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e',
                             '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
                             '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#dc2626'
                           ].map(color => (
@@ -1198,10 +1199,10 @@ export default function Settings() {
                 <div className="logo-selector">
                   {logoOptions.map((logo) => {
                     // For circle logo, show the current theme's version
-                    const previewPath = logo.id === 'circle' 
+                    const previewPath = logo.id === 'circle'
                       ? (theme === 'dark' ? logo.pathDark : logo.pathLight)
                       : logo.path
-                    
+
                     return (
                       <button
                         key={logo.id}
@@ -1335,8 +1336,8 @@ export default function Settings() {
                     <h4>{t('settings.resetAllTitle')}</h4>
                     <p>{t('settings.resetAllDesc')}</p>
                   </div>
-                  <button 
-                    className="btn-danger" 
+                  <button
+                    className="btn-danger"
                     onClick={() => setShowResetConfirm(true)}
                   >
                     {t('settings.reset')}
@@ -1344,7 +1345,7 @@ export default function Settings() {
                 </div>
 
                 {showResetConfirm && (
-                  <motion.div 
+                  <motion.div
                     className="reset-confirm-modal"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -1354,15 +1355,15 @@ export default function Settings() {
                       <h3>{t('settings.confirmTitle')}</h3>
                       <p>{t('settings.confirmDesc')}</p>
                       <div className="reset-confirm-actions">
-                        <button 
-                          className="btn-secondary" 
+                        <button
+                          className="btn-secondary"
                           onClick={() => setShowResetConfirm(false)}
                           disabled={resetting}
                         >
                           {t('settings.cancel')}
                         </button>
-                        <button 
-                          className="btn-danger" 
+                        <button
+                          className="btn-danger"
                           onClick={handleResetServices}
                           disabled={resetting}
                         >
@@ -1430,7 +1431,7 @@ export default function Settings() {
                           </td>
                           <td>{u.email}</td>
                           <td>
-                            <select 
+                            <select
                               className="role-select"
                               value={u.role}
                               onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
@@ -1452,7 +1453,7 @@ export default function Settings() {
                           </td>
                           <td>
                             {u.id !== user?.id && (
-                              <button 
+                              <button
                                 className="btn-icon-danger"
                                 onClick={() => setShowDeleteConfirm(u)}
                                 title={t('settings.userManagement.deleteUser') || 'Delete user'}
@@ -1477,13 +1478,13 @@ export default function Settings() {
 
               {/* Delete Confirmation Modal */}
               {showDeleteConfirm && (
-                <motion.div 
+                <motion.div
                   className="modal-overlay"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   onClick={() => setShowDeleteConfirm(null)}
                 >
-                  <motion.div 
+                  <motion.div
                     className="modal-content"
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
@@ -1493,14 +1494,14 @@ export default function Settings() {
                     <h3>{t('settings.userManagement.deleteConfirmTitle') || 'Delete User'}</h3>
                     <p>{t('settings.userManagement.deleteConfirmMessage') || 'Are you sure you want to delete this user? This action cannot be undone.'} <strong>{showDeleteConfirm.username}</strong></p>
                     <div className="modal-actions">
-                      <button 
-                        className="btn-secondary" 
+                      <button
+                        className="btn-secondary"
                         onClick={() => setShowDeleteConfirm(null)}
                       >
                         {t('common.cancel') || 'Cancel'}
                       </button>
-                      <button 
-                        className="btn-danger" 
+                      <button
+                        className="btn-danger"
                         onClick={() => handleDeleteUser(showDeleteConfirm.id)}
                       >
                         {t('settings.userManagement.deleteUser') || 'Delete User'}
@@ -1513,7 +1514,7 @@ export default function Settings() {
           )}
 
           <div className="settings-actions">
-            <motion.button 
+            <motion.button
               className="btn-primary"
               onClick={handleSave}
               disabled={saving}

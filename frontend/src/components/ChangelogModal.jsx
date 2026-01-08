@@ -3,6 +3,13 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.8': {
+    date: 'January 8, 2026',
+    changes: [
+      'Enhance PWA update handling by tracking changelog visibility',
+      'Update Vite config to include app version',
+    ],
+  },
   '1.1.7': {
     date: 'January 8, 2026',
     changes: [
