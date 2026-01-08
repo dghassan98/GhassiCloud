@@ -110,6 +110,44 @@ export function usePWAUpdate() {
     });
   };
 
+  // Force refresh - clear cache but preserve authentication
+  const forceRefresh = async () => {
+    console.log('🔄 Force refresh triggered');
+    
+    // Preserve authentication data
+    const token = localStorage.getItem('ghassicloud-token');
+    const user = localStorage.getItem('ghassicloud-user');
+    
+    // Unregister service worker
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+        console.log('✅ Service worker unregistered');
+      }
+    }
+    
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      console.log('✅ All caches cleared');
+    }
+    
+    // Clear localStorage except auth and lastSeenVersion
+    const itemsToPreserve = {
+      'ghassicloud-token': token,
+      'ghassicloud-user': user,
+    };
+    localStorage.clear();
+    Object.entries(itemsToPreserve).forEach(([key, value]) => {
+      if (value) localStorage.setItem(key, value);
+    });
+    
+    // Force reload from server
+    window.location.reload(true);
+  };
+
   return {
     showUpdateModal,
     showChangelog,
@@ -117,5 +155,6 @@ export function usePWAUpdate() {
     dismissUpdate,
     dismissChangelog,
     checkForUpdate,
+    forceRefresh,
   };
 }

@@ -81,7 +81,13 @@
       "upToDate": "Vous utilisez la dernière version !",
       "checkFailed": "Échec de la vérification des mises à jour",
       "versionInfo": "Informations de version",
-      "currentVersion": "Version actuelle"
+      "currentVersion": "Version actuelle",
+      "forceRefresh": "Actualisation forcée",
+      "forceRefreshDesc": "Si l'application est bloquée sur une ancienne version, l'actualisation forcée effacera tous les caches et rechargera. Votre connexion sera préservée.",
+      "forceRefreshConfirm": "Cela effacera toutes les données en cache et rechargera l'application. Votre connexion sera préservée. Continuer ?",
+      "forceRefreshBtn": "Actualisation forcée",
+      "forceRefreshing": "Actualisation...",
+      "forceRefreshFailed": "Échec de l'actualisation forcée"
     },
     "avatarTooLarge": "L'avatar ne doit pas dépasser 2 Mo",
     "profileSaved": "Profil enregistré",

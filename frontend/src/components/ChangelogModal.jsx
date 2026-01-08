@@ -3,6 +3,13 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.11': {
+    date: 'January 8, 2026',
+    changes: [
+      'Implement force refresh functionality',
+      'Update localization for refresh prompts',
+    ],
+  },
   '1.1.10': {
     date: 'January 8, 2026',
     changes: [

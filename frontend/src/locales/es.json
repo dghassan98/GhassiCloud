@@ -80,7 +80,13 @@
       "upToDate": "¡Estás usando la última versión!",
       "checkFailed": "Error al buscar actualizaciones",
       "versionInfo": "Información de la versión",
-      "currentVersion": "Versión actual"
+      "currentVersion": "Versión actual",
+      "forceRefresh": "Forzar Actualización",
+      "forceRefreshDesc": "Si la aplicación está atascada en una versión antigua, forzar actualización limpiará todas las cachés y recargará. Tu sesión se mantendrá.",
+      "forceRefreshConfirm": "Esto eliminará todos los datos en caché y recargará la aplicación. Tu sesión se mantendrá. ¿Continuar?",
+      "forceRefreshBtn": "Forzar Actualización",
+      "forceRefreshing": "Actualizando...",
+      "forceRefreshFailed": "Error al forzar actualización"
     },
     "avatarTooLarge": "El avatar no debe ser mayor de 2 MB",
     "profileSaved": "Perfil guardado",

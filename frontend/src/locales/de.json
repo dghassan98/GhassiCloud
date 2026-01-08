@@ -116,7 +116,13 @@
       "upToDate": "Sie verwenden die neueste Version!",
       "checkFailed": "Update-Prüfung fehlgeschlagen",
       "versionInfo": "Versionsinformationen",
-      "currentVersion": "Aktuelle Version"
+      "currentVersion": "Aktuelle Version",
+      "forceRefresh": "Aktualisierung erzwingen",
+      "forceRefreshDesc": "Wenn die App auf einer alten Version hängen bleibt, löscht die erzwungene Aktualisierung alle Caches und lädt neu. Ihre Anmeldung bleibt erhalten.",
+      "forceRefreshConfirm": "Alle zwischengespeicherten Daten werden gelöscht und die App wird neu geladen. Ihre Anmeldung bleibt erhalten. Fortfahren?",
+      "forceRefreshBtn": "Aktualisierung erzwingen",
+      "forceRefreshing": "Wird aktualisiert...",
+      "forceRefreshFailed": "Erzwungene Aktualisierung fehlgeschlagen"
     },
     "avatarTooLarge": "Avatar darf nicht größer als 2 MB sein",
     "profileSaved": "Profil gespeichert",

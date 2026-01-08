@@ -81,7 +81,13 @@
       "upToDate": "You're running the latest version!",
       "checkFailed": "Failed to check for updates",
       "versionInfo": "Version Information",
-      "currentVersion": "Current version"
+      "currentVersion": "Current version",
+      "forceRefresh": "Force Refresh",
+      "forceRefreshDesc": "If the app is stuck on an old version, force refresh will clear all caches and reload. Your login will be preserved.",
+      "forceRefreshConfirm": "This will clear all cached data and reload the app. Your login will be preserved. Continue?",
+      "forceRefreshBtn": "Force Refresh",
+      "forceRefreshing": "Refreshing...",
+      "forceRefreshFailed": "Force refresh failed"
     },
     "accentColor": "Accent Color",
     "customAccentColor": "Custom Accent Color",

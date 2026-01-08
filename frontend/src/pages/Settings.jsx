@@ -23,8 +23,9 @@ export default function Settings() {
   const { currentAccent, setAccent } = useAccent()
   const { t, language, setLanguage } = useLanguage()
   const { showToast } = useToast()
-  const { checkForUpdate, showChangelog, dismissChangelog } = usePWAUpdate()
+  const { checkForUpdate, forceRefresh, showChangelog, dismissChangelog } = usePWAUpdate()
   const isAdmin = user?.role === 'admin'
+  const [forceRefreshing, setForceRefreshing] = useState(false)
 
   const settingsSections = [
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
@@ -1266,6 +1267,32 @@ export default function Settings() {
                 <p className="form-hint">
                   {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.0.0'}</strong>
                 </p>
+              </div>
+              <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                <label style={{ color: 'var(--danger)' }}>{t('settings.updates.forceRefresh') || 'Force Refresh'}</label>
+                <p className="form-hint">
+                  {t('settings.updates.forceRefreshDesc') || 'If the app is stuck on an old version, force refresh will clear all caches and reload. Your login will be preserved.'}
+                </p>
+                <button
+                  className="btn-danger"
+                  onClick={async () => {
+                    if (window.confirm(t('settings.updates.forceRefreshConfirm') || 'This will clear all cached data and reload the app. Your login will be preserved. Continue?')) {
+                      setForceRefreshing(true)
+                      try {
+                        await forceRefresh()
+                      } catch (err) {
+                        console.error('Force refresh failed:', err)
+                        setForceRefreshing(false)
+                        showToast({ message: t('settings.updates.forceRefreshFailed') || 'Force refresh failed', type: 'error' })
+                      }
+                    }
+                  }}
+                  disabled={forceRefreshing}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <RefreshCw size={16} className={forceRefreshing ? 'spinning' : ''} />
+                  {forceRefreshing ? (t('settings.updates.forceRefreshing') || 'Refreshing...') : (t('settings.updates.forceRefreshBtn') || 'Force Refresh')}
+                </button>
               </div>
             </div>
           )}
