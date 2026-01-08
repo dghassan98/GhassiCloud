@@ -128,8 +128,8 @@ export function useLongPress(callback, duration = 500) {
  */
 export function useSwipe({ onLeft, onRight, threshold = 80 } = {}) {
   const { touchHandlers } = useGestures({
-    onSwipeLeft: onLeft,
-    onSwipeRight: onRight,
+    onSwipeLeft: onLeft || (() => {}),
+    onSwipeRight: onRight || (() => {}),
     swipeThreshold: threshold
   })
   return touchHandlers

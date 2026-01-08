@@ -558,12 +558,12 @@ export default function Dashboard() {
   return (
     <div className="dashboard" ref={containerRef} {...pullToRefreshHandlers}>
       {/* Pull to refresh indicator */}
-      {pullDistance > 0 && (
+      {(pullDistance > 0 || isRefreshing) && (
         <div 
           className="pull-to-refresh-indicator" 
           style={{ 
-            transform: `translateY(${Math.min(pullDistance, 80)}px)`,
-            opacity: progress
+            transform: `translateY(${isRefreshing ? '60px' : Math.min(pullDistance, 80) + 'px'})`,
+            opacity: isRefreshing ? 1 : progress
           }}
         >
           <motion.div

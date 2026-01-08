@@ -95,8 +95,8 @@
 }
 /* ===== Pull to Refresh ===== */
 .pull-to-refresh-indicator {
-  position: absolute;
-  top: -80px;
+  position: fixed;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
