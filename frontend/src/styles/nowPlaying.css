@@ -10,8 +10,9 @@
   padding:12px;
   border-radius:12px;
   box-shadow: 0 6px 18px rgba(10,12,20,0.45);
-  max-width:520px;
+  max-width:min(520px, calc(100vw - 32px)); /* Don't exceed viewport width minus padding */
   width:100%;
+  box-sizing:border-box; /* Include padding in width calculation */
 }
 
 .np-art-wrap{
@@ -43,12 +44,16 @@
   flex:1;
   display:flex;
   flex-direction:column;
+  min-width:0; /* Allow flex children to shrink below content size */
+  overflow:hidden; /* Prevent content from expanding parent */
 }
 
 .np-meta{
   display:flex;
   flex-direction:column;
   gap:6px;
+  min-width:0; /* Allow flex children to shrink */
+  overflow:hidden; /* Prevent overflow */
 }
 
 .np-title{
@@ -63,33 +68,51 @@
   -webkit-box-orient:vertical;
   overflow:hidden;
   text-overflow:ellipsis;
+  word-break:break-word; /* Allow long words to break */
+  min-width:0; /* Allow element to shrink */
 }
 
 .np-artist-album{
   display:flex;
-  gap:6px; /* slightly tighter between artist and album */
-  line-height:1.22;
-  padding-bottom:6px; /* provide bottom spacing for both elements */
-  align-items:baseline; /* align to baseline so descenders aren't clipped */
+  gap:6px;
+  line-height:1.3;
+  padding-bottom:6px;
+  align-items:baseline;
   color:#9fb0c9;
   font-size:13px;
-  flex-wrap:nowrap; /* keep artist and album on one line */
+  flex-wrap:nowrap;
+  min-width:0;
+  overflow:hidden;
+  max-width:100%; /* Constrain to container */
 }
 
-.np-artist{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; padding-bottom:1px; display:inline-block; min-width:0}
-/* Album name: allow up to two lines and clamp with ellipsis */
+.np-artist{
+  font-weight:600; 
+  white-space:nowrap; 
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  line-height:1.3; 
+  padding-bottom:1px; 
+  min-width:0;
+  flex-shrink:1;
+  flex-basis:0; /* Start with 0 width and grow */
+  flex-grow:2; /* Artist gets more space (2 parts) */
+}
+.np-sep{
+  flex-shrink:0;
+  white-space:nowrap;
+}
 .np-album{
   opacity:0.9;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  line-clamp:2;
-  -webkit-box-orient:vertical;
+  white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  line-height:1.2;
-  max-height:2.4em; /* ensure it doesn't exceed 2 lines visually */
-  word-break:break-word;
-  margin-top:1px; /* reduce gap slightly */
+  line-height:1.3;
+  margin-top:1px;
+  flex-shrink:1;
+  min-width:0;
+  flex-basis:0; /* Start with 0 width and grow */
+  flex-grow:1; /* Album gets less space (1 part) */
 }
 
 /* Light-mode card adjustments for readability */
@@ -101,16 +124,16 @@
 
 /* Title & text */
 .np-light-card .np-title{
-  color:#061426;
+  color:#0a1929;
   font-size: 16px;
-  font-weight:600;
+  font-weight:700;
   opacity:1;
 }
-.np-light-card .np-artist{color:#0f2b3f; font-weight:700}
-.np-light-card .np-album{color:#475569; opacity:0.95}
-.np-light-card .np-info{color:#334155}
-.np-light-card .np-player{color:#334155}
-.np-light-card .np-info-placeholder{color:#64748b}
+.np-light-card .np-artist{color:#0f172a; font-weight:700}
+.np-light-card .np-album{color:#1e293b; opacity:1}
+.np-light-card .np-info{color:#1e293b}
+.np-light-card .np-player{color:#1e293b}
+.np-light-card .np-info-placeholder{color:#475569}
 
 /* Playing indicator and art */
 .np-light-card .np-playing-indicator .bar{background:var(--np-accent);opacity:0.95}
