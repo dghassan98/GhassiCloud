@@ -81,7 +81,10 @@ function App() {
       }
     }
   })
-/* Debug version banner - remove after testing */}
+
+  return (
+    <BrowserRouter>
+      {/* Debug version banner - remove after testing */}
       <div style={{ 
         position: 'fixed', 
         top: 0, 
@@ -97,9 +100,6 @@ function App() {
         v{currentVersion} | Update: {showUpdateModal ? '✅' : '❌'} | Changelog: {showChangelog ? '✅' : '❌'}
       </div>
       
-      {
-  return (
-    <BrowserRouter>
       {!isConnected && <OfflineBanner />}
       
       {/* PWA Update Notifications */}

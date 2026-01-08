@@ -27,6 +27,12 @@
     "signOutProvider": "Überall abmelden (inkl. Identitätsanbieter)",
     "signedOut": "Abgemeldet"
   },
+  "offline": {
+    "title": "Keine Verbindung",
+    "message": "Sie sind derzeit offline. Bitte überprüfen Sie Ihre Internetverbindung, um sich anzumelden.",
+    "serverUnreachable": "Server nicht erreichbar",
+    "serverMessage": "Der Server kann nicht erreicht werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+  },
   "dashboard": {
     "servicesOnline": "Dienste online",
     "addService": "Dienst hinzufügen",

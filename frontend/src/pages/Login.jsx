@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, User, Eye, EyeOff, ArrowRight, AlertTriangle } from 'lucide-react'
+import { Lock, User, Eye, EyeOff, ArrowRight, AlertTriangle, WifiOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useNetwork } from '../hooks/useCapacitor'
 import '../styles/login.css'
 
 export default function Login() {
@@ -20,6 +21,7 @@ export default function Login() {
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
+  const { isConnected } = useNetwork()
   const navigate = useNavigate()
   
   const showBrandText = currentLogo.id !== 'cloud-only'
@@ -97,6 +99,42 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      {/* Offline Banner */}
+      <AnimatePresence>
+        {!isConnected && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: '#f59e0b',
+              color: 'white',
+              padding: '12px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              zIndex: 9999,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <WifiOff size={20} />
+            <div style={{ textAlign: 'center' }}>
+              <strong style={{ display: 'block', marginBottom: '4px' }}>
+                {t('offline.title')}
+              </strong>
+              <span style={{ fontSize: '14px' }}>
+                {t('offline.message')}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Animated background */}
       <div className="login-bg">
         <div className="gradient-orb orb-1" />

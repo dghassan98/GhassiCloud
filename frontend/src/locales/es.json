@@ -9,6 +9,12 @@
     "helperText": "Haz clic en 'Continuar conectado' para mantener tu sesión"
   },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "Parcialmente nublado", "openProfile": "Abrir configuración de perfil", "notifications": "Notificaciones", "signOutLocal": "Cerrar sesión (local)", "signOutProvider": "Cerrar sesión en el proveedor de identidad", "signedOut": "Sesión cerrada" },
+  "offline": {
+    "title": "Sin Conexión",
+    "message": "Actualmente está desconectado. Por favor, verifique su conexión a Internet para iniciar sesión.",
+    "serverUnreachable": "Servidor Inaccesible",
+    "serverMessage": "No se puede acceder al servidor. Por favor, verifique su conexión e intente nuevamente."
+  },
 
   "dashboard": { "servicesOnline": "Servicios en línea", "addService": "Agregar servicio", "searchPlaceholder": "Buscar servicios...", "noServices": "No se encontraron servicios", "loadingServices": "Cargando servicios...", "getStarted": "Agrega tu primer servicio para comenzar", "noServicesPopover": "Sin servicios", "lastChecked": "Última verificación", "checking": "Comprobando...", "never": "Nunca", "yourServices": "Tus servicios" },
   "auth": { "completingSignIn": "Finalizando inicio de sesión..." },

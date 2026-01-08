@@ -9,6 +9,12 @@
     "helperText": "انقر على 'البقاء مسجل الدخول' لمتابعة جلستك"
   },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "غائم جزئيًا", "openProfile": "فتح إعدادات الملف الشخصي", "notifications": "الإشعارات", "signOutLocal": "تسجيل الخروج (محلي)", "signOutProvider": "تسجيل الخروج من مزود الهوية", "signedOut": "تم تسجيل الخروج" },
+  "offline": {
+    "title": "لا يوجد اتصال",
+    "message": "أنت غير متصل حاليًا. يرجى التحقق من اتصالك بالإنترنت لتسجيل الدخول.",
+    "serverUnreachable": "الخادم غير قابل للوصول",
+    "serverMessage": "غير قادر على الوصول إلى الخادم. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
+  },
 
   "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },
   "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول..." },

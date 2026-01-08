@@ -9,6 +9,12 @@
     "helperText": "Нажмите 'Остаться в системе', чтобы продолжить сессию"
   },
   "layout": { "weatherTemp": "18°C", "weatherDesc": "Переменная облачность", "openProfile": "Открыть настройки профиля", "notifications": "Уведомления", "signOutLocal": "Выйти (локально)", "signOutProvider": "Выйти у провайдера идентификации", "signedOut": "Вы вышли" },
+  "offline": {
+    "title": "Нет Соединения",
+    "message": "Вы сейчас не в сети. Пожалуйста, проверьте подключение к Интернету, чтобы войти.",
+    "serverUnreachable": "Сервер Недоступен",
+    "serverMessage": "Не удается подключиться к серверу. Пожалуйста, проверьте соединение и повторите попытку."
+  },
 
   "dashboard": { "servicesOnline": "Сервисы онлайн", "addService": "Добавить сервис", "searchPlaceholder": "Поиск сервисов...", "noServices": "Сервисы не найдены", "loadingServices": "Загрузка сервисов...", "getStarted": "Добавьте ваш первый сервис, чтобы начать", "noServicesPopover": "Нет сервисов", "lastChecked": "Последняя проверка", "checking": "Проверка...", "never": "Никогда", "yourServices": "Ваши сервисы" },
   "auth": { "completingSignIn": "Завершается вход..." },

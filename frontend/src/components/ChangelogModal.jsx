@@ -3,6 +3,13 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.4': {
+    date: 'January 8, 2026',
+    changes: [
+      'Add offline notification banner',
+      'Update localization for offline messages',
+    ],
+  },
   '1.1.3': {
     date: 'January 8, 2026',
     changes: [
