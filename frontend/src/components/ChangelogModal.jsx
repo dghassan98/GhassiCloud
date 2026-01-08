@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.10': {
+    date: 'January 8, 2026',
+    changes: [
+      'Add androidSpinnerStyle to SplashScreen configuration',
+    ],
+  },
   '1.1.9': {
     date: 'January 8, 2026',
     changes: [
