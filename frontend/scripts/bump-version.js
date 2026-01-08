@@ -1,0 +1,149 @@
+#!/usr/bin/env node
+
+import { readFileSync, writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import readline from 'readline';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(__dirname, '..');
+
+// Read package.json
+const packagePath = join(rootDir, 'package.json');
+const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+const currentVersion = packageJson.version;
+
+// Parse version
+function parseVersion(version) {
+  const [major, minor, patch] = version.split('.').map(Number);
+  return { major, minor, patch };
+}
+
+// Increment version
+function incrementVersion(version, type) {
+  const v = parseVersion(version);
+  switch (type) {
+    case 'major':
+      return `${v.major + 1}.0.0`;
+    case 'minor':
+      return `${v.major}.${v.minor + 1}.0`;
+    case 'patch':
+      return `${v.major}.${v.minor}.${v.patch + 1}`;
+    default:
+      return version;
+  }
+}
+
+// Create readline interface
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function question(query) {
+  return new Promise((resolve) => rl.question(query, resolve));
+}
+
+async function main() {
+  console.log(`\n🚀 Current version: ${currentVersion}\n`);
+
+  // Ask for version bump type
+  const bumpType = await question(
+    'Bump type? (major/minor/patch) [patch]: '
+  );
+  const type = bumpType.trim() || 'patch';
+  const newVersion = incrementVersion(currentVersion, type);
+
+  console.log(`\n📦 New version will be: ${newVersion}\n`);
+
+  // Get release date
+  const dateInput = await question(
+    'Release date? (YYYY-MM-DD or leave empty for today): '
+  );
+  const releaseDate = dateInput.trim()
+    ? new Date(dateInput).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+  // Get changelog entries
+  console.log('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
+  const changes = [];
+  while (true) {
+    const change = await question(`  - `);
+    if (!change.trim()) break;
+    changes.push(change.trim());
+  }
+
+  if (changes.length === 0) {
+    console.log('\n❌ No changelog entries provided. Aborting.');
+    rl.close();
+    return;
+  }
+
+  // Confirm
+  console.log('\n📋 Summary:');
+  console.log(`   Version: ${currentVersion} → ${newVersion}`);
+  console.log(`   Date: ${releaseDate}`);
+  console.log(`   Changes:`);
+  changes.forEach((c) => console.log(`     • ${c}`));
+  console.log('');
+
+  const confirm = await question('Proceed? (y/N): ');
+  if (confirm.toLowerCase() !== 'y') {
+    console.log('\n❌ Aborted.');
+    rl.close();
+    return;
+  }
+
+  // Update package.json
+  packageJson.version = newVersion;
+  writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
+  console.log('\n✅ Updated package.json');
+
+  // Update ChangelogModal.jsx
+  const changelogPath = join(rootDir, 'src', 'components', 'ChangelogModal.jsx');
+  let changelogContent = readFileSync(changelogPath, 'utf8');
+
+  // Build new changelog entry
+  const newEntry = `  '${newVersion}': {
+    date: '${releaseDate}',
+    changes: [
+${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
+    ],
+  },`;
+
+  // Find the CHANGELOG object and insert new entry after the opening brace
+  const changelogRegex = /(const CHANGELOG = \{\n)/;
+  if (changelogRegex.test(changelogContent)) {
+    changelogContent = changelogContent.replace(
+      changelogRegex,
+      `$1${newEntry}\n`
+    );
+    writeFileSync(changelogPath, changelogContent);
+    console.log('✅ Updated ChangelogModal.jsx');
+  } else {
+    console.log('⚠️  Warning: Could not find CHANGELOG object in ChangelogModal.jsx');
+  }
+
+  console.log(`\n🎉 Version bumped to ${newVersion}!`);
+  console.log('\n📌 Next steps:');
+  console.log('   1. Review the changes');
+  console.log('   2. Commit: git add -A && git commit -m "Release v' + newVersion + '"');
+  console.log('   3. Tag: git tag v' + newVersion);
+  console.log('   4. Deploy: npm run build\n');
+
+  rl.close();
+}
+
+main().catch((err) => {
+  console.error('\n❌ Error:', err.message);
+  rl.close();
+  process.exit(1);
+});

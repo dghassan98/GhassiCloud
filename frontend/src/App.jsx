@@ -10,6 +10,9 @@ import Settings from './pages/Settings'
 import Reporting from './pages/Reporting'
 import Layout from './components/Layout'
 import SSOSessionManager from './components/SSOSessionManager'
+import UpdateNotification from './components/UpdateNotification'
+import ChangelogModal from './components/ChangelogModal'
+import { usePWAUpdate } from './hooks/usePWAUpdate'
 import { 
   initializeNativeFeatures, 
   useAppLifecycle, 
@@ -46,6 +49,7 @@ function OfflineBanner() {
 function App() {
   const { theme } = useTheme()
   const { isConnected } = useNetwork()
+  const { showUpdateModal, showChangelog, updateNow, dismissUpdate, dismissChangelog } = usePWAUpdate()
 
   // Initialize native features on mount
   useEffect(() => {
@@ -78,6 +82,13 @@ function App() {
   return (
     <BrowserRouter>
       {!isConnected && <OfflineBanner />}
+      
+      {/* PWA Update Notifications */}
+      {showUpdateModal && (
+        <UpdateNotification onUpdate={updateNow} onDismiss={dismissUpdate} />
+      )}
+      {showChangelog && <ChangelogModal onClose={dismissChangelog} />}
+      
       <SSOSessionManager />
       <Routes>
         <Route path="/login" element={<Login />} />
