@@ -33,16 +33,7 @@
     "serverUnreachable": "Server nicht erreichbar",
     "serverMessage": "Der Server kann nicht erreicht werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
-  "updates": {
-    "title": "App-Updates",
-    "description": "Nach der neuesten Version der App suchen",
-    "check": "Nach Updates suchen",
-    "checking": "Wird geprüft...",
-    "available": "Update verfügbar! Bitte aktualisieren Sie die Seite.",
-    "upToDate": "Sie verwenden die neueste Version!",
-    "checkFailed": "Update-Prüfung fehlgeschlagen",
-    "currentVersion": "Aktuelle Version"
-  },
+  
   "dashboard": {
     "servicesOnline": "Dienste online",
     "addService": "Dienst hinzufügen",
@@ -114,7 +105,19 @@
     "removeAvatar": "Entfernen",
     "language": "Sprache",
     "languageHint": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
-    "tabs": { "profile": "Profil", "appearance": "Darstellung", "security": "Sicherheit", "notifications": "Benachrichtigungen", "data": "Daten & Backup" },
+    "tabs": { "profile": "Profil", "appearance": "Darstellung", "security": "Sicherheit", "notifications": "Benachrichtigungen", "data": "Daten & Backup", "updates": "Updates" },
+    "updates": {
+      "title": "App-Updates",
+      "description": "Nach der neuesten Version der App suchen",
+      "checkLabel": "Manuell nach Updates suchen",
+      "check": "Nach Updates suchen",
+      "checking": "Wird geprüft...",
+      "available": "Update verfügbar! Bitte aktualisieren Sie die Seite.",
+      "upToDate": "Sie verwenden die neueste Version!",
+      "checkFailed": "Update-Prüfung fehlgeschlagen",
+      "versionInfo": "Versionsinformationen",
+      "currentVersion": "Aktuelle Version"
+    },
     "avatarTooLarge": "Avatar darf nicht größer als 2 MB sein",
     "profileSaved": "Profil gespeichert",
     "saveFailed": "Fehler beim Speichern des Profils",

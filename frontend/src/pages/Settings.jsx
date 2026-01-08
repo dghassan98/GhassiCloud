@@ -31,6 +31,7 @@ export default function Settings() {
     { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
     { id: 'security', label: t('settings.tabs.security'), icon: Shield },
     { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
+    { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw },
     { id: 'data', label: t('settings.tabs.data'), icon: Database },
     ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : [])
   ]
@@ -1223,10 +1224,16 @@ export default function Settings() {
                       </button>
                     )
                   })}
-              
-              {/* Check for Updates */}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'updates' && (
+            <div className="settings-section">
+              <h2>{t('settings.updates.title')}</h2>
               <div className="form-group">
-                <label>{t('settings.updates.title')}</label>
+                <label>{t('settings.updates.checkLabel')}</label>
                 <p className="form-hint">{t('settings.updates.description')}</p>
                 <button
                   className="btn-secondary"
@@ -1252,11 +1259,12 @@ export default function Settings() {
                   <RefreshCw size={16} className={checkingUpdate ? 'spinning' : ''} />
                   {checkingUpdate ? t('settings.updates.checking') : t('settings.updates.check')}
                 </button>
-                <p className="form-hint" style={{ marginTop: '8px', fontSize: '12px', opacity: 0.7 }}>
-                  {t('settings.updates.currentVersion')}: {import.meta.env.VITE_APP_VERSION || '1.0.0'}
-                </p>
               </div>
-                </div>
+              <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                <label>{t('settings.updates.versionInfo')}</label>
+                <p className="form-hint">
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.0.0'}</strong>
+                </p>
               </div>
             </div>
           )}

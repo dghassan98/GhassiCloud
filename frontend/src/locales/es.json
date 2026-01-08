@@ -15,16 +15,7 @@
     "serverUnreachable": "Servidor Inaccesible",
     "serverMessage": "No se puede acceder al servidor. Por favor, verifique su conexión e intente nuevamente."
   },
-  "updates": {
-    "title": "Actualizaciones de la App",
-    "description": "Buscar la última versión de la aplicación",
-    "check": "Buscar Actualizaciones",
-    "checking": "Buscando...",
-    "available": "¡Actualización disponible! Por favor, actualice la página.",
-    "upToDate": "¡Estás usando la última versión!",
-    "checkFailed": "Error al buscar actualizaciones",
-    "currentVersion": "Versión actual"
-  },
+  
 
   "dashboard": { "servicesOnline": "Servicios en línea", "addService": "Agregar servicio", "searchPlaceholder": "Buscar servicios...", "noServices": "No se encontraron servicios", "loadingServices": "Cargando servicios...", "getStarted": "Agrega tu primer servicio para comenzar", "noServicesPopover": "Sin servicios", "lastChecked": "Última verificación", "checking": "Comprobando...", "never": "Nunca", "yourServices": "Tus servicios" },
   "auth": { "completingSignIn": "Finalizando inicio de sesión..." },
@@ -78,7 +69,19 @@
     "removeAvatar": "Eliminar",
     "language": "Idioma",
     "languageHint": "Elige tu idioma de interfaz preferido",
-    "tabs": { "profile": "Perfil", "appearance": "Apariencia", "security": "Seguridad", "notifications": "Notificaciones", "data": "Datos y copia de seguridad" },
+    "tabs": { "profile": "Perfil", "appearance": "Apariencia", "security": "Seguridad", "notifications": "Notificaciones", "data": "Datos y copia de seguridad", "updates": "Actualizaciones" },
+    "updates": {
+      "title": "Actualizaciones de la App",
+      "description": "Buscar la última versión de la aplicación",
+      "checkLabel": "Buscar actualizaciones manualmente",
+      "check": "Buscar Actualizaciones",
+      "checking": "Buscando...",
+      "available": "¡Actualización disponible! Por favor, actualice la página.",
+      "upToDate": "¡Estás usando la última versión!",
+      "checkFailed": "Error al buscar actualizaciones",
+      "versionInfo": "Información de la versión",
+      "currentVersion": "Versión actual"
+    },
     "avatarTooLarge": "El avatar no debe ser mayor de 2 MB",
     "profileSaved": "Perfil guardado",
     "saveFailed": "Error al guardar el perfil",

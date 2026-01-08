@@ -3,6 +3,15 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.7': {
+    date: 'January 8, 2026',
+    changes: [
+      'Refactor Update Handling',
+      'Enhance Localization for Updates',
+      'Improve UI consistency for Now Playing',
+      'Remove PWA Update Debugger',
+    ],
+  },
   '1.1.6': {
     date: 'January 8, 2026',
     changes: [

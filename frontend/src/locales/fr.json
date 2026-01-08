@@ -15,16 +15,7 @@
     "serverUnreachable": "Serveur Inaccessible",
     "serverMessage": "Impossible d'accéder au serveur. Veuillez vérifier votre connexion et réessayer."
   },
-  "updates": {
-    "title": "Mises à jour de l'App",
-    "description": "Vérifier la dernière version de l'application",
-    "check": "Vérifier les mises à jour",
-    "checking": "Vérification...",
-    "available": "Mise à jour disponible ! Veuillez actualiser la page.",
-    "upToDate": "Vous utilisez la dernière version !",
-    "checkFailed": "Échec de la vérification des mises à jour",
-    "currentVersion": "Version actuelle"
-  },
+  
 
   "dashboard": { "servicesOnline": "Services en ligne", "addService": "Ajouter un service", "searchPlaceholder": "Rechercher des services...", "noServices": "Aucun service trouvé", "loadingServices": "Chargement des services...", "getStarted": "Ajoutez votre premier service pour commencer", "noServicesPopover": "Aucun service", "lastChecked": "Dernière vérification", "checking": "Vérification...", "never": "Jamais", "yourServices": "Vos services" },
   "auth": { "completingSignIn": "Connexion en cours..." },
@@ -79,7 +70,19 @@
     "removeAvatar": "Supprimer",
     "language": "Langue",
     "languageHint": "Choisissez votre langue d'interface préférée",
-    "tabs": { "profile": "Profil", "appearance": "Apparence", "security": "Sécurité", "notifications": "Notifications", "data": "Données & Sauvegarde" },
+    "tabs": { "profile": "Profil", "appearance": "Apparence", "security": "Sécurité", "notifications": "Notifications", "data": "Données & Sauvegarde", "updates": "Mises à jour" },
+    "updates": {
+      "title": "Mises à jour de l'App",
+      "description": "Vérifier la dernière version de l'application",
+      "checkLabel": "Vérifier manuellement les mises à jour",
+      "check": "Vérifier les mises à jour",
+      "checking": "Vérification...",
+      "available": "Mise à jour disponible ! Veuillez actualiser la page.",
+      "upToDate": "Vous utilisez la dernière version !",
+      "checkFailed": "Échec de la vérification des mises à jour",
+      "versionInfo": "Informations de version",
+      "currentVersion": "Version actuelle"
+    },
     "avatarTooLarge": "L'avatar ne doit pas dépasser 2 Mo",
     "profileSaved": "Profil enregistré",
     "saveFailed": "Échec de l'enregistrement du profil",

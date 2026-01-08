@@ -15,16 +15,7 @@
     "serverUnreachable": "الخادم غير قابل للوصول",
     "serverMessage": "غير قادر على الوصول إللخادم. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
   },
-  "updates": {
-    "title": "تحديثات التطبيق",
-    "description": "تحقق من أحدث إصدار من التطبيق",
-    "check": "التحقق من التحديثات",
-    "checking": "جارٍ التحقق...",
-    "available": "تحديث متاح! يرجى التحديث للتحديث.",
-    "upToDate": "أنت تستخدم أحدث إصدار!",
-    "checkFailed": "فشل التحقق من التحديثات",
-    "currentVersion": "الإصدار الحالي"
-  },
+  
 
   "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },
   "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول..." },
@@ -78,7 +69,19 @@
     "removeAvatar": "إزالة",
     "language": "اللغة",
     "languageHint": "اختر لغة واجهة المستخدم المفضلة لديك",
-    "tabs": { "profile": "الملف الشخصي", "appearance": "المظهر", "security": "الأمان", "notifications": "الإشعارات", "data": "البيانات والنسخ الاحتياطي" },
+    "tabs": { "profile": "الملف الشخصي", "appearance": "المظهر", "security": "الأمان", "notifications": "الإشعارات", "data": "البيانات والنسخ الاحتياطي", "updates": "التحديثات" },
+    "updates": {
+      "title": "تحديثات التطبيق",
+      "description": "تحقق من أحدث إصدار من التطبيق",
+      "checkLabel": "التحقق من التحديثات يدوياً",
+      "check": "التحقق من التحديثات",
+      "checking": "جارٍ التحقق...",
+      "available": "تحديث متاح! يرجى تحديث الصفحة.",
+      "upToDate": "أنت تستخدم أحدث إصدار!",
+      "checkFailed": "فشل التحقق من التحديثات",
+      "versionInfo": "معلومات الإصدار",
+      "currentVersion": "الإصدار الحالي"
+    },
     "avatarTooLarge": "لا يجب أن يتجاوز حجم الصورة 2 ميغابايت",
     "profileSaved": "تم حفظ الملف الشخصي",
     "saveFailed": "فشل في حفظ الملف الشخصي",

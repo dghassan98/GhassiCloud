@@ -7,18 +7,20 @@
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
   border: 1px solid rgba(255,255,255,0.04);
   backdrop-filter: blur(6px) saturate(120%);
-  padding:12px;
+  padding:1.25rem; /* Match stats-card padding */
   border-radius:12px;
   box-shadow: 0 6px 18px rgba(10,12,20,0.45);
-  max-width:min(520px, calc(100vw - 32px)); /* Don't exceed viewport width minus padding */
+  max-width:380px; /* Match stats card width */
   width:100%;
   box-sizing:border-box; /* Include padding in width calculation */
+  height:auto;
+  min-height:110px; /* Consistent minimum height like stats cards */
 }
 
 .np-art-wrap{
-  width:86px;
-  height:86px;
-  flex: 0 0 86px;
+  width:90px;
+  height:90px;
+  flex: 0 0 90px;
   border-radius:10px;
   overflow:hidden;
   box-shadow: 0 8px 20px rgba(2,6,23,0.45);
@@ -216,8 +218,8 @@
 
 /* Small responsive tweaks */
 @media (max-width:640px){
-  .nowplaying-card{gap:12px;padding:10px}
-  .np-art-wrap{width:66px;height:66px}
+  .nowplaying-card{gap:12px;padding:0.875rem;min-height:95px}
+  .np-art-wrap{width:72px;height:72px;flex: 0 0 72px}
 }
 
 /* Loading overlay inside the art area */
