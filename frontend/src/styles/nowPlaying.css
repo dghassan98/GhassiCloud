@@ -95,8 +95,9 @@
   padding-bottom:1px; 
   min-width:0;
   flex-shrink:1;
-  flex-basis:0; /* Start with 0 width and grow */
-  flex-grow:2; /* Artist gets more space (2 parts) */
+  flex-basis:auto; /* Natural content width */
+  flex-grow:0; /* Don't grow */
+  max-width:60%; /* Limit to 60% of container */
 }
 .np-sep{
   flex-shrink:0;
@@ -111,8 +112,8 @@
   margin-top:1px;
   flex-shrink:1;
   min-width:0;
-  flex-basis:0; /* Start with 0 width and grow */
-  flex-grow:1; /* Album gets less space (1 part) */
+  flex-basis:auto; /* Natural content width */
+  flex-grow:0; /* Don't grow */
 }
 
 /* Light-mode card adjustments for readability */
