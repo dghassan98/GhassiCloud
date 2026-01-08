@@ -48,6 +48,7 @@ function OfflineBanner() {
 
 function App() {
   const { theme } = useTheme()
+  const { user } = useAuth()
   const { isConnected } = useNetwork()
   const { showUpdateModal, showChangelog, updateNow, dismissUpdate, dismissChangelog } = usePWAUpdate()
 
@@ -106,7 +107,8 @@ function App() {
       {showUpdateModal && (
         <UpdateNotification onUpdate={updateNow} onDismiss={dismissUpdate} />
       )}
-      {showChangelog && <ChangelogModal onClose={dismissChangelog} />}
+      {/* Only show changelog when user is logged in */}
+      {user && showChangelog && <ChangelogModal onClose={dismissChangelog} />}
       
       <SSOSessionManager />
       <Routes>

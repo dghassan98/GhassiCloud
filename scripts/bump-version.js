@@ -137,9 +137,10 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
   console.log(`\n🎉 Version bumped to ${newVersion}!`);
   console.log('\n📌 Next steps:');
   console.log('   1. Review the changes');
-  console.log('   2. Commit: git add -A && git commit -m "Release v' + newVersion + '"');
-  console.log('   3. Tag: git tag v' + newVersion);
-  console.log('   4. Deploy: npm run build\n');
+  console.log('   2. Restart Vite dev server if running (vite auto-loads version from package.json)');
+  console.log('   3. Commit: git add -A && git commit -m "Release v' + newVersion + '"');
+  console.log('   4. Tag: git tag v' + newVersion);
+  console.log('   5. Deploy: npm run build\n');
 
   rl.close();
 }
