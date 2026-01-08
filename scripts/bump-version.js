@@ -8,10 +8,10 @@ import readline from 'readline';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
-// Read package.json
-const packagePath = join(rootDir, 'package.json');
-const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
-const currentVersion = packageJson.version;
+// Read frontend package.json
+const frontendPackagePath = join(rootDir, 'frontend', 'package.json');
+const frontendPackageJson = JSON.parse(readFileSync(frontendPackagePath, 'utf8'));
+const currentVersion = frontendPackageJson.version;
 
 // Parse version
 function parseVersion(version) {
@@ -102,13 +102,13 @@ async function main() {
     return;
   }
 
-  // Update package.json
-  packageJson.version = newVersion;
-  writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
-  console.log('\n✅ Updated package.json');
+  // Update frontend/package.json
+  frontendPackageJson.version = newVersion;
+  writeFileSync(frontendPackagePath, JSON.stringify(frontendPackageJson, null, 2) + '\n');
+  console.log('\n✅ Updated frontend/package.json');
 
   // Update ChangelogModal.jsx
-  const changelogPath = join(rootDir, 'src', 'components', 'ChangelogModal.jsx');
+  const changelogPath = join(rootDir, 'frontend', 'src', 'components', 'ChangelogModal.jsx');
   let changelogContent = readFileSync(changelogPath, 'utf8');
 
   // Build new changelog entry
