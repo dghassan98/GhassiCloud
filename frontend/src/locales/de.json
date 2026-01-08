@@ -2,7 +2,8 @@
   "nav": {
     "dashboard": "Übersicht",
     "reporting": "Berichte",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "pressBackAgain": "Drücken Sie erneut Zurück, um zu beenden"
   },
   "general": {
     "welcome": "Willkommen bei GhassiCloud. Digitale Souveränität.",

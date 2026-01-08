@@ -4,7 +4,8 @@
     "reporting": "Reporting",
     "settings": "Settings",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "pressBackAgain": "Press back again to exit"
   },
   "general": {
     "welcome": "Welcome to GhassiCloud. Embrace Digital Sovereignty.",

@@ -1,5 +1,5 @@
 {
-  "nav": { "dashboard": "لوحة القيادة", "reporting": "التقارير", "settings": "الإعدادات" },
+  "nav": { "dashboard": "لوحة القيادة", "reporting": "التقارير", "settings": "الإعدادات", "pressBackAgain": "اضغط رجوع مرة أخرى للخروج" },
   "general": { "welcome": "مرحبًا بك في GhassiCloud. اعتمد السيادة الرقمية.", "scanMe": "امسحني", "userFallback": "مستخدم", "memberFallback": "عضو" },
   "sessionWarning": {
     "title": "ستنتهي الجلسة قريبًا",

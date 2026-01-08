@@ -4,11 +4,12 @@ import {
   LayoutDashboard, Settings, LogOut, 
   Moon, Sun, Menu, X, Bell, CloudSun, BarChart3
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useToast } from '../context/ToastContext'
 import { useGestures, useSwipe } from '../hooks/useGestures'
 import '../styles/layout.css'
 
@@ -17,9 +18,12 @@ export default function Layout() {
   const { theme, toggleTheme } = useTheme()
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
+  const { showToast } = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const exitTimerRef = useRef(null)
+  const [canExit, setCanExit] = useState(false)
   
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'
@@ -27,6 +31,56 @@ export default function Layout() {
 
   // Navigation history for back gesture
   const canGoBack = location.key !== 'default'
+  const isDashboard = location.pathname === '/'
+
+  // Reset exit confirmation when navigating away from dashboard
+  useEffect(() => {
+    if (!isDashboard) {
+      setCanExit(false)
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current)
+        exitTimerRef.current = null
+      }
+    }
+  }, [isDashboard])
+
+  // Handle back gesture with exit confirmation on dashboard
+  const handleBackGesture = () => {
+    // If sidebar is open, close it
+    if (sidebarOpen) {
+      return
+    }
+
+    // If on dashboard, handle exit confirmation
+    if (isDashboard) {
+      if (canExit) {
+        // Second back press - exit app or go to login
+        window.history.back()
+      } else {
+        // First back press - show warning
+        setCanExit(true)
+        showToast({
+          message: t('nav.pressBackAgain') || 'Press back again to exit',
+          type: 'info',
+          duration: 2000
+        })
+        
+        // Reset after 2 seconds
+        if (exitTimerRef.current) {
+          clearTimeout(exitTimerRef.current)
+        }
+        exitTimerRef.current = setTimeout(() => {
+          setCanExit(false)
+        }, 2000)
+      }
+    } else if (canGoBack) {
+      // On other pages, navigate back normally
+      navigate(-1)
+    } else if (!sidebarOpen) {
+      // No history, open sidebar
+      setSidebarOpen(true)
+    }
+  }
 
   // Long press on hamburger menu
   const hamburgerGestures = useGestures({
@@ -36,14 +90,7 @@ export default function Layout() {
 
   // Swipe gestures for navigation
   const swipeGestures = useSwipe({
-    onRight: () => {
-      // Swipe right to go back or open sidebar
-      if (canGoBack && !sidebarOpen) {
-        navigate(-1)
-      } else if (!sidebarOpen) {
-        setSidebarOpen(true)
-      }
-    },
+    onRight: handleBackGesture,
     onLeft: () => {
       // Swipe left to close sidebar
       if (sidebarOpen) {

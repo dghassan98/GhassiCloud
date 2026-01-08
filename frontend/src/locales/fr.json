@@ -1,5 +1,5 @@
 {
-  "nav": { "dashboard": "Tableau de bord", "reporting": "Rapports", "settings": "Paramètres" },
+  "nav": { "dashboard": "Tableau de bord", "reporting": "Rapports", "settings": "Paramètres", "pressBackAgain": "Appuyez à nouveau sur retour pour quitter" },
   "general": { "welcome": "Bienvenue sur GhassiCloud. Adoptez la souveraineté numérique.", "scanMe": "Scannez-moi", "userFallback": "Utilisateur", "memberFallback": "Membre" },
   "sessionWarning": {
     "title": "Session bientôt expirée",

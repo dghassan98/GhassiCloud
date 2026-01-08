@@ -1,5 +1,5 @@
 {
-  "nav": { "dashboard": "Панель", "reporting": "Отчёты", "settings": "Настройки" },
+  "nav": { "dashboard": "Панель", "reporting": "Отчёты", "settings": "Настройки", "pressBackAgain": "Нажмите назад ещё раз, чтобы выйти" },
   "general": { "welcome": "Добро пожаловать в GhassiCloud. Примите цифровой суверенитет.", "scanMe": "Отсканируйте меня", "userFallback": "Пользователь", "memberFallback": "Участник" },
   "sessionWarning": {
     "title": "Сессия скоро истечёт",
