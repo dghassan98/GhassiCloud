@@ -1,22 +1,18 @@
 {
   "name": "ghassicloud-frontend",
   "private": true,
-  "version": "1.1.11",
+  "version": "1.1.12",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",
-    "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
-    "cap:build:android": "npm run build && npx cap sync android",
     "cap:build:ios": "npm run build && npx cap sync ios",
-    "cap:run:android": "npx cap run android",
     "cap:run:ios": "npx cap run ios"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.0",
     "@capacitor/app": "^8.0.0",
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",

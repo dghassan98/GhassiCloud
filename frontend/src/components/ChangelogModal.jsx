@@ -3,6 +3,16 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.12': {
+    date: 'January 8, 2026',
+    changes: [
+      'Remove Android native app support and associated resources',
+      'Deleted all Android resource files including icons, splash screens, and layout files.',
+      'Removed Android-specific Gradle files and configurations.',
+      'Updated icon generation script to reflect the removal of Android support.',
+      'Cleaned up package.json by removing Android-related commands and dependencies.',
+    ],
+  },
   '1.1.11': {
     date: 'January 8, 2026',
     changes: [

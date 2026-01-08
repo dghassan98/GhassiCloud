@@ -1,13 +1,5 @@
 /**
- * Android Icon Generator for GhassiCloud
- * 
- * This script generates all required Android icon sizes from your source logo.
- * 
- * Prerequisites:
- *   npm install sharp
- * 
- * Usage:
- *   node generate-android-icons.js
+ * Icon Generator for GhassiCloud (Android native app support removed)
  */
 
 import sharp from 'sharp';
@@ -22,26 +14,8 @@ const __dirname = path.dirname(__filename);
 const SOURCE_SQUARE = path.join(__dirname, 'public/logos/logo-square-dark.png');
 const SOURCE_ROUND = path.join(__dirname, 'public/logos/logo-circle-dark.png');
 
-// Android resource directory
-const ANDROID_RES = path.join(__dirname, 'android/app/src/main/res');
+// ...existing code...
 
-// Android icon size requirements (in pixels)
-const ICON_SIZES = {
-  'mipmap-mdpi': 48,
-  'mipmap-hdpi': 72,
-  'mipmap-xhdpi': 96,
-  'mipmap-xxhdpi': 144,
-  'mipmap-xxxhdpi': 192
-};
-
-// Adaptive icon foreground sizes (slightly larger for the safe zone)
-const FOREGROUND_SIZES = {
-  'mipmap-mdpi': 108,
-  'mipmap-hdpi': 162,
-  'mipmap-xhdpi': 216,
-  'mipmap-xxhdpi': 324,
-  'mipmap-xxxhdpi': 432
-};
 
 // Splash screen sizes
 const SPLASH_SIZES = {

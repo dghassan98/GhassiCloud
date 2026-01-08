@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">GhassiCloud</string>
-    <string name="title_activity_main">GhassiCloud</string>
-    <string name="package_name">com.ghassicloud.app</string>
-    <string name="custom_url_scheme">com.ghassicloud.app</string>
-</resources>

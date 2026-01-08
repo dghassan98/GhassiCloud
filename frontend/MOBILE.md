@@ -27,9 +27,6 @@ npm run cap:sync
 ```
 
 ### 3. Open in native IDE
-
-**Android:**
-```bash
 npm run cap:android
 ```
 This opens Android Studio. Then:
@@ -74,12 +71,8 @@ server: {
   url: 'http://YOUR_LOCAL_IP:3000',  // Your computer's IP
   cleartext: true
 }
-```
-
-Then run `npm run dev` and rebuild the native app. Changes will reflect instantly!
 
 ## Testing on Your Phone
-
 ### Android (No Android Studio)
 You can build an APK directly:
 ```bash
