@@ -3,6 +3,14 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.5': {
+    date: 'January 8, 2026',
+    changes: [
+      'Add update check functionality',
+      'Lock screen orientation to portrait',
+      'Enhance localization for update messages',
+    ],
+  },
   '1.1.4': {
     date: 'January 8, 2026',
     changes: [

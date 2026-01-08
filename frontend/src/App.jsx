@@ -64,6 +64,25 @@ function App() {
     })
   }, [theme])
 
+  // Lock orientation to portrait on phones (not tablets)
+  useEffect(() => {
+    const lockOrientation = async () => {
+      // Check if device is a tablet (width >= 768px typically indicates tablet)
+      const isTablet = window.innerWidth >= 768
+      
+      if (!isTablet && screen.orientation && screen.orientation.lock) {
+        try {
+          await screen.orientation.lock('portrait')
+          console.log('Orientation locked to portrait')
+        } catch (err) {
+          console.log('Orientation lock not supported:', err)
+        }
+      }
+    }
+
+    lockOrientation()
+  }, [])
+
   // Handle app lifecycle events
   useAppLifecycle({
     onResume: () => {

@@ -33,6 +33,16 @@
     "serverUnreachable": "Server nicht erreichbar",
     "serverMessage": "Der Server kann nicht erreicht werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
+  "updates": {
+    "title": "App-Updates",
+    "description": "Nach der neuesten Version der App suchen",
+    "check": "Nach Updates suchen",
+    "checking": "Wird geprüft...",
+    "available": "Update verfügbar! Bitte aktualisieren Sie die Seite.",
+    "upToDate": "Sie verwenden die neueste Version!",
+    "checkFailed": "Update-Prüfung fehlgeschlagen",
+    "currentVersion": "Aktuelle Version"
+  },
   "dashboard": {
     "servicesOnline": "Dienste online",
     "addService": "Dienst hinzufügen",

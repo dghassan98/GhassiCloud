@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   User, Lock, Palette, Bell, Shield, Database, 
   Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
-  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3
+  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -11,6 +11,7 @@ import { useLogo, logoOptions } from '../context/LogoContext'
 import { useAccent, accentColors } from '../context/AccentContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
+import { usePWAUpdate } from '../hooks/usePWAUpdate'
 import '../styles/settings.css'
 import ErrorBoundary from '../components/ErrorBoundary'
 
@@ -22,6 +23,7 @@ export default function Settings() {
   const { currentAccent, setAccent } = useAccent()
   const { t, language, setLanguage } = useLanguage()
   const { showToast } = useToast()
+  const { checkForUpdate, showChangelog, dismissChangelog } = usePWAUpdate()
   const isAdmin = user?.role === 'admin'
   
   const settingsSections = [
@@ -38,6 +40,7 @@ export default function Settings() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [pendingLanguage, setPendingLanguage] = useState(language)
   const [showLangConfirm, setShowLangConfirm] = useState(false)
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [langToConfirm, setLangToConfirm] = useState(null)
 
   // Sessions & security preferences (user-facing)
@@ -1220,6 +1223,39 @@ export default function Settings() {
                       </button>
                     )
                   })}
+              
+              {/* Check for Updates */}
+              <div className="form-group">
+                <label>{t('settings.updates.title')}</label>
+                <p className="form-hint">{t('settings.updates.description')}</p>
+                <button
+                  className="btn-secondary"
+                  onClick={async () => {
+                    setCheckingUpdate(true)
+                    try {
+                      const hasUpdate = await checkForUpdate()
+                      if (hasUpdate) {
+                        showToast({ message: t('settings.updates.available'), type: 'success' })
+                      } else {
+                        showToast({ message: t('settings.updates.upToDate'), type: 'info' })
+                      }
+                    } catch (err) {
+                      console.error('Update check failed:', err)
+                      showToast({ message: t('settings.updates.checkFailed'), type: 'error' })
+                    } finally {
+                      setCheckingUpdate(false)
+                    }
+                  }}
+                  disabled={checkingUpdate}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <RefreshCw size={16} className={checkingUpdate ? 'spinning' : ''} />
+                  {checkingUpdate ? t('settings.updates.checking') : t('settings.updates.check')}
+                </button>
+                <p className="form-hint" style={{ marginTop: '8px', fontSize: '12px', opacity: 0.7 }}>
+                  {t('settings.updates.currentVersion')}: {import.meta.env.VITE_APP_VERSION || '1.0.0'}
+                </p>
+              </div>
                 </div>
               </div>
             </div>

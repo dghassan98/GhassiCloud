@@ -15,6 +15,16 @@
     "serverUnreachable": "Serveur Inaccessible",
     "serverMessage": "Impossible d'accéder au serveur. Veuillez vérifier votre connexion et réessayer."
   },
+  "updates": {
+    "title": "Mises à jour de l'App",
+    "description": "Vérifier la dernière version de l'application",
+    "check": "Vérifier les mises à jour",
+    "checking": "Vérification...",
+    "available": "Mise à jour disponible ! Veuillez actualiser la page.",
+    "upToDate": "Vous utilisez la dernière version !",
+    "checkFailed": "Échec de la vérification des mises à jour",
+    "currentVersion": "Version actuelle"
+  },
 
   "dashboard": { "servicesOnline": "Services en ligne", "addService": "Ajouter un service", "searchPlaceholder": "Rechercher des services...", "noServices": "Aucun service trouvé", "loadingServices": "Chargement des services...", "getStarted": "Ajoutez votre premier service pour commencer", "noServicesPopover": "Aucun service", "lastChecked": "Dernière vérification", "checking": "Vérification...", "never": "Jamais", "yourServices": "Vos services" },
   "auth": { "completingSignIn": "Connexion en cours..." },

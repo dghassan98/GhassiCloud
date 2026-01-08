@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export function usePWAUpdate() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const swRegistrationRef = useRef(null);
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -11,6 +12,7 @@ export function usePWAUpdate() {
   } = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered:', r);
+      swRegistrationRef.current = r;
       // Check for updates immediately on load
       if (r) {
         r.update();
@@ -69,11 +71,30 @@ export function usePWAUpdate() {
     setShowChangelog(false);
   };
 
+  // Manual update check function
+  const checkForUpdate = async () => {
+    return new Promise((resolve) => {
+      if (swRegistrationRef.current) {
+        console.log('🔍 Manual update check triggered');
+        swRegistrationRef.current.update();
+        
+        // Wait a bit to see if update is found
+        setTimeout(() => {
+          resolve(needRefresh);
+        }, 2000);
+      } else {
+        console.log('⚠️ No service worker registration found');
+        resolve(false);
+      }
+    });
+  };
+
   return {
     showUpdateModal,
     showChangelog,
     updateNow,
     dismissUpdate,
     dismissChangelog,
+    checkForUpdate,
   };
 }

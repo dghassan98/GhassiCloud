@@ -37,8 +37,9 @@ export default defineConfig({
         theme_color: '#0891b2',
         background_color: '#0891b2',
         display: 'standalone',
+        orientation: 'portrait',
         start_url: '/',
-        scope: '/',
+        scope: '/',',
         icons: [
           {
             src: 'logos/logo-circle-cyan.png',

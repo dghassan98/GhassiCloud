@@ -31,6 +31,16 @@
     "serverUnreachable": "Server Unreachable",
     "serverMessage": "Unable to reach the server. Please check your connection and try again."
   },
+  "updates": {
+    "title": "App Updates",
+    "description": "Check for the latest version of the app",
+    "check": "Check for Updates",
+    "checking": "Checking...",
+    "available": "Update available! Please refresh to update.",
+    "upToDate": "You're running the latest version!",
+    "checkFailed": "Failed to check for updates",
+    "currentVersion": "Current version"
+  },
   "layout": {
     "weatherTemp": "18°C",
     "weatherDesc": "Partly Cloudy",
