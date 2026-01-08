@@ -119,21 +119,21 @@
 .np-light-card{
   background:linear-gradient(180deg,#f8fafc,#f1f5f9);
   border:1px solid rgba(2,6,23,0.06);
-  color:#0b1220;
+  color:#000000;
 }
 
 /* Title & text */
 .np-light-card .np-title{
-  color:#0a1929;
+  color:#000000;
   font-size: 16px;
   font-weight:700;
   opacity:1;
 }
-.np-light-card .np-artist{color:#0f172a; font-weight:700}
-.np-light-card .np-album{color:#1e293b; opacity:1}
-.np-light-card .np-info{color:#1e293b}
-.np-light-card .np-player{color:#1e293b}
-.np-light-card .np-info-placeholder{color:#475569}
+.np-light-card .np-artist{color:#000000; font-weight:700; opacity:0.95}
+.np-light-card .np-album{color:#1a1a1a; opacity:1}
+.np-light-card .np-info{color:#000000; opacity:0.9}
+.np-light-card .np-player{color:#000000; opacity:0.9}
+.np-light-card .np-info-placeholder{color:#333333}
 
 /* Playing indicator and art */
 .np-light-card .np-playing-indicator .bar{background:var(--np-accent);opacity:0.95}

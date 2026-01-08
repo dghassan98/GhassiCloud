@@ -1,14 +1,15 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   LayoutDashboard, Settings, LogOut, 
   Moon, Sun, Menu, X, Bell, CloudSun, BarChart3
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useGestures, useSwipe } from '../hooks/useGestures'
 import '../styles/layout.css'
 
 export default function Layout() {
@@ -18,10 +19,39 @@ export default function Layout() {
   const { t } = useLanguage()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'
   const isFullLogo = currentLogo.id === 'full-logo'
+
+  // Navigation history for back gesture
+  const canGoBack = location.key !== 'default'
+
+  // Long press on hamburger menu
+  const hamburgerGestures = useGestures({
+    onLongPress: () => setSidebarOpen(true),
+    longPressDuration: 400
+  })
+
+  // Swipe gestures for navigation
+  const swipeGestures = useSwipe({
+    onRight: () => {
+      // Swipe right to go back or open sidebar
+      if (canGoBack && !sidebarOpen) {
+        navigate(-1)
+      } else if (!sidebarOpen) {
+        setSidebarOpen(true)
+      }
+    },
+    onLeft: () => {
+      // Swipe left to close sidebar
+      if (sidebarOpen) {
+        setSidebarOpen(false)
+      }
+    },
+    threshold: 100
+  })
 
   const handleLogout = () => {
     logout()
@@ -29,12 +59,14 @@ export default function Layout() {
   }
 
   return (
-    <div className="layout">
+    <div className="layout" {...swipeGestures}>
       {/* Mobile Header */}
       <header className="mobile-header">
         <button 
-          className="menu-toggle"
+          className="menu-toggle long-press-target"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          {...hamburgerGestures.touchHandlers}
+          aria-label={sidebarOpen ? t('nav.closeMenu') : t('nav.openMenu')}
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

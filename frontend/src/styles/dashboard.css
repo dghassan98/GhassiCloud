@@ -93,11 +93,52 @@
   margin-top: 0.2em;
   text-align: right;
 }
+/* ===== Pull to Refresh ===== */
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  z-index: 1000;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.pull-to-refresh-indicator .refresh-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: 50%;
+  box-shadow: var(--shadow-lg);
+  color: var(--accent);
+}
+
+.pull-to-refresh-indicator span {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--bg-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
 /* ===== Dashboard ===== */
 .dashboard {
   padding: 2rem;
   max-width: 1600px;
   margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
   position: relative;
 }
 

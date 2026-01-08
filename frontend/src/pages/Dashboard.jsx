@@ -17,6 +17,7 @@ import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
 import NowPlayingCard from '../components/NowPlayingCard'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import '../styles/dashboard.css'
 
 // Icon mapping for services
@@ -173,6 +174,20 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const token = localStorage.getItem('ghassicloud-token')
 
+  // Pull to refresh functionality
+  const {
+    pullToRefreshHandlers,
+    pullDistance,
+    isRefreshing,
+    progress,
+    containerRef
+  } = usePullToRefresh(async () => {
+    // Refresh both services and status
+    await Promise.all([
+      fetchServices(),
+      fetchServicesOnline()
+    ])
+  }, { threshold: 80, resistance: 2.5 })
 
   // Fetch real-time services online status
   // Real-time Services Online with manual refresh
@@ -541,7 +556,31 @@ export default function Dashboard() {
   const musicAccent = (services.find(s => s.url && s.url.includes('music.ghassi.cloud')) || services.find(s => s.icon === 'music'))?.color
 
   return (
-    <div className="dashboard">
+    <div className="dashboard" ref={containerRef} {...pullToRefreshHandlers}>
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="pull-to-refresh-indicator" 
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance, 80)}px)`,
+            opacity: progress
+          }}
+        >
+          <motion.div
+            className="refresh-icon"
+            animate={{ rotate: isRefreshing ? 360 : progress * 180 }}
+            transition={{ 
+              duration: isRefreshing ? 1 : 0.2, 
+              repeat: isRefreshing ? Infinity : 0,
+              ease: "linear"
+            }}
+          >
+            <RefreshCw size={24} />
+          </motion.div>
+          <span>{isRefreshing ? t('dashboard.refreshing') || 'Refreshing...' : progress >= 1 ? t('dashboard.releaseToRefresh') || 'Release to refresh' : t('dashboard.pullToRefresh') || 'Pull to refresh'}</span>
+        </div>
+      )}
+
       <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget">
         <img 
           src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://ghassi.cloud&bgcolor=1a1f2e&color=ffffff" 

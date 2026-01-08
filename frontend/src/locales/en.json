@@ -2,7 +2,9 @@
   "nav": {
     "dashboard": "Dashboard",
     "reporting": "Reporting",
-    "settings": "Settings"
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "general": {
     "welcome": "Welcome to GhassiCloud. Embrace Digital Sovereignty.",
@@ -42,7 +44,10 @@
     "lastChecked": "Last checked",
     "checking": "Checking...",
     "never": "Never",
-    "yourServices": "Your Services"
+    "yourServices": "Your Services",
+    "pullToRefresh": "Pull to refresh",
+    "releaseToRefresh": "Release to refresh",
+    "refreshing": "Refreshing..."
   },
   "auth": {
     "completingSignIn": "Completing sign in..."

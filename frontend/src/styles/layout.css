@@ -2,6 +2,33 @@
 .layout {
   display: flex;
   min-height: 100vh;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+/* Long press gesture feedback */
+.menu-toggle.long-press-target {
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.menu-toggle.long-press-target:active {
+  transform: scale(0.95);
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
 }
 
 /* ===== Sidebar ===== */
