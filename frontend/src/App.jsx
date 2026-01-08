@@ -50,6 +50,9 @@ function App() {
   const { theme } = useTheme()
   const { isConnected } = useNetwork()
   const { showUpdateModal, showChangelog, updateNow, dismissUpdate, dismissChangelog } = usePWAUpdate()
+  
+  // Debug: show current version (remove this later)
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.0.0'
 
   // Initialize native features on mount
   useEffect(() => {
@@ -78,7 +81,23 @@ function App() {
       }
     }
   })
-
+/* Debug version banner - remove after testing */}
+      <div style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        background: '#0891b2', 
+        color: 'white', 
+        padding: '4px 8px', 
+        fontSize: '12px', 
+        textAlign: 'center',
+        zIndex: 99999 
+      }}>
+        v{currentVersion} | Update: {showUpdateModal ? '✅' : '❌'} | Changelog: {showChangelog ? '✅' : '❌'}
+      </div>
+      
+      {
   return (
     <BrowserRouter>
       {!isConnected && <OfflineBanner />}
