@@ -39,7 +39,7 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
-        scope: '/',',
+        scope: '/',
         icons: [
           {
             src: 'logos/logo-circle-cyan.png',

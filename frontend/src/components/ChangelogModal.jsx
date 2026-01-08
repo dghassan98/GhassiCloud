@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.6': {
+    date: 'January 8, 2026',
+    changes: [
+      'Remove extra comma in Vite configuration scope property',
+    ],
+  },
   '1.1.5': {
     date: 'January 8, 2026',
     changes: [
