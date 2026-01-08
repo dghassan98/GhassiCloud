@@ -20,12 +20,23 @@ export async function authenticateToken(req, res, next) {
   try {
     const payload = jwt.verify(token, JWT_SECRET)
     // If token contains a sessionId, ensure it still exists (prevents use after session revocation)
+    // Only enforce this check for SSO sessions that should be actively tracked
     if (payload.sessionId && payload.id) {
       try {
         const dbModule = await import('../db/index.js')
         const db = dbModule.getDb()
         const row = db.prepare('SELECT session_id FROM user_sessions WHERE session_id = ? AND user_id = ?').get(payload.sessionId, payload.id)
-        if (!row) return res.status(403).json({ message: 'Session revoked' })
+        // Only reject if we're certain the session was explicitly revoked
+        // If the session simply doesn't exist (e.g., old token before session tracking), allow it through
+        if (!row) {
+          // Check if user has ANY active sessions - if not, this might be a pre-session-tracking token
+          const anySessions = db.prepare('SELECT COUNT(*) as count FROM user_sessions WHERE user_id = ?').get(payload.id)
+          if (anySessions && anySessions.count > 0) {
+            // User has sessions tracked, but this specific session isn't found - it was revoked
+            return res.status(403).json({ message: 'Session revoked' })
+          }
+          // Otherwise, allow through (backward compatibility with pre-session-tracking tokens)
+        }
       } catch (e) {
         console.error('Session check failed:', e)
         // Allow fallback (don't block) if DB check fails unexpectedly

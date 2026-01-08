@@ -5,6 +5,10 @@ export default function SSOCallback() {
   const { t } = useLanguage()
 
   useEffect(() => {
+    // Create an AbortController to handle cleanup
+    const abortController = new AbortController()
+    let isNavigating = false
+    
     const handleCallback = async () => {
       // Parse the authorization response from URL
       const params = new URLSearchParams(window.location.search)
@@ -60,12 +64,16 @@ export default function SSOCallback() {
       await handleDirectCallback()
       
       async function handleDirectCallback() {
+        // Check if we're already navigating or aborted
+        if (isNavigating || abortController.signal.aborted) return
+        
         // Handle errors
         if (error) {
           console.error('SSO error:', errorDescription || error)
           localStorage.setItem('sso_error', errorDescription || error)
           cleanupSSOData()
           // Use full page reload to ensure clean state
+          isNavigating = true
           window.location.href = '/login'
           return
         }
@@ -78,6 +86,7 @@ export default function SSOCallback() {
           console.error('No saved state found - session may have expired')
           localStorage.setItem('sso_error', 'Session expired. Please try logging in again.')
           cleanupSSOData()
+          isNavigating = true
           window.location.href = '/login'
           return
         }
@@ -86,6 +95,7 @@ export default function SSOCallback() {
           console.error('Invalid state parameter', { received: state, expected: savedState })
           localStorage.setItem('sso_error', 'Security validation failed. Please try again.')
           cleanupSSOData()
+          isNavigating = true
           window.location.href = '/login'
           return
         }
@@ -112,7 +122,8 @@ export default function SSOCallback() {
                 code, 
                 redirectUri: savedRedirectUri,
                 codeVerifier: savedCodeVerifier
-              })
+              }),
+              signal: abortController.signal
             })
 
             const responseText = await res.text()
@@ -140,19 +151,25 @@ export default function SSOCallback() {
             cleanupSSOData()
             localStorage.removeItem('sso_error')
             
-            // Use full page reload to ensure AuthContext picks up the new token
-            // This is critical - React Router navigate() won't trigger AuthContext re-initialization
-            console.debug('SSO authentication successful, redirecting to dashboard...')
+            isNavigating = true
             window.location.href = '/'
           } catch (err) {
+            // Ignore abort errors - they're expected when component unmounts
+            if (err.name === 'AbortError') {
+              console.debug('SSO callback request was cancelled (component unmounting)')
+              return
+            }
+            
             console.error('SSO token exchange failed:', err)
             localStorage.setItem('sso_error', err.message || 'Authentication failed')
             cleanupSSOData()
+            isNavigating = true
             window.location.href = '/login'
           }
         } else {
           // No code provided, redirect to login
           cleanupSSOData()
+          isNavigating = true
           window.location.href = '/login'
         }
       }
@@ -171,6 +188,11 @@ export default function SSOCallback() {
     }
 
     handleCallback()
+    
+    // Cleanup function to abort pending requests if component unmounts
+    return () => {
+      abortController.abort()
+    }
   }, []) // No dependencies - we use window.location for navigation
 
   return (
