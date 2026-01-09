@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.2.1': {
+    date: 'January 9, 2026',
+    changes: [
+      'feat: Update useSSOSessionMonitor to include refreshTimeoutMs and refreshCooldownMs parameters',
+    ],
+  },
   '1.2.0': {
     date: 'January 9, 2026',
     changes: [

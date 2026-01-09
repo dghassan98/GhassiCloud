@@ -16,6 +16,8 @@ import { useEffect, useRef, useCallback, useState } from 'react'
  * @param {Function} options.onSessionExpired - Callback when session has expired
  * @param {number} options.checkIntervalMs - How often to check session validity (default: 60000ms = 1 min)
  * @param {number} options.warningThresholdSec - Show warning when this many seconds remain (default: 300 = 5 min)
+ * @param {number} options.refreshTimeoutMs - Timeout for silent refresh iframe in milliseconds (default: 3000 = 3s)
+ * @param {number} options.refreshCooldownMs - Minimum time between refresh attempts in milliseconds (default: 3000 = 3s)
  */
 export function useSSOSessionMonitor({
   user,
@@ -24,6 +26,8 @@ export function useSSOSessionMonitor({
   onSessionExpired,
   checkIntervalMs = 60000, // Check every minute
   warningThresholdSec = 300, // Warn when 5 minutes remain
+  refreshTimeoutMs = 3000, // Timeout for silent refresh iframe (ms)
+  refreshCooldownMs = 3000, // Cooldown between refresh attempts (ms)
 } = {}) {
   const intervalRef = useRef(null)
   const warningShownRef = useRef(false)
@@ -103,9 +107,9 @@ export function useSSOSessionMonitor({
       return false
     }
 
-    // Cooldown period - don't attempt refresh more than once every 10 seconds
+    // Cooldown period - don't attempt refresh more than once within the cooldown window
     const timeSinceLastAttempt = Date.now() - lastRefreshAttemptRef.current
-    if (timeSinceLastAttempt < 10000) {
+    if (timeSinceLastAttempt < refreshCooldownMs) {
       console.log('Refresh cooldown active, skipping...')
       return false
     }
@@ -179,7 +183,7 @@ export function useSSOSessionMonitor({
             sessionStorage.removeItem('sso_silent_refresh')
             refreshInProgressRef.current = false
             resolve(false)
-          }, 10000) // 10 second timeout
+          }, refreshTimeoutMs) // timeout for silent iframe (ms)
 
           // Listen for message from iframe
           const handleMessage = async (event) => {
