@@ -1,6 +1,16 @@
 {
-  "nav": { "dashboard": "Panel", "reporting": "Informes", "settings": "Ajustes", "pressBackAgain": "Presiona atrás de nuevo para salir" },
-  "general": { "welcome": "Bienvenido a GhassiCloud. Adopta la soberanía digital.", "scanMe": "Escanéame", "userFallback": "Usuario", "memberFallback": "Miembro" },
+  "nav": {
+    "dashboard": "Panel",
+    "reporting": "Informes",
+    "settings": "Ajustes",
+    "pressBackAgain": "Presiona atrás de nuevo para salir"
+  },
+  "general": {
+    "welcome": "Bienvenido a GhassiCloud. Adopta la soberanía digital.",
+    "scanMe": "Escanéame",
+    "userFallback": "Usuario",
+    "memberFallback": "Miembro"
+  },
   "sessionWarning": {
     "title": "La sesión expira pronto",
     "description": "Tu sesión de inicio de sesión está a punto de expirar debido a la inactividad. ¿Deseas seguir conectado?",
@@ -8,24 +18,48 @@
     "stayLoggedIn": "Continuar conectado",
     "helperText": "Haz clic en 'Continuar conectado' para mantener tu sesión"
   },
-  "layout": { "weatherTemp": "18°C", "weatherDesc": "Parcialmente nublado", "openProfile": "Abrir configuración de perfil", "notifications": "Notificaciones", "signOutLocal": "Cerrar sesión (local)", "signOutProvider": "Cerrar sesión en el proveedor de identidad", "signedOut": "Sesión cerrada" },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Parcialmente nublado",
+    "openProfile": "Abrir configuración de perfil",
+    "notifications": "Notificaciones",
+    "signOutLocal": "Cerrar sesión (local)",
+    "signOutProvider": "Cerrar sesión en el proveedor de identidad",
+    "signedOut": "Sesión cerrada"
+  },
   "offline": {
     "title": "Sin Conexión",
     "message": "Actualmente está desconectado. Por favor, verifique su conexión a Internet para iniciar sesión.",
     "serverUnreachable": "Servidor Inaccesible",
     "serverMessage": "No se puede acceder al servidor. Por favor, verifique su conexión e intente nuevamente."
   },
-  
-
-  "dashboard": { "servicesOnline": "Servicios en línea", "addService": "Agregar servicio", "searchPlaceholder": "Buscar servicios...", "noServices": "No se encontraron servicios", "loadingServices": "Cargando servicios...", "getStarted": "Agrega tu primer servicio para comenzar", "noServicesPopover": "Sin servicios", "lastChecked": "Última verificación", "checking": "Comprobando...", "never": "Nunca", "yourServices": "Tus servicios" },
-  "auth": { "completingSignIn": "Finalizando inicio de sesión..." },
+  "dashboard": {
+    "servicesOnline": "Servicios en línea",
+    "addService": "Agregar servicio",
+    "searchPlaceholder": "Buscar servicios...",
+    "noServices": "No se encontraron servicios",
+    "loadingServices": "Cargando servicios...",
+    "getStarted": "Agrega tu primer servicio para comenzar",
+    "noServicesPopover": "Sin servicios",
+    "lastChecked": "Última verificación",
+    "checking": "Comprobando...",
+    "never": "Nunca",
+    "yourServices": "Tus servicios"
+  },
+  "auth": {
+    "completingSignIn": "Finalizando inicio de sesión..."
+  },
   "settings": {
     "title": "Ajustes",
     "description": "Administra tu cuenta y preferencias",
     "profile": "Configuración de perfil",
     "appearance": "Apariencia",
     "theme": "Tema",
-    "themeOptions": { "light": "Claro", "dark": "Oscuro", "system": "Sistema" },
+    "themeOptions": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
     "accentColor": "Color de acento",
     "customAccentColor": "Color de acento personalizado",
     "customAccentHint": "Elige tu propio color de acento",
@@ -40,10 +74,30 @@
     "newPasswordPlaceholder": "Introduce la nueva contraseña",
     "confirmPassword": "Confirmar nueva contraseña",
     "confirmPasswordPlaceholder": "Confirma la nueva contraseña",
-    "twoFactor": { "title": "", "desc": "" },
-    "enable2FA": "", 
-    "ssoConfig": { "title": "Configuración SSO", "desc": "Conéctate a tu proveedor de identidad", "button": "Editar SSO" },
-    "notifications": { "serviceAlerts": { "title": "Alertas de estado del servicio", "desc": "Recibe una notificación cuando un servicio esté offline" }, "systemUpdates": { "title": "Actualizaciones del sistema", "desc": "Notificaciones sobre actualizaciones del sistema" }, "weeklyReports": { "title": "Informes semanales", "desc": "Recibe informes de uso semanales" } },
+    "twoFactor": {
+      "title": "",
+      "desc": ""
+    },
+    "enable2FA": "",
+    "ssoConfig": {
+      "title": "Configuración SSO",
+      "desc": "Conéctate a tu proveedor de identidad",
+      "button": "Editar SSO"
+    },
+    "notifications": {
+      "serviceAlerts": {
+        "title": "Alertas de estado del servicio",
+        "desc": "Recibe una notificación cuando un servicio esté offline"
+      },
+      "systemUpdates": {
+        "title": "Actualizaciones del sistema",
+        "desc": "Notificaciones sobre actualizaciones del sistema"
+      },
+      "weeklyReports": {
+        "title": "Informes semanales",
+        "desc": "Recibe informes de uso semanales"
+      }
+    },
     "data": "Datos y copia de seguridad",
     "exportData": "Exportar datos",
     "exportDataDesc": "Descarga todas tus configuraciones de servicio",
@@ -69,7 +123,33 @@
     "removeAvatar": "Eliminar",
     "language": "Idioma",
     "languageHint": "Elige tu idioma de interfaz preferido",
-    "tabs": { "profile": "Perfil", "appearance": "Apariencia", "security": "Seguridad", "notifications": "Notificaciones", "data": "Datos y copia de seguridad", "updates": "Actualizaciones" },
+    "tabs": {
+      "profile": "Perfil",
+      "appearance": "Apariencia",
+      "security": "Seguridad",
+      "notifications": "Notificaciones",
+      "data": "Datos y copia de seguridad",
+      "updates": "Actualizaciones"
+    },
+    "syncPreferences": {
+      "title": "Sincronizar preferencias entre dispositivos",
+      "desc": "Guarda las preferencias de apariencia en tu cuenta y sincronízalas entre dispositivos. Desactiva para mantener la configuración local en este navegador.",
+      "enabled": "Las preferencias se sincronizarán",
+      "disabled": "Las preferencias se guardarán localmente",
+      "toggleFailed": "No se pudo actualizar la preferencia de sincronización"
+    },
+    "resetDefaults": {
+      "title": "Restablecer apariencia a los valores predeterminados",
+      "desc": "Restaurar el tema, el acento y el logotipo predeterminados. Opcionalmente olvidar las preferencias guardadas en el servidor.",
+      "forgetServer": "Olvidar preferencias del servidor",
+      "button": "Restablecer",
+      "confirm": "Esto restaurará la apariencia a los valores predeterminados. ¿Continuar?",
+      "localReset": "Apariencia restablecida localmente",
+      "serverReset": "Preferencias del servidor olvidadas",
+      "serverResetFailed": "Error al borrar las preferencias del servidor",
+      "failed": "Error al restablecer la apariencia localmente",
+      "mustBeSignedIn": "Inicia sesión para olvidar las preferencias del servidor"
+    },
     "updates": {
       "title": "Actualizaciones de la App",
       "description": "Buscar la última versión de la aplicación",
@@ -93,12 +173,14 @@
     "saveFailed": "Error al guardar el perfil",
     "languageConfirmTitle": "¿Cambiar idioma?",
     "languageConfirmMsg": "¿Aplicar el idioma seleccionado a la interfaz? Si no lo aplica, se revertirá al idioma anterior.",
-    "languageConfirmApply": "Aplicar",    "unsavedChanges": {
+    "languageConfirmApply": "Aplicar",
+    "unsavedChanges": {
       "title": "Cambios sin guardar",
       "message": "Tienes cambios de apariencia sin guardar. ¿Quieres descartarlos o seguir editando?",
       "discard": "Descartar cambios",
       "keepEditing": "Seguir editando"
-    },    "usernameSSOHint": "El nombre de usuario lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
+    },
+    "usernameSSOHint": "El nombre de usuario lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
     "emailSSOHint": "El correo lo proporciona tu proveedor SSO y no se puede cambiar aquí.",
     "passwordManagedBySSOTitle": "Contraseña administrada por el proveedor de identidad",
     "passwordManagedBySSO": "Tu cuenta usa inicio de sesión único. Para cambiar tu contraseña, visita a tu proveedor de autenticación.",
@@ -122,7 +204,6 @@
     "lastActive": "Última actividad",
     "currentSession": "Sesión actual",
     "risk": {
-
       "differentDevice": "Dispositivo/Navegador diferente",
       "staleSession": "Sesión sin usar por mucho tiempo",
       "unknownClient": "Cliente desconocido"
@@ -151,10 +232,75 @@
       "loadFailed": "Error al cargar los usuarios"
     }
   },
-  "profile": { "firstName": "Nombre", "lastName": "Apellido", "displayName": "Nombre para mostrar", "username": "Nombre de usuario", "email": "Correo" },
-  "reporting": { "title": "Informes", "description": "Análisis y conocimientos sobre tus servicios", "comingSoon": "Próximamente", "plannedFeatures": "Funciones planificadas", "usageAnalytics": "Analítica de uso", "features": { "dailyWeeklyMonthly": "Informes diarios/semanales/mensuales", "uptimeCharts": "Gráficos de disponibilidad del servicio", "mostAccessed": "Servicios más accedidos", "responseTime": "Monitoreo del tiempo de respuesta", "export": "Exportar informes como PDF/CSV", "dateRange": "Filtrado por rango de fechas personalizado", "emailReports": "Informes programados por correo electrónico" } },
-  "nowPlaying": { "loading": "Cargando…", "nothingPlaying": "Nada reproduciéndose", "unknownArtist": "Artista desconocido", "noPlayerInfo": "Sin información del reproductor", "connectButton": "Conectar con GhassiMusic", "connectTitle": "Conectar con GhassiMusic", "signInDesc": "Inicia sesión en GhassiMusic para mostrar lo que se reproduce en tu panel.", "loggingIn": "Iniciando sesión…", "login": "Iniciar sesión", "refresh": "Actualizar", "refreshedSuccess": "Reproducción actualizada", "refreshFailed": "Error al actualizar", "refreshFailedAuth": "No autenticado — por favor, inicia sesión", "refreshNoEntry": "No se detecta reproducción activa", "reloginSuccess": "Reautenticado y actualizado", "reloginFailed": "Error en el reingreso automático", "logout": "Cerrar sesión" },
-  "service": { "check": "Comprobar estado", "edit": "Editar", "delete": "Eliminar", "pin": "Fijar", "unpin": "Quitar fijado", "open": "Abrir", "addTitle": "Agregar nuevo servicio", "editTitle": "Editar servicio", "fields": { "name": "Nombre del servicio", "description": "Descripción", "url": "URL", "icon": "Icono", "preview": "Vista previa:", "color": "Color" }, "placeholders": { "name": "p.ej., Jellyfin", "description": "p.ej., Servidor de streaming de medios", "url": "https://service.ejemplo.com" }, "icon": { "auto": "Usar Favicon", "choose": "Elegir icono" }, "faviconPreview": "Vista previa del favicon",
+  "profile": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "displayName": "Nombre para mostrar",
+    "username": "Nombre de usuario",
+    "email": "Correo"
+  },
+  "reporting": {
+    "title": "Informes",
+    "description": "Análisis y conocimientos sobre tus servicios",
+    "comingSoon": "Próximamente",
+    "plannedFeatures": "Funciones planificadas",
+    "usageAnalytics": "Analítica de uso",
+    "features": {
+      "dailyWeeklyMonthly": "Informes diarios/semanales/mensuales",
+      "uptimeCharts": "Gráficos de disponibilidad del servicio",
+      "mostAccessed": "Servicios más accedidos",
+      "responseTime": "Monitoreo del tiempo de respuesta",
+      "export": "Exportar informes como PDF/CSV",
+      "dateRange": "Filtrado por rango de fechas personalizado",
+      "emailReports": "Informes programados por correo electrónico"
+    }
+  },
+  "nowPlaying": {
+    "loading": "Cargando…",
+    "nothingPlaying": "Nada reproduciéndose",
+    "unknownArtist": "Artista desconocido",
+    "noPlayerInfo": "Sin información del reproductor",
+    "connectButton": "Conectar con GhassiMusic",
+    "connectTitle": "Conectar con GhassiMusic",
+    "signInDesc": "Inicia sesión en GhassiMusic para mostrar lo que se reproduce en tu panel.",
+    "loggingIn": "Iniciando sesión…",
+    "login": "Iniciar sesión",
+    "refresh": "Actualizar",
+    "refreshedSuccess": "Reproducción actualizada",
+    "refreshFailed": "Error al actualizar",
+    "refreshFailedAuth": "No autenticado — por favor, inicia sesión",
+    "refreshNoEntry": "No se detecta reproducción activa",
+    "reloginSuccess": "Reautenticado y actualizado",
+    "reloginFailed": "Error en el reingreso automático",
+    "logout": "Cerrar sesión"
+  },
+  "service": {
+    "check": "Comprobar estado",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "pin": "Fijar",
+    "unpin": "Quitar fijado",
+    "open": "Abrir",
+    "addTitle": "Agregar nuevo servicio",
+    "editTitle": "Editar servicio",
+    "fields": {
+      "name": "Nombre del servicio",
+      "description": "Descripción",
+      "url": "URL",
+      "icon": "Icono",
+      "preview": "Vista previa:",
+      "color": "Color"
+    },
+    "placeholders": {
+      "name": "p.ej., Jellyfin",
+      "description": "p.ej., Servidor de streaming de medios",
+      "url": "https://service.ejemplo.com"
+    },
+    "icon": {
+      "auto": "Usar Favicon",
+      "choose": "Elegir icono"
+    },
+    "faviconPreview": "Vista previa del favicon",
     "extraAuth": "Requiere autenticación adicional",
     "extraAuthShort": "Auth requerida",
     "extraAuthDesc": "Este servicio requiere autenticación adicional y no puede iniciar sesión mediante OIDC de forma inmediata.",
@@ -163,7 +309,14 @@
     "ghassiDriveDesc": "Tu almacenamiento en la nube personal",
     "ghassiGalleryDesc": "Tu galería en la nube personal",
     "ghassiStreamDesc": "Tu servicio de streaming personal",
-    "ghassiShareDesc": "Tu servicio personal para compartir archivos" },
-  "app": { "loading": "Cargando GhassiCloud..." },
-  "common": { "cancel": "Cancelar", "close": "Cerrar", "loading": "Cargando..." }
+    "ghassiShareDesc": "Tu servicio personal para compartir archivos"
+  },
+  "app": {
+    "loading": "Cargando GhassiCloud..."
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "loading": "Cargando..."
+  }
 }

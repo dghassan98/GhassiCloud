@@ -33,7 +33,6 @@
     "serverUnreachable": "Server nicht erreichbar",
     "serverMessage": "Der Server kann nicht erreicht werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
-  
   "dashboard": {
     "servicesOnline": "Dienste online",
     "addService": "Dienst hinzufügen",
@@ -56,7 +55,11 @@
     "profile": "Profileinstellungen",
     "appearance": "Darstellung",
     "theme": "Thema",
-    "themeOptions": { "light": "Hell", "dark": "Dunkel", "system": "System" },
+    "themeOptions": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    },
     "accentColor": "Akzentfarbe",
     "customAccentColor": "Benutzerdefinierte Akzentfarbe",
     "customAccentHint": "Wähle deine eigene Akzentfarbe",
@@ -71,14 +74,29 @@
     "newPasswordPlaceholder": "Neues Passwort eingeben",
     "confirmPassword": "Neues Passwort bestätigen",
     "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
-    "twoFactor": { "title": "", "desc": "" },
+    "twoFactor": {
+      "title": "",
+      "desc": ""
+    },
     "enable2FA": "",
-    
-    "ssoConfig": { "title": "SSO-Konfiguration", "desc": "Mit deinem Identitätsanbieter verbinden", "button": "SSO bearbeiten" },
+    "ssoConfig": {
+      "title": "SSO-Konfiguration",
+      "desc": "Mit deinem Identitätsanbieter verbinden",
+      "button": "SSO bearbeiten"
+    },
     "notifications": {
-      "serviceAlerts": { "title": "Dienststatus-Benachrichtigungen", "desc": "Erhalte eine Benachrichtigung, wenn ein Dienst offline geht" },
-      "systemUpdates": { "title": "System-Updates", "desc": "Benachrichtigungen über Systemupdates" },
-      "weeklyReports": { "title": "Wöchentliche Berichte", "desc": "Erhalte wöchentliche Nutzungsberichte" }
+      "serviceAlerts": {
+        "title": "Dienststatus-Benachrichtigungen",
+        "desc": "Erhalte eine Benachrichtigung, wenn ein Dienst offline geht"
+      },
+      "systemUpdates": {
+        "title": "System-Updates",
+        "desc": "Benachrichtigungen über Systemupdates"
+      },
+      "weeklyReports": {
+        "title": "Wöchentliche Berichte",
+        "desc": "Erhalte wöchentliche Nutzungsberichte"
+      }
     },
     "data": "Daten & Backup",
     "exportData": "Daten exportieren",
@@ -105,7 +123,33 @@
     "removeAvatar": "Entfernen",
     "language": "Sprache",
     "languageHint": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
-    "tabs": { "profile": "Profil", "appearance": "Darstellung", "security": "Sicherheit", "notifications": "Benachrichtigungen", "data": "Daten & Backup", "updates": "Updates" },
+    "tabs": {
+      "profile": "Profil",
+      "appearance": "Darstellung",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "data": "Daten & Backup",
+      "updates": "Updates"
+    },
+    "syncPreferences": {
+      "title": "Einstellungen über Geräte synchronisieren",
+      "desc": "Speichere Anzeigeeinstellungen in deinem Konto und synchronisiere sie über Geräte. Deaktiviere, um Einstellungen lokal in diesem Browser zu behalten.",
+      "enabled": "Einstellungen werden synchronisiert",
+      "disabled": "Einstellungen werden lokal gespeichert",
+      "toggleFailed": "Fehler beim Aktualisieren der Synchronisationseinstellung"
+    },
+    "resetDefaults": {
+      "title": "Design auf Standard zurücksetzen",
+      "desc": "Stellt Theme, Akzentfarbe und Logo auf die Standardeinstellungen zurück. Optional gespeicherte Servereinstellungen vergessen.",
+      "forgetServer": "Serverpräferenzen vergessen",
+      "button": "Auf Standard zurücksetzen",
+      "confirm": "Dadurch werden die Anzeigeeinstellungen auf die Standardeinstellungen zurückgesetzt. Fortfahren?",
+      "localReset": "Design lokal zurückgesetzt",
+      "serverReset": "Servereinstellungen wurden gelöscht",
+      "serverResetFailed": "Serverpräferenzen konnten nicht gelöscht werden",
+      "failed": "Design konnte nicht lokal zurückgesetzt werden",
+      "mustBeSignedIn": "Melde dich an, um Serverpräferenzen zu löschen"
+    },
     "updates": {
       "title": "App-Updates",
       "description": "Nach der neuesten Version der App suchen",
@@ -160,7 +204,6 @@
     "lastActive": "Zuletzt aktiv",
     "currentSession": "Aktuelle Sitzung",
     "risk": {
-
       "differentDevice": "Anderes Gerät/Browser",
       "staleSession": "Lange nicht verwendete Sitzung",
       "unknownClient": "Unbekannter Client"
@@ -240,9 +283,23 @@
     "open": "Öffnen",
     "addTitle": "Neuen Dienst hinzufügen",
     "editTitle": "Dienst bearbeiten",
-    "fields": { "name": "Dienstname", "description": "Beschreibung", "url": "URL", "icon": "Icon", "preview": "Vorschau:", "color": "Farbe" },
-    "placeholders": { "name": "z. B. Jellyfin", "description": "z. B. Media-Streaming-Server", "url": "https://service.beispiel.de" },
-    "icon": { "auto": "Favicon verwenden", "choose": "Symbol wählen" },
+    "fields": {
+      "name": "Dienstname",
+      "description": "Beschreibung",
+      "url": "URL",
+      "icon": "Icon",
+      "preview": "Vorschau:",
+      "color": "Farbe"
+    },
+    "placeholders": {
+      "name": "z. B. Jellyfin",
+      "description": "z. B. Media-Streaming-Server",
+      "url": "https://service.beispiel.de"
+    },
+    "icon": {
+      "auto": "Favicon verwenden",
+      "choose": "Symbol wählen"
+    },
     "faviconPreview": "Favicon-Vorschau",
     "extraAuth": "Erfordert zusätzliche Authentifizierung",
     "extraAuthShort": "Auth erforderlich",

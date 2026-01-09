@@ -3,6 +3,15 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.2.0': {
+    date: 'January 9, 2026',
+    changes: [
+      'feat(locales): update French and Russian translations for improved clarity and consistency',
+      'feat(settings): add sync preferences toggle and reset defaults functionality in settings page',
+      'fix(SSOCallback): prevent auto-application of server preferences on SSO redirect login',
+      'chore(package): bump frontend version to 1.1.13 and remove unused @capacitor/android dependency',
+    ],
+  },
   '1.1.13': {
     date: 'January 9, 2026',
     changes: [

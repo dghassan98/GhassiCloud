@@ -17,7 +17,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 
 
 export default function Settings() {
-  const { user, logout, updateUser } = useAuth()
+  const { user, logout, updateUser, refreshUser } = useAuth()
   const { theme, setTheme } = useTheme()
   const { currentLogo, setLogo } = useLogo()
   const { currentAccent, setAccent } = useAccent()
@@ -26,6 +26,72 @@ export default function Settings() {
   const { checkForUpdate, forceRefresh, showChangelog, dismissChangelog } = usePWAUpdate()
   const isAdmin = user?.role === 'admin'
   const [forceRefreshing, setForceRefreshing] = useState(false)
+
+  // Sync preferences toggle (default: localStorage, fallback to server or true)
+  const [syncPreferences, setSyncPreferences] = useState(() => {
+    try {
+      const local = localStorage.getItem('ghassicloud-sync-preferences')
+      if (local !== null) return local === 'true'
+      // Default to OFF unless server explicitly opted into syncing
+      return user?.preferences?.syncPreferences === true
+    } catch (e) { return false }
+  })
+
+  useEffect(() => {
+    try {
+      const local = localStorage.getItem('ghassicloud-sync-preferences')
+      if (local !== null) setSyncPreferences(local === 'true')
+      else setSyncPreferences(user?.preferences?.syncPreferences === true)
+    } catch (e) {}
+  }, [user])
+
+  const handleToggleSync = async () => {
+    const next = !syncPreferences
+    setSyncPreferences(next)
+    try { localStorage.setItem('ghassicloud-sync-preferences', next ? 'true' : 'false') } catch (e) {}
+
+    if (user) {
+      try {
+        const token = localStorage.getItem('ghassicloud-token')
+        if (!token) return
+        const res = await fetch('/api/auth/appearance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ syncPreferences: next })
+        })
+        if (res.ok) {
+          try {
+            const data = await res.json()
+            // If server returned updated preferences, apply them immediately to localStorage so UI picks them up
+            try {
+              const prefs = data && data.preferences ? data.preferences : null
+              if (prefs) {
+                if (prefs.theme) localStorage.setItem('ghassicloud-theme', prefs.theme)
+                if (prefs.accent) localStorage.setItem('ghassicloud-accent', prefs.accent)
+                if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
+                if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
+                localStorage.setItem('ghassicloud-sync-preferences', prefs.syncPreferences === true ? 'true' : 'false')
+                try { window.__ghassicloud_server_prefs_applied = true } catch (e) {}
+                try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {}
+                try { setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {} }, 150) } catch (e) {}
+              }
+            } catch (e) {}
+
+            try { await refreshUser() } catch (e) {}
+          } catch (e) { /* ignore json parse errors and still refresh */ try { await refreshUser() } catch (e) {} }
+
+          showToast({ message: next ? (t('settings.syncPreferences.enabled') || 'Preferences will be synced') : (t('settings.syncPreferences.disabled') || 'Preferences will be stored locally'), type: 'success' })
+        } else {
+          showToast({ message: t('settings.syncPreferences.toggleFailed') || 'Failed to update sync preference', type: 'error' })
+        }
+      } catch (e) {
+        console.error('Failed to update sync preference:', e)
+        showToast({ message: t('settings.syncToggleFailed') || 'Failed to update sync preference', type: 'error' })
+      }
+    } else {
+      showToast({ message: next ? (t('settings.syncPreferences.enabled') || 'Preference will be used when you sign in') : (t('settings.syncPreferences.disabled') || 'Preferences will be stored locally on this device'), type: 'info' })
+    }
+  }
 
   const settingsSections = [
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
@@ -50,6 +116,48 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
 
+  // Reset defaults state
+  const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
+
+  const handleResetDefaults = async () => {
+    if (!window.confirm(t('settings.resetDefaults.confirm') || 'This will restore appearance settings to defaults. Continue?')) return
+
+    // Apply local defaults
+    try {
+      localStorage.removeItem('ghassicloud-theme')
+      localStorage.removeItem('ghassicloud-accent')
+      localStorage.removeItem('ghassicloud-custom-accent')
+      localStorage.removeItem('ghassicloud-logo')
+      localStorage.setItem('ghassicloud-sync-preferences', 'true')
+
+      // Apply to UI immediately
+      setTheme('system')
+      setAccent('cyan')
+      setLogo('circle')
+
+      showToast({ message: t('settings.resetDefaults.localReset') || 'Appearance reset locally', type: 'success' })
+    } catch (e) {
+      showToast({ message: t('settings.resetDefaults.failed') || 'Failed to reset appearance locally', type: 'error' })
+    }
+
+    // If user chose to forget server preferences, call backend
+    if (forgetServerPrefs && user) {
+      try {
+        const token = localStorage.getItem('ghassicloud-token')
+        if (!token) { showToast({ message: t('settings.resetDefaults.mustBeSignedIn') || 'Sign in to forget server preferences', type: 'info' }); return }
+        const res = await fetch('/api/auth/appearance', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ clearPreferences: true, syncPreferences: false }) })
+        if (res.ok) {
+          await refreshUser()
+          showToast({ message: t('settings.resetDefaults.serverReset') || 'Server preferences forgotten', type: 'success' })
+        } else {
+          showToast({ message: t('settings.resetDefaults.serverResetFailed') || 'Failed to clear server preferences', type: 'error' })
+        }
+      } catch (e) {
+        console.error('Failed to clear server prefs', e)
+        showToast({ message: t('settings.resetDefaults.serverResetFailed') || 'Failed to clear server preferences', type: 'error' })
+      }
+    }
+  }
   // User management (admin only)
   const [allUsers, setAllUsers] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
@@ -975,6 +1083,19 @@ export default function Settings() {
           {activeSection === 'appearance' && (
             <div className="settings-section">
               <h2>{t('settings.appearance')}</h2>
+              <div className="toggle-group">
+                <div className="toggle-item">
+                  <div>
+                    <h4>{t('settings.syncPreferences.title') || 'Sync preferences across devices'}</h4>
+                    <p>{t('settings.syncPreferences.desc') || 'Save appearance preferences to your account and sync them across devices. Turn off to keep settings local to this browser.'}</p>
+                  </div>
+                  <label className="toggle">
+                    <input type="checkbox" checked={!!syncPreferences} onChange={handleToggleSync} />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>{t('settings.theme')}</label>
                 <div className="theme-selector">
@@ -1001,6 +1122,8 @@ export default function Settings() {
                   </button>
                 </div>
               </div>
+
+
               <div className="form-group">
                 <label>{t('settings.accentColor')}</label>
                 <div className="color-picker">
@@ -1226,6 +1349,25 @@ export default function Settings() {
                       </button>
                     )
                   })}
+                </div>
+              </div>
+
+              <hr className="section-sep" />
+              <div className="danger-zone reset-danger">
+                <h3>{t('settings.resetDefaults.title') || 'Reset appearance to defaults'}</h3>
+                <p className="form-hint">{t('settings.resetDefaults.desc') || 'Restore default theme, accent and logo. Optionally forget server-saved preferences.'}</p>
+                <div className="danger-action">
+                  <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                    <label className="toggle">
+                      <input type="checkbox" checked={forgetServerPrefs} onChange={() => setForgetServerPrefs(prev => !prev)} aria-label={t('settings.resetDefaults.forgetServer') || 'Forget server preferences'} />
+                      <span className="toggle-slider" />
+                    </label>
+                    <span className="toggle-label">{t('settings.resetDefaults.forgetServer') || 'Forget server preferences'}</span>
+                  </div>
+                  <button className="btn btn-danger" onClick={handleResetDefaults}>
+                    <AlertTriangle size={14} className="reset-icon" />
+                    <span>{t('settings.resetDefaults.button') || 'Reset to defaults'}</span>
+                  </button>
                 </div>
               </div>
             </div>

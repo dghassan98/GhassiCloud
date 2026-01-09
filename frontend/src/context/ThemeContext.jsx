@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 
 const ThemeContext = createContext()
 
@@ -30,6 +31,8 @@ function updateFavicon(theme) {
 }
 
 export function ThemeProvider({ children }) {
+  const auth = useAuth()
+
   const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem('ghassicloud-theme')
     return saved || 'system' // Default to system auto-detection
@@ -38,6 +41,8 @@ export function ThemeProvider({ children }) {
   const [isPreview, setIsPreview] = useState(false)
 
   const setTheme = (newTheme, preview = false) => {
+    // Debug: log explicit calls to the theme setter so we can trace user actions
+    try { console.debug('setTheme called', { newTheme, preview }) } catch (e) {}
     setThemeState(newTheme)
     setIsPreview(preview)
   }
@@ -68,9 +73,21 @@ export function ThemeProvider({ children }) {
     
     // Only log if not in preview mode
     if (!isPreview) {
-      // Log theme change to backend (if user is authenticated)
+      // Decide whether we should sync this change to server
+      const localSyncPref = (() => { try { const s = localStorage.getItem('ghassicloud-sync-preferences'); if (s !== null) return s === 'true'; return false } catch (e) { return false } })()
+      // Allow syncing unless server explicitly disabled it; if auth isn't loaded yet but a token exists, we still allow posting
+      const serverSyncPref = (() => { try { return !(auth && auth.user && auth.user.preferences && auth.user.preferences.syncPreferences === false) } catch (e) { return true } })()
+      const authReady = Boolean(auth && auth.user)
+      const serverPrefsApplied = Boolean(window && window.__ghassicloud_server_prefs_applied)
+      const tokenPresent = !!localStorage.getItem('ghassicloud-token')
+      const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
+
+      // Log theme change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
-      if (token) {
+      // Debug: log sync decision and token presence + server prefs
+      try { console.debug('Theme update:', { theme, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!token, authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
+      if (token && shouldSync) {
+        console.debug('Posting theme update to /api/auth/appearance', { theme })
         fetch('/api/auth/appearance', {
           method: 'POST',
           headers: {
@@ -78,7 +95,12 @@ export function ThemeProvider({ children }) {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ theme })
+        }).then(() => {
+          // Refresh user state from server so other contexts/components pick up new preferences
+          try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {}
         }).catch(err => console.debug('Failed to log theme change:', err))
+      } else {
+        console.debug('Skipping theme POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
       }
     }
   }, [theme, isPreview, isInitialLoad])
@@ -105,6 +127,30 @@ export function ThemeProvider({ children }) {
       return () => mediaQuery.removeListener(handleChange)
     }
   }, [theme])
+
+  // Prefer server-side preference when user is signed in
+  useEffect(() => {
+    if (!auth || !auth.user) return
+    const serverTheme = auth.user.theme
+    try { console.debug('ThemeContext: auth.user changed, serverTheme:', serverTheme, 'currentTheme:', theme, 'authPrefs:', auth.user.preferences) } catch (e) {}
+    if (serverTheme && serverTheme !== theme) {
+      setThemeState(serverTheme)
+    }
+  }, [auth && auth.user])
+
+  // Re-apply preferences when a force-refresh or auth refresh writes server prefs to localStorage
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const prefs = (e && e.detail && e.detail.prefs) || {}
+        if (prefs.theme) {
+          setThemeState(prefs.theme)
+        }
+      } catch (err) { console.debug('ThemeContext: preferences-updated handler error', err) }
+    }
+    window.addEventListener('ghassicloud:preferences-updated', handler)
+    return () => window.removeEventListener('ghassicloud:preferences-updated', handler)
+  }, [])
 
   const toggleTheme = () => {
     setTheme(prev => {

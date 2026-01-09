@@ -406,6 +406,8 @@ router.post('/login', (req, res) => {
       status: 'success'
     })
 
+    const prefs = (() => { try { return user.preferences ? JSON.parse(user.preferences) : {} } catch (e) { return {} } })()
+
     res.json({
       token,
       user: {
@@ -417,6 +419,12 @@ router.post('/login', (req, res) => {
         lastName: user.last_name || null,
         avatar: user.avatar || null,
         language: user.language || null,
+        // persisted appearance preferences
+        theme: prefs.theme || null,
+        accent: prefs.accent || null,
+        customAccent: prefs.customAccent || null,
+        logo: prefs.logo || null,
+        preferences: prefs,
         role: user.role,
         ssoProvider: user.sso_provider || null
       }
@@ -438,6 +446,8 @@ router.get('/me', authenticateToken, (req, res) => {
     }
 
 
+    const prefs = (() => { try { return user.preferences ? JSON.parse(user.preferences) : {} } catch (e) { return {} } })()
+
     res.json({
       user: {
         id: user.id,
@@ -448,6 +458,12 @@ router.get('/me', authenticateToken, (req, res) => {
         lastName: user.last_name || null,
         avatar: user.avatar || null,
         language: user.language || null,
+        // persisted appearance preferences
+        theme: prefs.theme || null,
+        accent: prefs.accent || null,
+        customAccent: prefs.customAccent || null,
+        logo: prefs.logo || null,
+        preferences: prefs,
         role: user.role,
         ssoProvider: user.sso_provider || null
       }
@@ -566,6 +582,8 @@ router.put('/profile', authenticateToken, (req, res) => {
       })
     }
 
+    const updatedPrefs = (() => { try { return updated.preferences ? JSON.parse(updated.preferences) : {} } catch (e) { return {} } })()
+
     res.json({
       user: {
         id: updated.id,
@@ -576,6 +594,12 @@ router.put('/profile', authenticateToken, (req, res) => {
         lastName: updated.last_name || null,
         avatar: updated.avatar || null,
         language: updated.language || null,
+        // persisted appearance preferences
+        theme: updatedPrefs.theme || null,
+        accent: updatedPrefs.accent || null,
+        customAccent: updatedPrefs.customAccent || null,
+        logo: updatedPrefs.logo || null,
+        preferences: updatedPrefs,
         role: updated.role,
         ssoProvider: updated.sso_provider || null
       }
@@ -586,33 +610,65 @@ router.put('/profile', authenticateToken, (req, res) => {
   }
 })
 
-// Update appearance preferences (theme, accent, logo)
+// Update appearance preferences (theme, accent, logo, sync flag)
 router.post('/appearance', authenticateToken, (req, res) => {
   try {
-    const { theme, accent, customAccent, logo } = req.body
-    
-    // Build changes object - only track actual changes
+    // Debug: log incoming appearance requests to help trace sync issues
+    console.log('POST /api/auth/appearance', { userId: req.user?.id, body: req.body })
+    const { theme, accent, customAccent, logo, syncPreferences, clearPreferences } = req.body
+    const db = getDb()
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    const existing = (() => { try { return user.preferences ? JSON.parse(user.preferences) : {} } catch (e) { return {} } })()
+    let prefs = { ...existing }
+
+    // Track changes that we persist to the DB
     const changes = {}
-    if (theme !== undefined) changes.theme = theme
-    if (accent !== undefined) changes.accent = accent
-    if (customAccent !== undefined) changes.customAccent = customAccent
-    if (logo !== undefined) changes.logo = logo
-    
-    // Only log if there are actual changes
+
+    // Handle clear request: wipe preferences or set to empty and disable sync if requested
+    if (clearPreferences) {
+      prefs = {}
+      changes.cleared = true
+      // If caller explicitly asked to forget server prefs, also disable syncing by default
+      if (syncPreferences !== undefined) {
+        prefs.syncPreferences = !!syncPreferences
+        changes.syncPreferences = prefs.syncPreferences
+      } else {
+        prefs.syncPreferences = false
+        changes.syncPreferences = false
+      }
+    } else {
+      // Allow updating the sync flag itself always
+      if (syncPreferences !== undefined && syncPreferences !== existing.syncPreferences) {
+        prefs.syncPreferences = !!syncPreferences
+        changes.syncPreferences = prefs.syncPreferences
+      }
+
+      // Decide whether appearance changes should be persisted to the server
+      // If the user currently has sync disabled and they're not enabling it in this request, ignore appearance updates
+      const allowAppearancePersist = !(existing && existing.syncPreferences === false) || (syncPreferences === true)
+
+      if (allowAppearancePersist) {
+        if (theme !== undefined && theme !== existing.theme) { prefs.theme = theme; changes.theme = theme }
+        if (accent !== undefined && accent !== existing.accent) { prefs.accent = accent; changes.accent = accent }
+        if (customAccent !== undefined && customAccent !== existing.customAccent) { prefs.customAccent = customAccent; changes.customAccent = customAccent }
+        if (logo !== undefined && logo !== existing.logo) { prefs.logo = logo; changes.logo = logo }
+      }
+    }
+
+    // Persist only if there are changes to save
     if (Object.keys(changes).length > 0) {
+      db.prepare('UPDATE users SET preferences = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(JSON.stringify(prefs), req.user.id)
+
       // Determine which action to log (prioritize the most significant change)
       let action = AUDIT_ACTIONS.THEME_CHANGED
-      let changeType = 'theme'
-      
-      if (accent !== undefined || customAccent !== undefined) {
-        action = AUDIT_ACTIONS.ACCENT_CHANGED
-        changeType = 'accent'
-      }
-      if (logo !== undefined) {
-        action = AUDIT_ACTIONS.LOGO_CHANGED
-        changeType = 'logo'
-      }
-      
+      if (changes.cleared) action = AUDIT_ACTIONS.USER_UPDATED
+      if (changes.syncPreferences !== undefined) action = AUDIT_ACTIONS.USER_UPDATED
+      if (changes.accent !== undefined || changes.customAccent !== undefined) action = AUDIT_ACTIONS.ACCENT_CHANGED
+      if (changes.logo !== undefined) action = AUDIT_ACTIONS.LOGO_CHANGED
+
       logAuditEvent({
         userId: req.user.id,
         username: req.user.username,
@@ -624,8 +680,8 @@ router.post('/appearance', authenticateToken, (req, res) => {
         status: 'success'
       })
     }
-    
-    res.json({ message: 'Appearance preferences updated', changes })
+
+    res.json({ message: 'Appearance preferences updated', changes, preferences: prefs })
   } catch (err) {
     console.error('Update appearance error:', err)
     res.status(500).json({ message: 'Server error' })
@@ -946,6 +1002,20 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch users' })
   }
 })
+
+// Debug route: list users and their preferences (dev only)
+if (process.env.NODE_ENV !== 'production') {
+  router.get('/debug/users', (req, res) => {
+    try {
+      const db = getDb()
+      const rows = db.prepare('SELECT id, username, preferences FROM users ORDER BY created_at DESC').all()
+      res.json({ users: rows })
+    } catch (err) {
+      console.error('Debug users error:', err)
+      res.status(500).json({ message: 'Failed to fetch debug users' })
+    }
+  })
+}
 
 // Update user role (Admin only)
 router.patch('/users/:userId/role', authenticateToken, async (req, res) => {

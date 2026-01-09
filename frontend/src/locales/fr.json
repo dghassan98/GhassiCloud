@@ -1,6 +1,16 @@
 {
-  "nav": { "dashboard": "Tableau de bord", "reporting": "Rapports", "settings": "Paramètres", "pressBackAgain": "Appuyez à nouveau sur retour pour quitter" },
-  "general": { "welcome": "Bienvenue sur GhassiCloud. Adoptez la souveraineté numérique.", "scanMe": "Scannez-moi", "userFallback": "Utilisateur", "memberFallback": "Membre" },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "reporting": "Rapports",
+    "settings": "Paramètres",
+    "pressBackAgain": "Appuyez à nouveau sur retour pour quitter"
+  },
+  "general": {
+    "welcome": "Bienvenue sur GhassiCloud. Adoptez la souveraineté numérique.",
+    "scanMe": "Scannez-moi",
+    "userFallback": "Utilisateur",
+    "memberFallback": "Membre"
+  },
   "sessionWarning": {
     "title": "Session bientôt expirée",
     "description": "Votre session de connexion va bientôt expirer en raison de l'inactivité. Souhaitez-vous rester connecté ?",
@@ -8,24 +18,48 @@
     "stayLoggedIn": "Rester connecté",
     "helperText": "Cliquez sur 'Rester connecté' pour continuer votre session"
   },
-  "layout": { "weatherTemp": "18°C", "weatherDesc": "Partiellement nuageux", "openProfile": "Ouvrir les paramètres du profil", "notifications": "Notifications", "signOutLocal": "Déconnexion (locale)", "signOutProvider": "Déconnexion du fournisseur d'identité", "signedOut": "Déconnecté" },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Partiellement nuageux",
+    "openProfile": "Ouvrir les paramètres du profil",
+    "notifications": "Notifications",
+    "signOutLocal": "Déconnexion (locale)",
+    "signOutProvider": "Déconnexion du fournisseur d'identité",
+    "signedOut": "Déconnecté"
+  },
   "offline": {
     "title": "Pas de Connexion",
     "message": "Vous êtes actuellement hors ligne. Veuillez vérifier votre connexion Internet pour vous connecter.",
     "serverUnreachable": "Serveur Inaccessible",
     "serverMessage": "Impossible d'accéder au serveur. Veuillez vérifier votre connexion et réessayer."
   },
-  
-
-  "dashboard": { "servicesOnline": "Services en ligne", "addService": "Ajouter un service", "searchPlaceholder": "Rechercher des services...", "noServices": "Aucun service trouvé", "loadingServices": "Chargement des services...", "getStarted": "Ajoutez votre premier service pour commencer", "noServicesPopover": "Aucun service", "lastChecked": "Dernière vérification", "checking": "Vérification...", "never": "Jamais", "yourServices": "Vos services" },
-  "auth": { "completingSignIn": "Connexion en cours..." },
+  "dashboard": {
+    "servicesOnline": "Services en ligne",
+    "addService": "Ajouter un service",
+    "searchPlaceholder": "Rechercher des services...",
+    "noServices": "Aucun service trouvé",
+    "loadingServices": "Chargement des services...",
+    "getStarted": "Ajoutez votre premier service pour commencer",
+    "noServicesPopover": "Aucun service",
+    "lastChecked": "Dernière vérification",
+    "checking": "Vérification...",
+    "never": "Jamais",
+    "yourServices": "Vos services"
+  },
+  "auth": {
+    "completingSignIn": "Connexion en cours..."
+  },
   "settings": {
     "title": "Paramètres",
     "description": "Gérez votre compte et vos préférences",
     "profile": "Paramètres du profil",
     "appearance": "Apparence",
     "theme": "Thème",
-    "themeOptions": { "light": "Clair", "dark": "Sombre", "system": "Système" },
+    "themeOptions": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    },
     "accentColor": "Couleur d'accent",
     "customAccentColor": "Couleur d'accent personnalisée",
     "customAccentHint": "Choisissez votre propre couleur d'accent",
@@ -40,11 +74,30 @@
     "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
     "confirmPassword": "Confirmer le nouveau mot de passe",
     "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
-    "twoFactor": { "title": "", "desc": "" },
+    "twoFactor": {
+      "title": "",
+      "desc": ""
+    },
     "enable2FA": "",
-    
-    "ssoConfig": { "title": "Configuration SSO", "desc": "Connectez-vous à votre fournisseur d'identité", "button": "Modifier SSO" },
-    "notifications": { "serviceAlerts": { "title": "Alertes d'état du service", "desc": "Recevez une notification lorsqu'un service est hors ligne" }, "systemUpdates": { "title": "Mises à jour système", "desc": "Notifications concernant les mises à jour du système" }, "weeklyReports": { "title": "Rapports hebdomadaires", "desc": "Recevez des rapports d'utilisation hebdomadaires" } },
+    "ssoConfig": {
+      "title": "Configuration SSO",
+      "desc": "Connectez-vous à votre fournisseur d'identité",
+      "button": "Modifier SSO"
+    },
+    "notifications": {
+      "serviceAlerts": {
+        "title": "Alertes d'état du service",
+        "desc": "Recevez une notification lorsqu'un service est hors ligne"
+      },
+      "systemUpdates": {
+        "title": "Mises à jour système",
+        "desc": "Notifications concernant les mises à jour du système"
+      },
+      "weeklyReports": {
+        "title": "Rapports hebdomadaires",
+        "desc": "Recevez des rapports d'utilisation hebdomadaires"
+      }
+    },
     "data": "Données & Sauvegarde",
     "exportData": "Exporter les données",
     "exportDataDesc": "Téléchargez toutes vos configurations de service",
@@ -70,7 +123,33 @@
     "removeAvatar": "Supprimer",
     "language": "Langue",
     "languageHint": "Choisissez votre langue d'interface préférée",
-    "tabs": { "profile": "Profil", "appearance": "Apparence", "security": "Sécurité", "notifications": "Notifications", "data": "Données & Sauvegarde", "updates": "Mises à jour" },
+    "tabs": {
+      "profile": "Profil",
+      "appearance": "Apparence",
+      "security": "Sécurité",
+      "notifications": "Notifications",
+      "data": "Données & Sauvegarde",
+      "updates": "Mises à jour"
+    },
+    "syncPreferences": {
+      "title": "Synchroniser les préférences entre appareils",
+      "desc": "Enregistrez les préférences d'apparence sur votre compte et synchronisez-les sur vos appareils. Désactivez pour conserver les paramètres localement dans ce navigateur.",
+      "enabled": "Les préférences seront synchronisées",
+      "disabled": "Les préférences seront stockées localement",
+      "toggleFailed": "Échec de la mise à jour de la préférence de synchronisation"
+    },
+    "resetDefaults": {
+      "title": "Réinitialiser l'apparence par défaut",
+      "desc": "Restaurer le thème, la couleur d'accentuation et le logo par défaut. Optionnellement, oublier les préférences enregistrées sur le serveur.",
+      "forgetServer": "Oublier les préférences serveur",
+      "button": "Réinitialiser",
+      "confirm": "Cela restaurera les paramètres d'apparence par défaut. Continuer ?",
+      "localReset": "Apparence réinitialisée localement",
+      "serverReset": "Préférences serveur oubliées",
+      "serverResetFailed": "Échec de la suppression des préférences serveur",
+      "failed": "Échec de la réinitialisation locale de l'apparence",
+      "mustBeSignedIn": "Connectez-vous pour oublier les préférences serveur"
+    },
     "updates": {
       "title": "Mises à jour de l'App",
       "description": "Vérifier la dernière version de l'application",
@@ -102,7 +181,8 @@
       "keepEditing": "Continuer l'édition"
     },
     "usernameSSOHint": "Le nom d'utilisateur est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
-    "emailSSOHint": "L'email est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",    "passwordManagedBySSOTitle": "Mot de passe géré par le fournisseur d'identité",
+    "emailSSOHint": "L'email est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
+    "passwordManagedBySSOTitle": "Mot de passe géré par le fournisseur d'identité",
     "passwordManagedBySSO": "Votre compte utilise l'authentification unique. Pour modifier votre mot de passe, veuillez visiter votre fournisseur d'authentification.",
     "changeOnAuthPlatform": "Modifier le mot de passe sur la plateforme d'authentification",
     "resetSuccess": "Tous les services ont été réinitialisés avec succès !",
@@ -124,7 +204,6 @@
     "lastActive": "Dernière activité",
     "currentSession": "Session actuelle",
     "risk": {
-
       "differentDevice": "Appareil/Navigateur différent",
       "staleSession": "Session inactive depuis longtemps",
       "unknownClient": "Client inconnu"
@@ -153,10 +232,75 @@
       "loadFailed": "Échec du chargement des utilisateurs"
     }
   },
-  "profile": { "firstName": "Prénom", "lastName": "Nom", "displayName": "Nom d'affichage", "username": "Nom d'utilisateur", "email": "Email" },
-  "reporting": { "title": "Rapports", "description": "Analyses et informations sur vos services", "comingSoon": "Bientôt disponible", "plannedFeatures": "Fonctionnalités prévues", "usageAnalytics": "Analyse d'utilisation", "features": { "dailyWeeklyMonthly": "Rapports d'utilisation quotidiens/hebdomadaires/mensuels", "uptimeCharts": "Graphiques de disponibilité des services", "mostAccessed": "Classement des services les plus consultés", "responseTime": "Surveillance du temps de réponse", "export": "Exporter les rapports en PDF/CSV", "dateRange": "Filtrage par plage de dates personnalisée", "emailReports": "Rapports programmés par e-mail" } },
-  "nowPlaying": { "loading": "Chargement…", "nothingPlaying": "Rien en cours", "unknownArtist": "Artiste inconnu", "noPlayerInfo": "Aucune information du lecteur", "connectButton": "Se connecter à GhassiMusic", "connectTitle": "Se connecter à GhassiMusic", "signInDesc": "Connectez-vous à GhassiMusic pour afficher ce qui joue sur votre tableau de bord.", "loggingIn": "Connexion…", "login": "Connexion", "refresh": "Rafraîchir", "refreshedSuccess": "Lecture mise à jour", "refreshFailed": "Échec de l'actualisation", "refreshFailedAuth": "Non authentifié — veuillez vous connecter", "refreshNoEntry": "Aucune lecture en cours", "reloginSuccess": "Ré-authentifié et mis à jour", "reloginFailed": "Échec de la reconnexion automatique", "logout": "Se déconnecter" },
-  "service": { "check": "Vérifier l'état", "edit": "Modifier", "delete": "Supprimer", "pin": "Épingler", "unpin": "Désépingler", "open": "Ouvrir", "addTitle": "Ajouter un nouveau service", "editTitle": "Modifier le service", "fields": { "name": "Nom du service", "description": "Description", "url": "URL", "icon": "Icône", "preview": "Aperçu:", "color": "Couleur" }, "placeholders": { "name": "ex: Jellyfin", "description": "ex: Serveur de streaming média", "url": "https://service.exemple.com" }, "icon": { "auto": "Utiliser le Favicon", "choose": "Choisir l'icône" }, "faviconPreview": "Aperçu du favicon",
+  "profile": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "displayName": "Nom d'affichage",
+    "username": "Nom d'utilisateur",
+    "email": "Email"
+  },
+  "reporting": {
+    "title": "Rapports",
+    "description": "Analyses et informations sur vos services",
+    "comingSoon": "Bientôt disponible",
+    "plannedFeatures": "Fonctionnalités prévues",
+    "usageAnalytics": "Analyse d'utilisation",
+    "features": {
+      "dailyWeeklyMonthly": "Rapports d'utilisation quotidiens/hebdomadaires/mensuels",
+      "uptimeCharts": "Graphiques de disponibilité des services",
+      "mostAccessed": "Classement des services les plus consultés",
+      "responseTime": "Surveillance du temps de réponse",
+      "export": "Exporter les rapports en PDF/CSV",
+      "dateRange": "Filtrage par plage de dates personnalisée",
+      "emailReports": "Rapports programmés par e-mail"
+    }
+  },
+  "nowPlaying": {
+    "loading": "Chargement…",
+    "nothingPlaying": "Rien en cours",
+    "unknownArtist": "Artiste inconnu",
+    "noPlayerInfo": "Aucune information du lecteur",
+    "connectButton": "Se connecter à GhassiMusic",
+    "connectTitle": "Se connecter à GhassiMusic",
+    "signInDesc": "Connectez-vous à GhassiMusic pour afficher ce qui joue sur votre tableau de bord.",
+    "loggingIn": "Connexion…",
+    "login": "Connexion",
+    "refresh": "Rafraîchir",
+    "refreshedSuccess": "Lecture mise à jour",
+    "refreshFailed": "Échec de l'actualisation",
+    "refreshFailedAuth": "Non authentifié — veuillez vous connecter",
+    "refreshNoEntry": "Aucune lecture en cours",
+    "reloginSuccess": "Ré-authentifié et mis à jour",
+    "reloginFailed": "Échec de la reconnexion automatique",
+    "logout": "Se déconnecter"
+  },
+  "service": {
+    "check": "Vérifier l'état",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "open": "Ouvrir",
+    "addTitle": "Ajouter un nouveau service",
+    "editTitle": "Modifier le service",
+    "fields": {
+      "name": "Nom du service",
+      "description": "Description",
+      "url": "URL",
+      "icon": "Icône",
+      "preview": "Aperçu:",
+      "color": "Couleur"
+    },
+    "placeholders": {
+      "name": "ex: Jellyfin",
+      "description": "ex: Serveur de streaming média",
+      "url": "https://service.exemple.com"
+    },
+    "icon": {
+      "auto": "Utiliser le Favicon",
+      "choose": "Choisir l'icône"
+    },
+    "faviconPreview": "Aperçu du favicon",
     "extraAuth": "Nécessite une authentification supplémentaire",
     "extraAuthShort": "Auth requise",
     "extraAuthDesc": "Ce service nécessite une authentification supplémentaire et ne peut pas effectuer de connexion OIDC immédiate.",
@@ -165,7 +309,14 @@
     "ghassiDriveDesc": "Votre stockage cloud personnel",
     "ghassiGalleryDesc": "Votre galerie cloud personnelle",
     "ghassiStreamDesc": "Votre service de streaming personnel",
-    "ghassiShareDesc": "Votre service de partage de fichiers personnel" },
-  "app": { "loading": "Chargement de GhassiCloud..." },
-  "common": { "cancel": "Annuler", "close": "Fermer", "loading": "Chargement..." }
+    "ghassiShareDesc": "Votre service de partage de fichiers personnel"
+  },
+  "app": {
+    "loading": "Chargement de GhassiCloud..."
+  },
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "loading": "Chargement..."
+  }
 }

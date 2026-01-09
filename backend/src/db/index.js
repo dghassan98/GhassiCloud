@@ -69,6 +69,14 @@ export async function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Add preferences column to persist per-user personalization (JSON blob: theme, accent, logo, etc.)
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN preferences TEXT`)
+    // Initialize preferences to empty object for existing users
+    db.exec(`UPDATE users SET preferences = '{}' WHERE preferences IS NULL`)
+  } catch (e) {
+    // Column already exists, ignore
+  }
   // Add tokens_invalid_before to allow invalidating tokens issued before a time
   try {
     db.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)

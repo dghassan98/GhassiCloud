@@ -146,7 +146,10 @@ export default function SSOCallback() {
             if (data.user) {
               localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() }))
             }
-            
+
+            // NOTE: do not auto-apply server preferences on SSO redirect login; user must enable Sync in Settings to apply server prefs.
+            // Leave local sync marker unchanged so the user's device preference isn't overwritten.
+
             // Clean up SSO session data
             cleanupSSOData()
             localStorage.removeItem('sso_error')

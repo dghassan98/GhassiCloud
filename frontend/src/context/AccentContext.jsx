@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 
 const AccentContext = createContext()
 
@@ -96,6 +97,37 @@ export function AccentProvider({ children }) {
     ? { id: 'custom', color: customColor, name: 'Custom' }
     : accentColors.find(a => a.id === accentId) || accentColors[6]
 
+  const auth = useAuth()
+
+  // Prefer server-side saved accent when user is signed in
+  useEffect(() => {
+    // Run when auth user preferences change so we immediately apply server-side prefs
+    const prefsStr = auth && auth.user ? JSON.stringify(auth.user.preferences || {}) : null
+    if (!auth || !auth.user) return
+    const serverAccent = auth.user.accent
+    const serverCustom = auth.user.customAccent
+    try { console.debug('AccentContext: auth.user changed', { serverAccent, serverCustom, currentAccentId: accentId, authPrefs: auth.user.preferences }) } catch (e) {}
+    if (serverAccent && serverAccent !== accentId) {
+      setAccentIdState(serverAccent)
+      if (serverAccent === 'custom' && serverCustom) setCustomColorState(serverCustom)
+    }
+  }, [auth && auth.user && (auth.user.preferences ? JSON.stringify(auth.user.preferences) : '')])
+
+  // Re-apply preferences when a force-refresh or auth refresh writes server prefs to localStorage
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const prefs = (e && e.detail && e.detail.prefs) || {}
+        if (prefs.accent) {
+          setAccentIdState(prefs.accent)
+          if (prefs.customAccent) setCustomColorState(prefs.customAccent)
+        }
+      } catch (err) { console.debug('AccentContext: preferences-updated handler error', err) }
+    }
+    window.addEventListener('ghassicloud:preferences-updated', handler)
+    return () => window.removeEventListener('ghassicloud:preferences-updated', handler)
+  }, [])
+
   useEffect(() => {
     // Only persist if not in preview mode
     if (!isPreview) {
@@ -125,9 +157,21 @@ export function AccentProvider({ children }) {
     
     // Only log if not in preview mode
     if (!isPreview) {
-      // Log accent change to backend (if user is authenticated)
+      // Decide whether we should sync this change to server
+      const localSyncPref = (() => { try { const s = localStorage.getItem('ghassicloud-sync-preferences'); if (s !== null) return s === 'true'; return false } catch (e) { return false } })()
+      const serverSyncPref = (() => { try { return !(auth && auth.user && auth.user.preferences && auth.user.preferences.syncPreferences === false) } catch (e) { return true } })()
+      const authReady = Boolean(auth && auth.user)
+      const serverPrefsApplied = Boolean(typeof window !== 'undefined' && window.__ghassicloud_server_prefs_applied)
+      const tokenPresent = !!localStorage.getItem('ghassicloud-token')
+      const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
+
+      // Debug: log sync decision and token presence
+      try { console.debug('Accent update:', { accentId, customColor, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
+
+      // Log accent change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
-      if (token) {
+      if (token && shouldSync) {
+        console.debug('Posting accent update to /api/auth/appearance', { accent: accentId, customAccent: accentId === 'custom' ? customColor : undefined })
         fetch('/api/auth/appearance', {
         method: 'POST',
         headers: {
@@ -138,7 +182,9 @@ export function AccentProvider({ children }) {
           accent: accentId,
           customAccent: accentId === 'custom' ? customColor : undefined
         })
-      }).catch(err => console.debug('Failed to log accent change:', err))
+      }).then(() => { try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {} }).catch(err => console.debug('Failed to log accent change:', err))
+      } else {
+        console.debug('Skipping accent POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
       }
     }
   }, [accentId, currentAccent, customColor, isPreview])
