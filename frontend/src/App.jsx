@@ -19,6 +19,8 @@ import {
   useNetwork,
   isNative 
 } from './hooks/useCapacitor'
+import { WebviewProvider } from './context/WebviewContext'
+import WebViewModal from './components/WebViewModal'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -101,32 +103,35 @@ function App() {
 
   return (
     <BrowserRouter>
-      {!isConnected && <OfflineBanner />}
-      
-      {/* PWA Update Notifications */}
-      {showUpdateModal && (
-        <UpdateNotification onUpdate={updateNow} onDismiss={dismissUpdate} />
-      )}
-      {/* Only show changelog when user is logged in */}
-      {user && showChangelog && <ChangelogModal onClose={dismissChangelog} />}
-      
-      <SSOSessionManager />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/sso-callback" element={<SSOCallback />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="reporting" element={<Reporting />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+      <WebviewProvider>
+        {!isConnected && <OfflineBanner />}
+        
+        {/* PWA Update Notifications */}
+        {showUpdateModal && (
+          <UpdateNotification onUpdate={updateNow} onDismiss={dismissUpdate} />
+        )}
+        {/* Only show changelog when user is logged in */}
+        {user && showChangelog && <ChangelogModal onClose={dismissChangelog} />}
+        
+        <SSOSessionManager />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/sso-callback" element={<SSOCallback />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="reporting" element={<Reporting />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+        <WebViewModal />
+      </WebviewProvider>
     </BrowserRouter>
   )
 }

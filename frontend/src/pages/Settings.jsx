@@ -12,6 +12,8 @@ import { useAccent, accentColors } from '../context/AccentContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
 import { usePWAUpdate } from '../hooks/usePWAUpdate'
+import { isPWA } from '../hooks/useCapacitor'
+import { useWebview } from '../context/WebviewContext'
 import '../styles/settings.css'
 import ErrorBoundary from '../components/ErrorBoundary'
 
@@ -24,6 +26,7 @@ export default function Settings() {
   const { t, language, setLanguage } = useLanguage()
   const { showToast } = useToast()
   const { checkForUpdate, forceRefresh, showChangelog, dismissChangelog } = usePWAUpdate()
+  const { openWebview } = useWebview()
   const isAdmin = user?.role === 'admin'
   const [forceRefreshing, setForceRefreshing] = useState(false)
 
@@ -876,7 +879,7 @@ export default function Settings() {
                       <p>{t('settings.passwordManagedBySSO') || 'Your account uses single sign-on. To change your password, please visit your authentication provider.'}</p>
                     </div>
                     <div className="sso-card-actions">
-                      <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer"><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
+                      <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA()) { openWebview('https://auth.ghassi.cloud/realms/master/account/account-security/signing-in','Auth') } else { window.open('https://auth.ghassi.cloud/realms/master/account/account-security/signing-in','_blank','noopener,noreferrer') } }}><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
                     </div>
                   </div>
 

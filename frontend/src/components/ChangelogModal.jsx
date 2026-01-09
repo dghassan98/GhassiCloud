@@ -3,6 +3,14 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.2.2': {
+    date: 'January 9, 2026',
+    changes: [
+      'Implement webview functionality for PWA',
+      'add WebViewModal and WebviewContext',
+      'update routing and links',
+    ],
+  },
   '1.2.1': {
     date: 'January 9, 2026',
     changes: [

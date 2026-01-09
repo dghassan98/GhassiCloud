@@ -11,6 +11,33 @@ import { Network } from '@capacitor/network';
 export const isNative = Capacitor.isNativePlatform();
 export const platform = Capacitor.getPlatform(); // 'ios', 'android', or 'web'
 
+// Detect if running as an installed PWA (standalone/display modes) or iOS standalone
+export function isPWA() {
+  try {
+    const mm = window.matchMedia
+    if (mm) {
+      if (mm('(display-mode: standalone)').matches) return true
+      if (mm('(display-mode: fullscreen)').matches) return true
+      if (mm('(display-mode: minimal-ui)').matches) return true
+    }
+
+    // iOS Safari standalone
+    try {
+      if (window.navigator && window.navigator.standalone === true) return true
+    } catch (e) {}
+
+    // Allow forcing PWA mode via query param for testing (e.g. ?pwa=1)
+    try {
+      const url = new URL(window.location.href)
+      if (url.searchParams.get('pwa') === '1' || url.searchParams.get('standalone') === '1') return true
+    } catch (e) {}
+
+    return false
+  } catch (e) {
+    return false
+  }
+} 
+
 /**
  * Hook to manage the status bar on native platforms
  */

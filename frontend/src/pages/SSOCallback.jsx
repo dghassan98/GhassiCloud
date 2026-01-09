@@ -147,6 +147,15 @@ export default function SSOCallback() {
               localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() }))
             }
 
+            // Notify parent window (useful when running inside an iframe/webview)
+            if (window.parent && window.parent !== window) {
+              try {
+                window.parent.postMessage({ type: 'SSO_CALLBACK', success: true }, window.location.origin)
+              } catch (e) {
+                console.debug('Failed to post message to parent after SSO', e)
+              }
+            }
+
             // NOTE: do not auto-apply server preferences on SSO redirect login; user must enable Sync in Settings to apply server prefs.
             // Leave local sync marker unchanged so the user's device preference isn't overwritten.
 

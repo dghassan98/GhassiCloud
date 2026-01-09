@@ -8,6 +8,12 @@ import { AccentProvider } from './context/AccentContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { ToastProvider } from './context/ToastContext'
 import './styles/globals.css'
+import { isPWA } from './hooks/useCapacitor'
+
+// Backwards-compat global for legacy code paths that reference `isPWA` without import
+if (typeof window !== 'undefined' && typeof window.isPWA === 'undefined') {
+  try { window.isPWA = isPWA } catch (e) { /* ignore */ }
+}
 
 // 🔧 Disable right-click everywhere in the app
 // Prevents the browser context menu from opening on right-click or Shift+F10

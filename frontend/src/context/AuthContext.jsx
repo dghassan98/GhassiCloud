@@ -210,23 +210,22 @@ export function AuthProvider({ children }) {
   // Detect if we should use redirect flow instead of popup
   // Mobile browsers and PWAs don't handle popups well
   const shouldUseRedirectFlow = () => {
-    // PWA/standalone mode detection
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                  window.navigator.standalone === true
-    
+    // Use central PWA detection helper
+    const pwa = isPWA()
+
     // Mobile device detection
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
+
     // Touch device with small screen (likely mobile)
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
     const isSmallScreen = window.innerWidth < 768
-    
+
     // Firefox on Android has issues with popups in PWA context
     const isFirefoxAndroid = /Android.*Firefox/i.test(navigator.userAgent)
-    
-    console.debug('SSO flow detection:', { isPWA, isMobile, isTouchDevice, isSmallScreen, isFirefoxAndroid })
-    
-    return isPWA || isMobile || isFirefoxAndroid || (isTouchDevice && isSmallScreen)
+
+    console.debug('SSO flow detection:', { pwa, isMobile, isTouchDevice, isSmallScreen, isFirefoxAndroid })
+
+    return pwa || isMobile || isFirefoxAndroid || (isTouchDevice && isSmallScreen)
   }
 
   // SSO Login with popup window (PKCE flow) or redirect flow for mobile/PWA
@@ -549,6 +548,19 @@ export function AuthProvider({ children }) {
       }
     } catch (e) {}
   }, [user])
+
+  // Listen for storage events (e.g., SSO flow inside an iframe/webview updating localStorage)
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'ghassicloud-token' && e.newValue) {
+        // Token set in another window/frame — re-run auth check
+        checkAuth()
+      }
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   return (
     <AuthContext.Provider value={{ 

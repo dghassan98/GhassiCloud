@@ -11,6 +11,8 @@ import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
 import { useGestures, useSwipe } from '../hooks/useGestures'
+import { isPWA } from '../hooks/useCapacitor'
+import { useWebview } from '../context/WebviewContext'
 import '../styles/layout.css'
 
 export default function Layout() {
@@ -19,11 +21,34 @@ export default function Layout() {
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
   const { showToast } = useToast()
+  const { openWebview } = useWebview()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const exitTimerRef = useRef(null)
   const [canExit, setCanExit] = useState(false)
+
+  // Intercept external links (target="_blank") when running as an installed PWA
+  useEffect(() => {
+    if (!isPWA()) return
+
+    const onDocClick = (e) => {
+      try {
+        const anchor = e.target.closest && e.target.closest('a[target="_blank"], a[target="_new"]')
+        if (!anchor) return
+        const href = anchor.getAttribute('href')
+        if (!href) return
+        if (href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return
+        e.preventDefault()
+        openWebview(href, anchor.getAttribute('title') || anchor.textContent?.trim() || undefined)
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    document.addEventListener('click', onDocClick)
+    return () => document.removeEventListener('click', onDocClick)
+  }, [openWebview])
   
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'

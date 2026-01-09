@@ -2,7 +2,8 @@ import { motion } from 'framer-motion'
 import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw, AlertTriangle } from 'lucide-react' 
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
-import { useHaptics, isNative } from '../hooks/useCapacitor'
+import { useHaptics, isNative, isPWA } from '../hooks/useCapacitor'
+import { useWebview } from '../context/WebviewContext'
 
 // Common favicon paths to try
 const FAVICON_PATHS = [
@@ -108,10 +109,19 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     warning: '#f59e0b'
   }
 
+  const { openWebview } = useWebview()
+
   const handleClick = (e) => {
     if (e.target.closest('.card-menu') || e.target.closest('.menu-button') || e.target.closest('.pin-button')) {
       return
     }
+
+    if (isPWA()) {
+      // Open inside the PWA in an app tab/modal
+      openWebview(service.url, service.name)
+      return
+    }
+
     window.open(service.url, '_blank', 'noopener,noreferrer')
   }
 
@@ -280,7 +290,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   href={service.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (isPWA()) { openWebview(service.url, service.name) } else { window.open(service.url, '_blank', 'noopener,noreferrer') } }}
                   title={t('service.open')}
                 >
                   <span className="service-url-right">{new URL(service.url).hostname}</span>
@@ -476,7 +486,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
               href={service.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (isPWA()) { openWebview(service.url, service.name) } else { window.open(service.url, '_blank', 'noopener,noreferrer') } }}
               title={t('service.open')}
             >
               <span className="service-url">{new URL(service.url).hostname}</span>
