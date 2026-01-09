@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { createPortal } from 'react-dom'
 import { useTheme } from '../context/ThemeContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -7,6 +8,7 @@ import { RefreshCw } from 'lucide-react'
 import '../styles/nowPlaying.css' 
 
 export default function NowPlayingCard({ endpoint, accent }) {
+  const { user } = useAuth()
   // Use backend proxy endpoints by default to avoid leaking tokens
   const NOW_PLAYING_URL = '/api/navidrome/nowplaying'
   const COVER_PROXY = '/api/navidrome/cover'
@@ -17,7 +19,8 @@ export default function NowPlayingCard({ endpoint, accent }) {
   const [showModal, setShowModal] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState(null)
-  const [username, setUsername] = useState('')
+  // Always use the current authenticated user's username if available
+  const [username, setUsername] = useState(user?.username || '')
   const [password, setPassword] = useState('')
   const [connected, setConnected] = useState(false)
 
@@ -75,6 +78,15 @@ export default function NowPlayingCard({ endpoint, accent }) {
       document.body.style.overflow = prevOverflow
     }
   }, [showModal])
+
+  // Reset username when the authenticated user changes
+  useEffect(() => {
+    setUsername(user?.username || '')
+    setPassword('')
+    setConnected(false)
+    setTrack(null)
+    setNeedsLogin(true)
+  }, [user])
 
   // fetch function pulled out so control handlers can trigger a refresh
   // `force` bypasses the connected check (used after a successful login)

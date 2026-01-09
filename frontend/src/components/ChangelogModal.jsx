@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.1.13': {
+    date: 'January 9, 2026',
+    changes: [
+      'Integrate user authentication in NowPlayingCard, update username handling on user change',
+    ],
+  },
   '1.1.12': {
     date: 'January 8, 2026',
     changes: [
