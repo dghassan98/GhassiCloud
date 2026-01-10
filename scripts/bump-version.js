@@ -107,6 +107,21 @@ async function main() {
   writeFileSync(frontendPackagePath, JSON.stringify(frontendPackageJson, null, 2) + '\n');
   console.log('\n✅ Updated frontend/package.json');
 
+  // Update root package-lock.json (update the frontend package entry if present)
+  const lockPath = join(rootDir, 'package-lock.json');
+  try {
+    const lockJson = JSON.parse(readFileSync(lockPath, 'utf8'));
+    // Support keys like 'frontend' or './frontend'
+    const frontendKey = lockJson.packages && (lockJson.packages['frontend'] ? 'frontend' : (lockJson.packages['./frontend'] ? './frontend' : null));
+    if (frontendKey) {
+      lockJson.packages[frontendKey].version = newVersion;
+      writeFileSync(lockPath, JSON.stringify(lockJson, null, 2) + '\n');
+      console.log('✅ Updated root package-lock.json (frontend entry)');
+    }
+  } catch (err) {
+    console.log('⚠️  Warning: Could not update root package-lock.json:', err.message);
+  }
+
   // Update ChangelogModal.jsx
   const changelogPath = join(rootDir, 'frontend', 'src', 'components', 'ChangelogModal.jsx');
   let changelogContent = readFileSync(changelogPath, 'utf8');

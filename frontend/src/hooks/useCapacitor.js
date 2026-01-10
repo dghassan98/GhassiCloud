@@ -36,7 +36,22 @@ export function isPWA() {
   } catch (e) {
     return false
   }
-} 
+}
+
+// Detect if running on a mobile device (touch device or small screen). Used to
+// avoid opening the in-app WebView for mobile PWAs; instead we open external
+// tabs (normal browser behavior) on mobile.
+export function isMobile() {
+  try {
+    const ua = navigator.userAgent || ''
+    const touch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)
+    const smallScreen = typeof window !== 'undefined' && window.innerWidth && window.innerWidth < 768
+    const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+    return Boolean(mobileUA || touch || smallScreen)
+  } catch (e) {
+    return false
+  }
+}
 
 /**
  * Hook to manage the status bar on native platforms

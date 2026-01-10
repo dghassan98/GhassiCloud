@@ -3,6 +3,18 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.2.4': {
+    date: 'January 10, 2026',
+    changes: [
+      'adapted bump-version script',
+    ],
+  },
+  '1.2.3': {
+    date: 'January 10, 2026',
+    changes: [
+      'Add isMobile detection to improve link handling in PWAs and update dependencies',
+    ],
+  },
   '1.2.2': {
     date: 'January 9, 2026',
     changes: [

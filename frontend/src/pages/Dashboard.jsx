@@ -545,7 +545,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
 
-      <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget" onClick={(e) => { e.preventDefault(); if (isPWA()) { openWebview('https://ghassi.cloud','GhassiCloud-2Go') } else { window.open('https://ghassi.cloud', '_blank', 'noopener,noreferrer') } }}>
+      <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview('https://ghassi.cloud','GhassiCloud-2Go') } else { window.open('https://ghassi.cloud', '_blank', 'noopener,noreferrer') } }}>
         <img 
           src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://ghassi.cloud&bgcolor=1a1f2e&color=ffffff" 
           alt="Scan to open GhassiCloud Mobile"
@@ -616,10 +616,10 @@ export default function Dashboard() {
                       }).map(s => (
                         <div className="popover-item" key={s.id}>
                           <span className={`dot ${s.status === 'online' ? 'online' : 'offline'}`}></span>
-                          <a className="service-link" href={s.url} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}>{s.name}</a>
+                          <a className="service-link" href={s.url} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}>{s.name}</a>
                           <div className="item-actions">
                             <button className="btn-icon" title={t('service.check')} aria-label={t('service.check')} onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
-                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title={t('service.open')} onClick={(e) => { e.preventDefault(); if (isPWA()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}><ExternalLink size={14} /></a>
+                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title={t('service.open')} onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}><ExternalLink size={14} /></a>
                           </div>
                         </div>
                       )) : <div className="popover-empty">{t('dashboard.noServicesPopover')}</div>}

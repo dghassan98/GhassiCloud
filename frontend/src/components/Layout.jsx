@@ -11,7 +11,7 @@ import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
 import { useGestures, useSwipe } from '../hooks/useGestures'
-import { isPWA } from '../hooks/useCapacitor'
+import { isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import '../styles/layout.css'
 
@@ -29,8 +29,10 @@ export default function Layout() {
   const [canExit, setCanExit] = useState(false)
 
   // Intercept external links (target="_blank") when running as an installed PWA
+  // Note: do NOT intercept on mobile PWAs — we want mobile PWAs to open links in
+  // the external browser/tab instead of an in-app WebView modal.
   useEffect(() => {
-    if (!isPWA()) return
+    if (!isPWA() || isMobile()) return
 
     const onDocClick = (e) => {
       try {
@@ -48,7 +50,7 @@ export default function Layout() {
 
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
-  }, [openWebview])
+  }, [openWebview, isMobile])
   
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'
