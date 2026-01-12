@@ -504,14 +504,14 @@ export default function Settings() {
       const el = e.target
       if (!el) return
       try {
-        if ((el.textContent || '').trim() === label) setShowSSOEditor(true)
+        if ((el.textContent || '').trim() === label && isAdmin) setShowSSOEditor(true)
       } catch (err) {
         // ignore
       }
     }
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
-  }, [t])
+  }, [t, isAdmin])
 
   const handleResetServices = async () => {
     setResetting(true)
@@ -736,7 +736,7 @@ export default function Settings() {
         </div>
       )}
 
-      {showSSOEditor && (
+      {showSSOEditor && isAdmin && (
         <motion.div className="sso-config-modal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={(e) => { if (e.target === e.currentTarget) setShowSSOEditor(false) }}>
           <div className="sso-config-zone danger-zone" role="dialog" aria-modal="true">
             <h3>{t('settings.ssoConfig.title')}</h3>
@@ -1075,16 +1075,18 @@ const res = await fetch('/api/auth/admin/settings', {
               </div>
 
               <hr className="section-sep" />
-              <div className="danger-zone sso-danger-block">
-                <h3>{t('settings.dangerZone')}</h3>
-                <div className="danger-action">
-                  <div>
-                    <h4>{t('settings.ssoConfig.title')}</h4>
-                    <p>{t('settings.ssoConfig.desc')}</p>
+              {isAdmin && (
+                <div className="danger-zone sso-danger-block">
+                  <h3>{t('settings.dangerZone')}</h3>
+                  <div className="danger-action">
+                    <div>
+                      <h4>{t('settings.ssoConfig.title')}</h4>
+                      <p>{t('settings.ssoConfig.desc')}</p>
+                    </div>
+                    <button className="btn-danger" onClick={() => setShowSSOEditor(true)}>{t('settings.ssoConfig.button')}</button>
                   </div>
-                  <button className="btn-danger" onClick={() => setShowSSOEditor(true)}>{t('settings.ssoConfig.button')}</button>
                 </div>
-              </div>
+              )}
 
             </div>
           )}

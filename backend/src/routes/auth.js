@@ -348,7 +348,7 @@ router.post('/sso/callback', async (req, res) => {
 })
 
 // Login
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body
     const db = getDb()
@@ -359,40 +359,201 @@ router.post('/login', (req, res) => {
       return res.status(400).json({ message: 'Username and password required' })
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username)
+    let user = db.prepare('SELECT * FROM users WHERE username = ?').get(username)
 
-    if (!user) {
-      // Log failed login attempt
-      logAuditEvent({
-        username,
-        action: AUDIT_ACTIONS.LOGIN_FAILED,
-        category: AUDIT_CATEGORIES.AUTH,
-        details: { reason: 'User not found' },
-        ipAddress,
-        userAgent,
-        status: 'failure'
-      })
+    // We'll prefer Keycloak if it's configured (no env flag required)
+    let authenticated = false
+    let keycloakTokens = null
+    let keycloakUserInfo = null
+
+    const parseBool = (v) => {
+      if (typeof v === 'string') return ['1','true','yes','on'].includes(v.toLowerCase())
+      return Boolean(v)
+    }
+
+    const keycloakConfigured = !!(KEYCLOAK_URL && KEYCLOAK_CLIENT_ID && KEYCLOAK_REALM)
+    console.log('[AUTH] Keycloak configured?', keycloakConfigured, 'KEYCLOAK_URL=', !!KEYCLOAK_URL, 'KEYCLOAK_CLIENT_ID=', !!KEYCLOAK_CLIENT_ID)
+
+    if (keycloakConfigured) {
+      // Attempt password grant directly against Keycloak
+      try {
+        const tokenParams = new URLSearchParams({
+          grant_type: 'password',
+          client_id: KEYCLOAK_CLIENT_ID,
+          username: username,
+          password: password,
+        })
+
+        if (process.env.KEYCLOAK_CLIENT_SECRET) tokenParams.set('client_secret', process.env.KEYCLOAK_CLIENT_SECRET)
+        tokenParams.set('scope', 'openid profile email')
+
+        console.log('[AUTH] Attempting Keycloak password grant for user', username, 'token endpoint=', `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`)
+
+        const tokenRes = await fetch(
+          `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: tokenParams
+          }
+        )
+
+        const tokenText = await tokenRes.text()
+        console.log('[AUTH] Keycloak token response status:', tokenRes.status, 'bodyPreview:', tokenText && tokenText.substring ? tokenText.substring(0, 200) : tokenText)
+
+        if (tokenRes.ok) {
+          try {
+            keycloakTokens = JSON.parse(tokenText)
+          } catch (e) {
+            console.error('Failed to parse Keycloak token response (password grant):', tokenText)
+          }
+        } else {
+          // Keycloak rejected credentials — return 401 immediately (no fallback to local auth when Keycloak is present)
+          console.log('[AUTH] Keycloak password grant rejected credentials for user', username)
+          const debugEnabled = parseBool(process.env.DEBUG_KEYCLOAK)
+          if (debugEnabled) return res.status(401).json({ message: 'Invalid credentials', debug: { keycloakStatus: tokenRes.status, keycloakBody: tokenText } })
+          return res.status(401).json({ message: 'Invalid credentials' })
+        }
+
+        if (keycloakTokens && keycloakTokens.access_token) {
+          const uiRes = await fetch(
+            `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo`,
+            {
+              headers: { Authorization: `Bearer ${keycloakTokens.access_token}` }
+            }
+          )
+
+          const uiText = await uiRes.text()
+          if (uiRes.ok) {
+            try {
+              keycloakUserInfo = JSON.parse(uiText)
+            } catch (e) {
+              console.error('Failed to parse Keycloak userinfo response:', uiText)
+            }
+          } else {
+            console.warn('Failed to fetch userinfo from Keycloak after password grant, status:', uiRes.status, 'bodyPreview:', uiText.substring ? uiText.substring(0,200) : uiText)
+          }
+        }
+      } catch (e) {
+        console.error('Keycloak direct auth attempt failed:', e)
+      }
+
+      // If Keycloak authenticated, find or create local user and mark as SSO
+      if (keycloakUserInfo && keycloakUserInfo.email) {
+        let found = db.prepare('SELECT * FROM users WHERE email = ? OR username = ?').get(
+          keycloakUserInfo.email,
+          keycloakUserInfo.preferred_username || keycloakUserInfo.email
+        )
+
+        if (!found) {
+          const userId = crypto.randomUUID()
+          const usernameCandidate = keycloakUserInfo.preferred_username || (keycloakUserInfo.email && keycloakUserInfo.email.split('@')[0])
+          const randomPassword = bcrypt.hashSync(crypto.randomUUID(), 10)
+
+          db.prepare(`
+            INSERT INTO users (id, username, password, email, display_name, role, sso_provider, sso_id, first_name, last_name, avatar, language)
+            VALUES (?, ?, ?, ?, ?, 'user', 'keycloak', ?, ?, ?, ?, ?)
+          `).run(
+            userId,
+            usernameCandidate,
+            randomPassword,
+            keycloakUserInfo.email,
+            keycloakUserInfo.name || keycloakUserInfo.preferred_username,
+            keycloakUserInfo.sub,
+            keycloakUserInfo.given_name || null,
+            keycloakUserInfo.family_name || null,
+            keycloakUserInfo.picture || null,
+            keycloakUserInfo.locale || keycloakUserInfo.preferred_locale || null
+          )
+
+          found = db.prepare('SELECT * FROM users WHERE id = ?').get(userId)
+        } else {
+          // Update SSO info if missing
+          const updates = {}
+          if (!found.sso_provider) {
+            updates.sso_provider = 'keycloak'
+            updates.sso_id = keycloakUserInfo.sub
+          }
+          if (!found.first_name && keycloakUserInfo.given_name) updates.first_name = keycloakUserInfo.given_name
+          if (!found.last_name && keycloakUserInfo.family_name) updates.last_name = keycloakUserInfo.family_name
+          if (keycloakUserInfo.picture && found.avatar !== keycloakUserInfo.picture) updates.avatar = keycloakUserInfo.picture
+          if (!found.language && (keycloakUserInfo.locale || keycloakUserInfo.preferred_locale)) updates.language = keycloakUserInfo.locale || keycloakUserInfo.preferred_locale
+
+          if (Object.keys(updates).length > 0) {
+            const params = []
+            const sets = []
+            Object.entries(updates).forEach(([k, v]) => { sets.push(`${k} = ?`); params.push(v) })
+            params.push(found.id)
+            db.prepare(`UPDATE users SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(...params)
+            found = db.prepare('SELECT * FROM users WHERE id = ?').get(found.id)
+          }
+        }
+
+        user = found
+        authenticated = true
+      } else {
+        // Keycloak was configured but we didn't get userinfo — treat as failed
+        if (!keycloakUserInfo) {
+          console.log('[AUTH] Keycloak configured but authentication did not return userinfo for', username)
+          const debugEnabled = parseBool(process.env.DEBUG_KEYCLOAK)
+          if (debugEnabled) return res.status(401).json({ message: 'Invalid credentials', debug: { keycloakTokens: keycloakTokens, keycloakUserInfo: keycloakUserInfo } })
+          return res.status(401).json({ message: 'Invalid credentials' })
+        }
+      }
+    } else {
+      // No Keycloak configured — fall back to local DB password auth
+      if (user && user.password) {
+        try {
+          if (bcrypt.compareSync(password, user.password)) authenticated = true
+        } catch (e) { authenticated = false }
+      }
+    }
+
+    // If still not authenticated, log and return error
+    if (!authenticated) {
+      if (user) {
+        // Log failed login attempt for existing user
+        logAuditEvent({
+          userId: user.id,
+          username: user.username,
+          action: AUDIT_ACTIONS.LOGIN_FAILED,
+          category: AUDIT_CATEGORIES.AUTH,
+          details: { reason: 'Invalid password' },
+          ipAddress,
+          userAgent,
+          status: 'failure'
+        })
+      } else {
+        logAuditEvent({
+          username,
+          action: AUDIT_ACTIONS.LOGIN_FAILED,
+          category: AUDIT_CATEGORIES.AUTH,
+          details: { reason: 'User not found' },
+          ipAddress,
+          userAgent,
+          status: 'failure'
+        })
+      }
+
+      // Optionally include debug details in response when DEBUG_KEYCLOAK=true in .env
+      const debugEnabled = parseBool(process.env.DEBUG_KEYCLOAK)
+      const debugInfo = {
+        authenticated: !!authenticated,
+        keycloakConfigured: !!(KEYCLOAK_URL && KEYCLOAK_CLIENT_ID && KEYCLOAK_REALM),
+        keycloakTokensPresent: !!keycloakTokens,
+        keycloakUserInfoPresent: !!keycloakUserInfo
+      }
+
+      if (debugEnabled) {
+        return res.status(401).json({ message: 'Invalid credentials', debug: debugInfo })
+      }
+
       return res.status(401).json({ message: 'Invalid credentials' })
     }
 
-    const validPassword = bcrypt.compareSync(password, user.password)
-
-    if (!validPassword) {
-      // Log failed login attempt
-      logAuditEvent({
-        userId: user.id,
-        username: user.username,
-        action: AUDIT_ACTIONS.LOGIN_FAILED,
-        category: AUDIT_CATEGORIES.AUTH,
-        details: { reason: 'Invalid password' },
-        ipAddress,
-        userAgent,
-        status: 'failure'
-      })
-      return res.status(401).json({ message: 'Invalid credentials' })
-    }
-
-    const token = generateToken(user)
+    // Generate token (include Keycloak session id if available)
+    const sessionId = keycloakTokens?.session_state || keycloakTokens?.session || null
+    const token = generateToken(user, sessionId)
 
     // Log successful login
     logAuditEvent({
@@ -400,7 +561,7 @@ router.post('/login', (req, res) => {
       username: user.username,
       action: AUDIT_ACTIONS.LOGIN,
       category: AUDIT_CATEGORIES.AUTH,
-      details: { method: 'password' },
+      details: { method: keycloakTokens ? 'keycloak' : 'password' },
       ipAddress,
       userAgent,
       status: 'success'

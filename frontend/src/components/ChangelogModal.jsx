@@ -3,6 +3,13 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.3.0': {
+    date: 'January 12, 2026',
+    changes: [
+      'Enhance login functionality to support Keycloak SSO',
+      'Restrict SSO editor access to admin users in settings',
+    ],
+  },
   '1.2.5': {
     date: 'January 12, 2026',
     changes: [
