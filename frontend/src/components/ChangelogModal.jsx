@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.0': {
+    date: 'January 12, 2026',
+    changes: [
+      'Enhance authentication UI and add SSO registration flow, update localization for multiple languages',
+    ],
+  },
   '1.3.0': {
     date: 'January 12, 2026',
     changes: [

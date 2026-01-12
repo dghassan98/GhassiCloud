@@ -47,7 +47,16 @@
     "yourServices": "Ваши сервисы"
   },
   "auth": {
-    "completingSignIn": "Завершается вход..."
+    "completingSignIn": "Завершение входа...",
+    "ssoSignIn": "Войти через GhassiAuth",
+    "redirecting": "Перенаправление…",
+    "redirectingA11y": "Перенаправление на единый вход GhassiAuth",
+    "signInWithGhassiAuth": "Войти через GhassiAuth",
+    "socialsNotePrefix": "Примечание:",
+    "socialsNote": "Вход через социальные сети доступен в разделе <strong>Войти через GhassiAuth</strong>.",
+    "registerPrompt": "Впервые здесь? Зарегистрироваться",
+    "registering": "Регистрация…",
+    "registerAria": "Зарегистрировать новую учетную запись"
   },
   "settings": {
     "title": "Настройки",

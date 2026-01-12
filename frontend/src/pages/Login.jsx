@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, User, Eye, EyeOff, ArrowRight, AlertTriangle, WifiOff } from 'lucide-react'
+import { AlertTriangle, WifiOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
@@ -10,12 +10,9 @@ import { useNetwork } from '../hooks/useCapacitor'
 import '../styles/login.css'
 
 export default function Login() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [ssoLoading, setSsoLoading] = useState(false)
+  const [registering, setRegistering] = useState(false)
   const [showSessionExpired, setShowSessionExpired] = useState(false)
   const { login, loginWithSSO, checkAuth, user } = useAuth()
   const { theme, toggleTheme } = useTheme()
@@ -23,7 +20,7 @@ export default function Login() {
   const { t } = useLanguage()
   const { isConnected } = useNetwork()
   const navigate = useNavigate()
-  
+
   const showBrandText = currentLogo.id !== 'cloud-only'
   const isWideLogo = currentLogo.id === 'cloud-only'
 
@@ -35,7 +32,7 @@ export default function Login() {
         setError(ssoError)
         localStorage.removeItem('sso_error')
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [])
 
   // Check for session expired flag
@@ -46,7 +43,7 @@ export default function Login() {
         setShowSessionExpired(true)
         localStorage.removeItem('session_expired')
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [])
 
   // If user is already authenticated (e.g., after SSO callback), redirect to dashboard
@@ -65,25 +62,12 @@ export default function Login() {
     }
   }, [user, navigate])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    
-    try {
-      await login(username, password)
-      navigate('/')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const handleSSOLogin = async () => {
     setError('')
     setSsoLoading(true)
-    
+
     try {
       // loginWithSSO may navigate away for redirect flow (mobile/PWA)
       // In that case, this promise never resolves
@@ -94,6 +78,74 @@ export default function Login() {
       setError(err.message)
     } finally {
       setSsoLoading(false)
+    }
+  }
+
+  // Generate PKCE code verifier and challenge (same algorithm as AuthContext.generatePKCE)
+  const generatePKCE = async () => {
+    const array = new Uint8Array(64)
+    crypto.getRandomValues(array)
+    const codeVerifier = Array.from(array, byte => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[byte % 66]).join('')
+
+    const encoder = new TextEncoder()
+    const data = encoder.encode(codeVerifier)
+    const digest = await crypto.subtle.digest('SHA-256', data)
+    const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+    return { codeVerifier, codeChallenge }
+  }
+
+  // Registration flow: build Keycloak registrations URL and redirect
+  const handleRegister = async () => {
+    setError('')
+    setRegistering(true)
+
+    try {
+      const configRes = await fetch('/api/auth/sso/config')
+      if (!configRes.ok) throw new Error('Failed to get SSO configuration')
+      const config = await configRes.json()
+
+      // Create CSRF state
+      const state = crypto.randomUUID()
+      sessionStorage.setItem('sso_state', state)
+      localStorage.setItem('sso_state', state)
+
+      // Generate PKCE values and persist verifier for token exchange
+      const { codeVerifier, codeChallenge } = await generatePKCE()
+      sessionStorage.setItem('sso_code_verifier', codeVerifier)
+      localStorage.setItem('sso_code_verifier', codeVerifier)
+
+      // Build redirect URI for the callback (same as SSO login)
+      const redirectUri = `${window.location.origin}/sso-callback`
+      sessionStorage.setItem('sso_redirect_uri', redirectUri)
+      localStorage.setItem('sso_redirect_uri', redirectUri)
+
+      // Ensure redirect flow marker is set (we'll navigate away)
+      localStorage.setItem('sso_redirect_flow', 'true')
+
+      // Build registrations endpoint from authUrl
+      const authUrl = new URL(config.authUrl)
+      // Prefer robust replacement to swap /auth -> /registrations
+      let registrationsPath = authUrl.pathname.replace('/protocol/openid-connect/auth', '/protocol/openid-connect/registrations')
+      if (registrationsPath === authUrl.pathname) registrationsPath = authUrl.pathname.replace('/auth', '/registrations')
+      authUrl.pathname = registrationsPath
+
+      authUrl.searchParams.set('client_id', config.clientId)
+      authUrl.searchParams.set('response_type', 'code')
+      authUrl.searchParams.set('scope', 'openid')
+      authUrl.searchParams.set('redirect_uri', redirectUri)
+      authUrl.searchParams.set('kc_action', 'register')
+      authUrl.searchParams.set('state', state)
+      authUrl.searchParams.set('code_challenge', codeChallenge)
+      authUrl.searchParams.set('code_challenge_method', 'S256')
+
+      // Redirect user to registration on the identity provider
+      window.location.href = authUrl.toString()
+
+    } catch (err) {
+      console.error('Registration flow failed:', err)
+      setError(err.message || 'Registration failed')
+      setRegistering(false)
     }
   }
 
@@ -143,14 +195,14 @@ export default function Login() {
         <div className="grid-overlay" />
       </div>
 
-      <motion.div 
+      <motion.div
         className="login-container"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         {/* Logo & Branding */}
-        <motion.div 
+        <motion.div
           className="login-header"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,15 +227,14 @@ export default function Login() {
         </motion.div>
 
         {/* Login Form */}
-        <motion.form 
+        <motion.div
           className="login-form"
-          onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
           {error && (
-            <motion.div 
+            <motion.div
               className="error-message"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -192,88 +243,69 @@ export default function Login() {
             </motion.div>
           )}
 
-          <div className="input-group">
-            <User size={20} className="input-icon" />
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoComplete="username"
-            />
-          </div>
-
-          <div className="input-group">
-            <Lock size={20} className="input-icon" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
-          <motion.button
-            type="submit"
-            className="login-button"
-            disabled={loading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {loading ? (
-              <div className="button-spinner" />
-            ) : (
-              <>
-                Sign In
-                <ArrowRight size={20} />
-              </>
-            )}
-          </motion.button>
-
-          <div className="login-divider">
-            <span>or</span>
-          </div>
 
           <motion.button
             type="button"
-            className="sso-button"
+            className={`sso-button ${ssoLoading ? 'loading' : ''}`}
+            aria-label={t('auth.ssoSignIn') || 'Sign in with GhassiCloud'}
+            aria-busy={ssoLoading}
             disabled={ssoLoading}
             onClick={handleSSOLogin}
-            whileHover={{ scale: 1.02 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
             {ssoLoading ? (
-              <div className="button-spinner" />
+              <div className="sso-loading">
+                <div className="button-spinner" aria-hidden="true" />
+                <span className="sso-loading-text">{t('auth.redirecting') || 'Redirecting…'}</span>
+                <span className="sr-only">{t('auth.redirectingA11y') || 'Redirecting to GhassiCloud single sign-on'}</span>
+              </div>
             ) : (
               <>
-                <img
-                  src="https://icons.duckduckgo.com/ip3/ghassandarwish.com.ico"
-                  alt="GhassiCloud"
-                  className="sso-icon"
-                />
-                Sign in with GhassiCloud
+                <span className="sso-icon-wrapper" aria-hidden="true">
+                  <img
+                    src="https://icons.duckduckgo.com/ip3/ghassandarwish.com.ico"
+                    alt=""
+                    className="sso-icon"
+                  />
+                </span>
+                <span className="sso-button-label">{t('auth.ssoSignIn') || 'Sign in with GhassiCloud'}</span>
               </>
             )}
           </motion.button>
-        </motion.form>
+          <p className="login-note">{t('auth.socialsNotePrefix') || 'Note:'} {t('auth.socialsNote') ? <><span dangerouslySetInnerHTML={{__html: t('auth.socialsNote')}} /></> : <>Sign in with Socials is available under <strong>{t('auth.signInWithGhassiAuth') || 'Sign in with GhassiAuth'}</strong>.</>} </p>
+
+        </motion.div>
 
         {/* Footer */}
-        <motion.div 
+        <motion.div
           className="login-footer"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
+          <motion.button
+            type="button"
+            className="register-button small"
+            onClick={handleRegister}
+            disabled={registering}
+            aria-label={t('auth.registerAria') || t('auth.registerPrompt') || 'Register a new account'}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {registering ? (
+              <>
+                <div className="button-spinner" aria-hidden="true" style={{ width: 12, height: 12 }} />
+                {t('auth.registering') || 'Registering…'}
+              </>
+            ) : (
+              t('auth.registerPrompt') || 'New here? Register'
+            )}
+          </motion.button>
         </motion.div>
       </motion.div>
 
@@ -299,7 +331,7 @@ export default function Login() {
               </div>
               <h2>{t('sessionExpired.title') || 'Session Expired'}</h2>
               <p>{t('sessionExpired.message') || 'Your session has expired. Please sign in again to continue.'}</p>
-              <button 
+              <button
                 className="session-expired-button"
                 onClick={() => setShowSessionExpired(false)}
               >

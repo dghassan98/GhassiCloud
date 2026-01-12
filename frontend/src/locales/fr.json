@@ -47,7 +47,16 @@
     "yourServices": "Vos services"
   },
   "auth": {
-    "completingSignIn": "Connexion en cours..."
+    "completingSignIn": "Connexion en cours...",
+    "ssoSignIn": "Se connecter avec GhassiAuth",
+    "redirecting": "Redirection…",
+    "redirectingA11y": "Redirection vers la connexion unique GhassiAuth",
+    "signInWithGhassiAuth": "Se connecter avec GhassiAuth",
+    "socialsNotePrefix": "Remarque :",
+    "socialsNote": "La connexion via les réseaux sociaux est disponible sous <strong>Se connecter avec GhassiAuth</strong>.",
+    "registerPrompt": "Nouveau ici ? S'inscrire",
+    "registering": "Inscription…",
+    "registerAria": "Créer un nouveau compte"
   },
   "settings": {
     "title": "Paramètres",

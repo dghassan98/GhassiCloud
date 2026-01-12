@@ -47,7 +47,16 @@
     "yourServices": "Deine Dienste"
   },
   "auth": {
-    "completingSignIn": "Anmeldung wird abgeschlossen..."
+    "completingSignIn": "Anmeldung wird abgeschlossen...",
+    "ssoSignIn": "Mit GhassiAuth anmelden",
+    "redirecting": "Weiterleitung…",
+    "redirectingA11y": "Weiterleitung zu GhassiAuth Single Sign-On",
+    "signInWithGhassiAuth": "Mit GhassiAuth anmelden",
+    "socialsNotePrefix": "Hinweis:",
+    "socialsNote": "Das Anmelden mit Socials findest du unter <strong>Mit GhassiAuth anmelden</strong>.",
+    "registerPrompt": "Neu hier? Registrieren",
+    "registering": "Registrieren…",
+    "registerAria": "Ein neues Konto registrieren"
   },
   "settings": {
     "title": "Einstellungen",

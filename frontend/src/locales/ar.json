@@ -18,7 +18,7 @@
   
 
   "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },
-  "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول..." },
+  "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول...", "ssoSignIn": "تسجيل الدخول عبر GhassiCloud", "redirecting": "جارٍ إعادة التوجيه…", "redirectingA11y": "جارٍ إعادة التوجيه إلى تسجيل الدخول الموحد GhassiCloud", "signInWithGhassiAuth": "تسجيل الدخول عبر GhassiAuth", "socialsNotePrefix": "ملاحظة:", "socialsNote": "توجد ميزة تسجيل الدخول عبر الشبكات الاجتماعية تحت <strong>تسجيل الدخول عبر GhassiAuth</strong>.", "registerPrompt": "جديد هنا؟ سجل الآن", "registering": "جاري التسجيل…", "registerAria": "تسجيل حساب جديد" },
   "settings": {
     "title": "الإعدادات",
     "description": "قم بإدارة حسابك وتفضيلاتك",
