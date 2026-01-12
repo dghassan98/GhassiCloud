@@ -1082,17 +1082,13 @@ router.delete('/users/:userId', authenticateToken, async (req, res) => {
     }
 
     const db = getDb()
-    const targetUser = db.prepare('SELECT username FROM users WHERE id = ?').get(userId)
-    
-    if (!targetUser) {
-      return res.status(404).json({ message: 'User not found' })
-    }
+    const target = db.prepare('SELECT username FROM users WHERE id = ?').get(userId)
+    if (!target) return res.status(404).json({ message: 'User not found' })
 
-    // Delete user and related data
-    db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId)
+    // Remove any session metadata for this user
+    try { db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId) } catch (e) { /* ignore */ }
     db.prepare('DELETE FROM users WHERE id = ?').run(userId)
 
-    // Log user deletion
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -1100,18 +1096,87 @@ router.delete('/users/:userId', authenticateToken, async (req, res) => {
       category: AUDIT_CATEGORIES.USER_MANAGEMENT,
       resourceType: 'user',
       resourceId: userId,
-      resourceName: targetUser.username,
+      resourceName: target.username,
+      details: { deletedUser: target.username },
       ipAddress: getClientIp(req),
       userAgent: req.headers['user-agent'],
       status: 'success'
     })
 
-    res.json({ message: 'User deleted successfully' })
+    res.json({ message: 'User deleted' })
   } catch (err) {
     console.error('Delete user error:', err)
     res.status(500).json({ message: 'Failed to delete user' })
   }
 })
+
+// --- Admin settings (Global site settings managed by admins) ---
+// Get all settings (Admin only)
+router.get('/admin/settings', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' })
+    const db = getDb()
+    const rows = db.prepare('SELECT key, value FROM settings').all()
+    const obj = {}
+    rows.forEach(r => { obj[r.key] = r.value })
+    res.json({ settings: obj })
+  } catch (err) {
+    console.error('Get settings error:', err)
+    res.status(500).json({ message: 'Failed to fetch settings' })
+  }
+})
+
+// Get single setting (Admin only)
+router.get('/admin/settings/:key', authenticateToken, async (req, res) => {
+  try {
+    // Allow any authenticated user to read a single setting (value is treated as public info)
+    const { key } = req.params
+    const db = getDb()
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key)
+    if (!row) return res.status(404).json({ message: 'Setting not found' })
+    res.json({ key, value: row.value })
+  } catch (err) {
+    console.error('Get setting error:', err)
+    res.status(500).json({ message: 'Failed to fetch setting' })
+  }
+})
+
+// Create or update a setting (Admin only)
+router.post('/admin/settings', authenticateToken, async (req, res) => {
+  try {
+    const { key, value } = req.body
+    console.log('POST /api/admin/settings', { userId: req.user?.id, username: req.user?.username, key, value })
+    if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' })
+    if (!key) return res.status(400).json({ message: 'Missing key' })
+    const db = getDb()
+    const existing = db.prepare('SELECT value FROM settings WHERE key = ?').get(key)
+    if (existing) {
+      db.prepare('UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?').run(value, key)
+    } else {
+      db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run(key, value)
+    }
+
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: AUDIT_ACTIONS.SETTINGS_UPDATED,
+      category: AUDIT_CATEGORIES.SETTINGS,
+      resourceType: 'setting',
+      resourceId: key,
+      resourceName: key,
+      details: { key, value },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+
+    res.json({ message: 'Setting saved', key, value })
+  } catch (err) {
+    console.error('Save setting error:', err)
+    res.status(500).json({ message: 'Failed to save setting' })
+  }
+})
+
 
 // Front-channel logout endpoint for SSO providers (Keycloak frontchannel logout can redirect here)
 // Example GET: /api/auth/sso/frontchannel-logout?session_state=<sessionId>

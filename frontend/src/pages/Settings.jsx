@@ -119,6 +119,11 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
 
+  // Admin-only: PWA devtools toggle state (stored as 'true'/'false' strings on server)
+  const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
+  const [savingPwaSetting, setSavingPwaSetting] = useState(false)
+  const [pwaSaveError, setPwaSaveError] = useState(null)
+
   // Reset defaults state
   const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
 
@@ -447,6 +452,24 @@ export default function Settings() {
       handleLoadSessions()
     }
   }, [activeSection])
+
+  // Load admin-only settings when viewing security (keeps call lightweight)
+  useEffect(() => {
+    if (activeSection !== 'security' || !isAdmin) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const token = getAuthToken()
+        const headers = token ? { Authorization: token } : {}
+        const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        setPwaDevToolsEnabled(data && data.value === 'true')
+      } catch (e) { console.warn('Failed to load admin settings', e) }
+    })()
+    return () => { cancelled = true }
+  }, [activeSection, isAdmin])
 
 
   // Focus the SSO modal, trap Escape to close, and prevent background scrolling
@@ -900,6 +923,74 @@ export default function Settings() {
                     <input type="password" placeholder={t('settings.confirmPasswordPlaceholder') || 'Confirm new password'} />
                   </div>
                 </>
+              )}
+
+              {/* Admin-only: PWA Developer tools card (single area with action) */}
+              {isAdmin && (
+                <div className="sso-card">
+                  <div className="sso-card-left"><Monitor size={22} /></div>
+                  <div className="sso-card-body">
+                    <h4>{t('settings.pwaDevTools.title') || 'Allow Developer Tools (F12) in PWA'}</h4>
+                    <p className="form-hint">{t('settings.pwaDevTools.desc') || 'When enabled by an administrator, pressing F12 in the installed PWA will open the app (or an embedded webview) in a new window so DevTools can be used.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can enable this setting'}</span></p>
+                  </div>
+                  <div className="sso-card-actions">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <label className="toggle" style={{ margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!pwaDevToolsEnabled}
+                          disabled={savingPwaSetting}
+                          onChange={async () => {
+                            const next = !pwaDevToolsEnabled
+                            setPwaDevToolsEnabled(next)
+                            setSavingPwaSetting(true)
+                            setPwaSaveError(null)
+                            try {
+                              const token = getAuthToken()
+                              const headers = { 'Content-Type': 'application/json' }
+                              if (token) headers.Authorization = token
+const res = await fetch('/api/auth/admin/settings', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({ key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' })
+                              })
+
+                              if (res.ok) {
+                                showToast({ message: (t('settings.pwaDevTools.saved') || 'Setting saved'), type: 'success' })
+                                try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' } })) } catch (e) {}
+                              } else {
+                                let msg = t('settings.pwaDevTools.saveFailed') || 'Failed to save setting'
+                                if (res.status === 403) msg = t('settings.adminRequired') || 'Admin access required'
+                                if (res.status === 401) msg = t('settings.notAuthenticated') || 'Not authenticated — please sign in'
+                                try {
+                                  const data = await res.json()
+                                  if (data && data.message) msg = data.message
+                                } catch (e) {
+                                  try { const txt = await res.text(); if (txt) msg = txt } catch (ee) {}
+                                }
+                                setPwaDevToolsEnabled(!next)
+                                setPwaSaveError(msg)
+                                showToast({ message: msg, type: 'error' })
+                              }
+                            } catch (err) {
+                              console.error('Save PWA devtools setting error:', err)
+                              setPwaDevToolsEnabled(!next)
+                              setPwaSaveError(t('settings.pwaDevTools.saveFailed') || 'Failed to save setting')
+                              showToast({ message: t('settings.pwaDevTools.saveFailed') || 'Failed to save setting', type: 'error' })
+                            } finally {
+                              setSavingPwaSetting(false)
+                            }
+                          }}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        {/* Toggle only (label moved into the card description). Keep aria-label for accessibility. */}
+                        {pwaSaveError && <span className="muted" style={{ color: 'var(--danger)', marginTop: '6px' }}>{pwaSaveError}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
 

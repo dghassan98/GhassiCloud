@@ -186,8 +186,15 @@
     "passwordManagedBySSO": "Tu cuenta usa inicio de sesión único. Para cambiar tu contraseña, visita a tu proveedor de autenticación.",
     "changeOnAuthPlatform": "Cambiar contraseña en la plataforma de autenticación",
     "resetSuccess": "¡Todos los servicios se han restablecido correctamente!",
-    "resetFailed": "Error al restablecer los servicios",
-    "activeSessionsTitle": "Sesiones activas",
+    "resetFailed": "Error al restablecer los servicios",    "pwaDevTools": {
+      "title": "Permitir herramientas de desarrollo (F12) en PWA",
+      "desc": "Cuando lo habilita un administrador, presionar F12 en la PWA instalada abrirá la aplicación (o una webview integrada) en una nueva ventana para que se puedan usar las DevTools.",
+      "toggleLabel": "Habilitar F12 / herramientas para PWA",
+      "saved": "Ajuste guardado",
+      "saveFailed": "Error al guardar el ajuste",
+      "disabledToast": "Las herramientas de desarrollo están deshabilitadas por un administrador",
+      "adminHint": "Solo administradores — solo los administradores pueden habilitar esta opción"
+    },    "activeSessionsTitle": "Sesiones activas",
     "activeSessionsDesc": "Ver dispositivos y navegadores actualmente conectados. Revoca sesiones que no reconozcas.",
     "signOutEverywhere": "Cerrar sesión en todos los dispositivos",
     "signOutEverywhereConfirm": "¿Cerrar sesión en todos los dispositivos?",

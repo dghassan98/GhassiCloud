@@ -173,6 +173,17 @@
     "resetFailed": "Failed to reset services",
     "activeSessionsTitle": "Active sessions",
     "activeSessionsDesc": "See devices and browsers currently signed in. Revoke any session you don't recognize.",
+    "pwaDevTools": {
+      "title": "Allow Developer Tools (F12) in PWA",
+      "desc": "When enabled by an administrator, pressing F12 in the installed PWA will open the app (or an embedded webview) in a new window so DevTools can be used.",
+      "toggleLabel": "Enable F12 / developer tools for PWA",
+      "saved": "Setting saved",
+      "saveFailed": "Failed to save setting",
+      "disabledToast": "Developer tools are disabled by an administrator",
+      "adminHint": "Admins only — only administrators can enable this setting"
+    },
+    "adminRequired": "Admin access required",
+    "notAuthenticated": "Not authenticated — please sign in",
     "signOutEverywhere": "Sign out everywhere",
     "signOutEverywhereConfirm": "Sign out from all devices?",
     "signOutEverywhereDesc": "You will be logged out from all active sessions.",

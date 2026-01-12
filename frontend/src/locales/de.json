@@ -186,8 +186,15 @@
     "passwordManagedBySSO": "Dein Konto verwendet Single Sign-On. Um dein Passwort zu ändern, besuche bitte deinen Authentifizierungsanbieter.",
     "changeOnAuthPlatform": "Passwort auf der Authentifizierungsplattform ändern",
     "resetSuccess": "Alle Dienste wurden erfolgreich zurückgesetzt!",
-    "resetFailed": "Fehler beim Zurücksetzen der Dienste",
-    "activeSessionsTitle": "Aktive Sitzungen",
+    "resetFailed": "Fehler beim Zurücksetzen der Dienste",    "pwaDevTools": {
+      "title": "Entwicklertools (F12) in PWA erlauben",
+      "desc": "Wenn von einem Administrator aktiviert, öffnet das Drücken von F12 in der installierten PWA die App (oder eine eingebettete Webansicht) in einem neuen Fenster, sodass DevTools verwendet werden können.",
+      "toggleLabel": "F12 / Entwicklertools für PWA aktivieren",
+      "saved": "Einstellung gespeichert",
+      "saveFailed": "Fehler beim Speichern der Einstellung",
+      "disabledToast": "Entwicklertools sind durch einen Administrator deaktiviert",
+      "adminHint": "Nur Administratoren — nur Administratoren können diese Einstellung aktivieren"
+    },    "activeSessionsTitle": "Aktive Sitzungen",
     "activeSessionsDesc": "Geräte und Browser anzeigen, die derzeit angemeldet sind. Widerrufe alle Sitzungen, die du nicht erkennst.",
     "signOutEverywhere": "Auf allen Geräten abmelden",
     "signOutEverywhereConfirm": "Von allen Geräten abmelden?",

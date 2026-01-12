@@ -159,6 +159,13 @@ export async function initDatabase() {
     )
   `)
 
+  // Ensure default admin-controlled settings are present
+  try {
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('pwaDevtoolsEnabled', 'false')
+  } catch (e) {
+    console.warn('Failed to initialize default settings:', e)
+  }
+
   // Create navidrome credentials table (single credential storage for Now Playing)
   db.exec(`
     CREATE TABLE IF NOT EXISTS navidrome_credentials (

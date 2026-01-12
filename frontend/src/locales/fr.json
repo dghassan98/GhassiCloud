@@ -187,6 +187,15 @@
     "changeOnAuthPlatform": "Modifier le mot de passe sur la plateforme d'authentification",
     "resetSuccess": "Tous les services ont été réinitialisés avec succès !",
     "resetFailed": "Échec de la réinitialisation des services",
+    "pwaDevTools": {
+      "title": "Autoriser les outils de développement (F12) dans la PWA",
+      "desc": "Lorsque activé par un administrateur, appuyer sur F12 dans la PWA installée ouvrira l'application (ou une webview intégrée) dans une nouvelle fenêtre afin d'utiliser DevTools.",
+      "toggleLabel": "Activer F12 / outils pour PWA",
+      "saved": "Paramètre enregistré",
+      "saveFailed": "Échec de l'enregistrement du paramètre",
+      "disabledToast": "Les outils de développement sont désactivés par un administrateur",
+      "adminHint": "Administrateurs seulement — seuls les administrateurs peuvent activer ce paramètre"
+    },
     "activeSessionsTitle": "Sessions actives",
     "activeSessionsDesc": "Voir les appareils et navigateurs connectés. Révoquer toute session inconnue.",
     "signOutEverywhere": "Déconnecter de tous les appareils",

@@ -21,8 +21,9 @@ export default function Layout() {
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
   const { showToast } = useToast()
-  const { openWebview } = useWebview()
+  const { openWebview, tabs, activeId } = useWebview()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const exitTimerRef = useRef(null)
@@ -51,6 +52,65 @@ export default function Layout() {
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
   }, [openWebview, isMobile])
+
+  // Load admin setting to enable F12 / DevTools in PWA (global admin-configured flag)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const token = localStorage.getItem('ghassicloud-token')
+        const auth = token && token.startsWith('Bearer ') ? token : (token ? `Bearer ${token}` : null)
+        const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers: auth ? { Authorization: auth } : {} })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        setPwaDevToolsEnabled(data && data.value === 'true')
+      } catch (e) {
+        // ignore
+      }
+    })()
+    // Update when admin changes setting via UI
+    const onSetting = (ev) => {
+      try {
+        if (ev && ev.detail && ev.detail.key === 'pwaDevtoolsEnabled') {
+          setPwaDevToolsEnabled(ev.detail.value === 'true')
+        }
+      } catch (e) {}
+    }
+    window.addEventListener('ghassicloud:settings-updated', onSetting)
+
+    return () => { cancelled = true; window.removeEventListener('ghassicloud:settings-updated', onSetting) }
+  }, [])
+
+  // Capture DevTools key shortcuts (F12 and Ctrl/Cmd+Shift+I). When running as an installed desktop PWA,
+  // block them by default unless the admin-enabled flag is set, or open the current page/webview in a new window when allowed.
+  useEffect(() => {
+    if (!isPWA() || isMobile()) return
+
+    const onKey = (e) => {
+      try {
+        const isF12 = e.key === 'F12' || e.keyCode === 123
+        const isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')
+        if (!isF12 && !isCtrlShiftI) return
+
+        // If admin has not enabled devtools in PWA, block and inform
+        if (!pwaDevToolsEnabled) {
+          try { e.preventDefault(); e.stopImmediatePropagation(); showToast({ message: t('settings.pwaDevTools.disabledToast') || 'Developer tools are disabled by an administrator', type: 'info' }) } catch (err) {}
+          return
+        }
+
+        // When enabled by admin, do not open a new window — allow the key to propagate so native behavior occurs
+        // (some platforms may still disallow devtools in installed PWAs; this makes the behavior opt-in without forcing a new tab)
+        return
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    // Use capture phase to intercept keys even when an iframe is focused
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [pwaDevToolsEnabled, tabs, activeId, isMobile, t, showToast])
   
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'

@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.2.5': {
+    date: 'January 12, 2026',
+    changes: [
+      'Add admin settings for PWA DevTools',
+    ],
+  },
   '1.2.4': {
     date: 'January 10, 2026',
     changes: [
