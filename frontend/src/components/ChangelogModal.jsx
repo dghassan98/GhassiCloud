@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.7': {
+    date: 'January 13, 2026',
+    changes: [
+      'Refactor WebViewModal to improve iframe handling and overlay visibility logic',
+    ],
+  },
   '1.4.6': {
     date: 'January 13, 2026',
     changes: [

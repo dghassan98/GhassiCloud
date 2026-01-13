@@ -8,7 +8,6 @@ import '../styles/webview.css'
 
 export default function WebViewModal() {
   const { tabs, activeId, closeWebview, setActiveWebview, minimizeWebview, restoreWebview, maximizeWebview, restoreMaximizedWebview, MAX_MINIMIZED } = useWebview()
-  const iframeRef = useRef(null)
   const { showToast } = useToast()
   const { t } = useLanguage()
   const [loadingMap, setLoadingMap] = useState({})
@@ -35,11 +34,13 @@ export default function WebViewModal() {
     return () => window.removeEventListener('message', onMessage)
   }, [tabs, closeWebview])
 
-  // Manage load/detection for blocked frames (declared unconditionally to keep hook order stable)
+  // Manage load/detection for blocked frames (bind to the currently active iframe element)
   useEffect(() => {
-    if (!active || !iframeRef.current) return
+    if (!active) return
 
-    const iframe = iframeRef.current
+    // Find the iframe element for the active tab (we render one iframe per tab to preserve state across minimize)
+    const iframe = document.querySelector(`iframe[data-wv-id="${active.id}"]`)
+    if (!iframe) return
 
     // If this iframe has already loaded the current URL, don't re-run the load detector
     try {
@@ -152,55 +153,64 @@ export default function WebViewModal() {
 
   return (
     <>
-      {/* Overlay modal (only when active and not minimized) */}
-      {overlayVisible && (
-        <div className="webview-overlay" role="dialog" aria-modal="true" onPointerDown={(e) => { if (e.target === e.currentTarget) { if (isPWA() && !isMobile()) { e.preventDefault(); setShowCloseConfirm(true) } else if (active) { closeWebview(active.id) } } }}> 
-          <div className={`webview-window ${active && active.maximized ? 'maximized' : ''}`}>
-            <div className="webview-header">
-              <div className="webview-tabs">
-                {tabs.map(t => (
-                  <button key={t.id} className={`webview-tab ${t.id === active.id ? 'active' : ''}`} onClick={() => setActiveWebview(t.id)}>
-                    {t.title || t.hostname}
-                    <span className="webview-close" onClick={(e) => { e.stopPropagation(); closeWebview(t.id) }} aria-label="Close tab"><X size={12} /></span>
-                  </button>
-                ))}
-              </div>
-              <div className="webview-actions">
-                <button className="btn" onClick={() => window.open(active.url, '_blank', 'noopener,noreferrer')} title={t('webview.openExternal') || 'Open in external browser'}><ExternalLink size={14} /></button>
-                {active.maximized ? (
-                  <button className="btn" onClick={() => restoreMaximizedWebview(active.id)} title={t('webview.restoreWindow') || 'Restore Window'}><Minimize size={14} /></button>
-                ) : (
-                  <button className="btn" onClick={() => maximizeWebview(active.id)} title={t('webview.maximize') || 'Maximize'}><Maximize2 size={14} /></button>
-                )}
-                <button className="btn" onClick={() => {
-                  const ok = minimizeWebview(active.id)
-                  if (!ok) showToast({ message: t('webview.minimizeLimit') || 'Maximum minimized webviews reached', type: 'info' })
-                }} title={t('webview.minimize') || 'Minimize'}><Minimize2 size={14} /></button>
-                <button className="btn close" onClick={() => closeWebview(active.id)} title={t('webview.close') || 'Close'}><X size={14} /></button>
-              </div>
+      {/* Overlay modal (rendered always so iframes remain mounted; visibility toggled with a CSS class) */}
+      <div className={`webview-overlay ${overlayVisible ? '' : 'hidden'}`} role="dialog" aria-modal="true" onPointerDown={(e) => { if (e.target === e.currentTarget) { if (isPWA() && !isMobile()) { e.preventDefault(); setShowCloseConfirm(true) } else if (active) { closeWebview(active.id) } } }}> 
+        <div className={`webview-window ${active && active.maximized ? 'maximized' : ''}`}>
+          <div className="webview-header">
+            <div className="webview-tabs">
+              {tabs.map(t => (
+                <button key={t.id} className={`webview-tab ${t.id === active.id ? 'active' : ''}`} onClick={() => setActiveWebview(t.id)}>
+                  {t.title || t.hostname}
+                  <span className="webview-close" onClick={(e) => { e.stopPropagation(); closeWebview(t.id) }} aria-label="Close tab"><X size={12} /></span>
+                </button>
+              ))}
             </div>
-            <div className="webview-body">
-              {loadingMap[active.id] && (
-                <div className="webview-loading">Loading…</div>
-              )}
-              <iframe ref={iframeRef} title={active.title || active.hostname} src={active.url} sandbox="allow-scripts allow-forms allow-same-origin allow-popups" />
+            <div className="webview-actions">
+              {active && <button className="btn" onClick={() => window.open(active.url, '_blank', 'noopener,noreferrer')} title={t('webview.openExternal') || 'Open in external browser'}><ExternalLink size={14} /></button>}
+              {active && (active.maximized ? (
+                <button className="btn" onClick={() => restoreMaximizedWebview(active.id)} title={t('webview.restoreWindow') || 'Restore Window'}><Minimize size={14} /></button>
+              ) : (
+                <button className="btn" onClick={() => maximizeWebview(active.id)} title={t('webview.maximize') || 'Maximize'}><Maximize2 size={14} /></button>
+              ))}
+              {active && <button className="btn" onClick={() => {
+                const ok = minimizeWebview(active.id)
+                if (!ok) showToast({ message: t('webview.minimizeLimit') || 'Maximum minimized webviews reached', type: 'info' })
+              }} title={t('webview.minimize') || 'Minimize'}><Minimize2 size={14} /></button>}
+              {active && <button className="btn close" onClick={() => closeWebview(active.id)} title={t('webview.close') || 'Close'}><X size={14} /></button>}
             </div>
           </div>
+          <div className="webview-body">
+            {active && loadingMap[active.id] && (
+              <div className="webview-loading">Loading…</div>
+            )}
 
-          {showCloseConfirm && (
-            <div className="webview-close-confirm" role="alertdialog" aria-modal="true" aria-labelledby="webview-close-title">
-              <div className="webview-close-confirm-card">
-                <h3 id="webview-close-title">{t('webview.closeConfirm.title') || "Close webview?"}</h3>
-                <p>{t('webview.closeConfirm.message') || "You're about to close this window. Open in external browser instead?"}</p>
-                <div className="webview-close-confirm-actions">
-                  <button className="btn" onClick={() => setShowCloseConfirm(false)}>{t('common.cancel') || 'Cancel'}</button>
-                  <button className="btn btn-danger" onClick={() => { if (active) { closeWebview(active.id) }; setShowCloseConfirm(false) }}>{t('webview.closeConfirm.confirm') || 'Close'}</button>
-                </div>
+            {/* Render an iframe per tab and keep them mounted so minimizing won't lose state */}
+            {tabs.map(t => (
+              <iframe
+                key={t.id}
+                data-wv-id={t.id}
+                title={t.title || t.hostname}
+                src={t.url}
+                sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+                style={{ display: (active && active.id === t.id && !t.minimized) ? 'block' : 'none', width: '100%', height: '100%', border: 0 }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {showCloseConfirm && (
+          <div className="webview-close-confirm" role="alertdialog" aria-modal="true" aria-labelledby="webview-close-title">
+            <div className="webview-close-confirm-card">
+              <h3 id="webview-close-title">{t('webview.closeConfirm.title') || "Close webview?"}</h3>
+              <p>{t('webview.closeConfirm.message') || "You're about to close this window. Open in external browser instead?"}</p>
+              <div className="webview-close-confirm-actions">
+                <button className="btn" onClick={() => setShowCloseConfirm(false)}>{t('common.cancel') || 'Cancel'}</button>
+                <button className="btn btn-danger" onClick={() => { if (active) { closeWebview(active.id) }; setShowCloseConfirm(false) }}>{t('webview.closeConfirm.confirm') || 'Close'}</button>
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Side tray for minimized tabs */}
       {minimizedTabs.length > 0 && (
@@ -214,9 +224,9 @@ export default function WebViewModal() {
           ))}
         </div>
       )}
-
       <style>{`
         .webview-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }
+        .webview-overlay.hidden { display: none !important; pointer-events: none; }
         .webview-window { width: 90%; height: 85%; background: var(--bg-primary); border-radius: 8px; overflow: hidden; display:flex; flex-direction:column; box-shadow: 0 10px 30px rgba(2,6,23,0.6); }
         .webview-window.maximized { width: 100%; height: 100%; border-radius: 0; }
         .webview-window.maximized .webview-body iframe { height: calc(100% - 46px); } /* ensure iframe fills under header */
