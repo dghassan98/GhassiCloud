@@ -107,8 +107,11 @@ export default function WebViewModal() {
     }
   }, [active, closeWebview, showToast])
 
-  // Prevent background scrolling while modal is open
+  // Prevent background scrolling while modal is open (only on installed desktop PWAs)
   useEffect(() => {
+    // Do not block body scrolling for mobile PWAs or regular browser tabs — that prevents scrolling on mobile devices
+    if (!(isPWA() && !isMobile())) return
+
     const prevOverflow = document.body.style.overflow
     const prevPaddingRight = document.body.style.paddingRight
     // Compensate for scrollbar to avoid layout shift

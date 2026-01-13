@@ -25,8 +25,10 @@ export default function Layout() {
   const { openWebview, tabs, activeId, restoreWebview, closeWebview, clearAllWebviews, MAX_MINIMIZED } = useWebview()
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false)
 
-  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app
+  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app (only in installed desktop PWAs)
   useEffect(() => {
+    if (!isPWA() || isMobile()) return
+
     const onKey = (e) => {
       try {
         const isF5 = e.key === 'F5' || e.keyCode === 116

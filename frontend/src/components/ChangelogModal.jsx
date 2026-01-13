@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.3': {
+    date: 'January 13, 2026',
+    changes: [
+      'Enhance PWA behavior by adding conditions for reload confirmation and background scrolling prevention',
+    ],
+  },
   '1.4.2': {
     date: 'January 13, 2026',
     changes: [
