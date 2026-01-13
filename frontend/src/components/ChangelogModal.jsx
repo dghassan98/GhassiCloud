@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.6': {
+    date: 'January 13, 2026',
+    changes: [
+      'Update German localization with enhanced welcome message and add make-admin script for user role management',
+    ],
+  },
   '1.4.5': {
     date: 'January 13, 2026',
     changes: [
