@@ -110,8 +110,8 @@ export default function WebViewModal() {
   // Prevent background scrolling while modal is open (only on installed desktop PWAs)
   useEffect(() => {
     // Only apply locking when running as an installed desktop PWA AND the overlay is visible.
-    // This prevents global scrolling being blocked when no webview modal is open (fixes desktop mode scroll issue).
-    if (!(isPWA() && !isMobile() && overlayVisible)) return
+    // Use `active` directly (avoids referencing `overlayVisible` before it's declared and prevents TDZ errors).
+    if (!(isPWA() && !isMobile() && active && !active.minimized)) return
 
     const prevOverflow = document.body.style.overflow
     const prevPaddingRight = document.body.style.paddingRight
@@ -125,7 +125,7 @@ export default function WebViewModal() {
       document.body.style.overflow = prevOverflow
       document.body.style.paddingRight = prevPaddingRight
     }
-  }, [overlayVisible])
+  }, [active && !active.minimized])
 
   // Intercept Escape to show a close confirmation when running as an installed PWA
   useEffect(() => {

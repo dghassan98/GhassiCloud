@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.5': {
+    date: 'January 13, 2026',
+    changes: [
+      'Improve background scrolling lock logic in WebViewModal and enhance dashboard styles for better layout and alignment',
+    ],
+  },
   '1.4.4': {
     date: 'January 13, 2026',
     changes: [

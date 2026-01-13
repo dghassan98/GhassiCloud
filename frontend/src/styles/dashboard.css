@@ -355,11 +355,12 @@
 /* Hide the stats-trend only when it's empty — otherwise show sparkline/trend */
 .services-online .stats-trend:empty { display: none; }
 
-.stats-trend {
+..stats-trend {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
+  align-items: flex-start; /* align to top so the percent sits at the top-right */
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.9rem;
   font-weight: 500;
   /* Remove boxed background for services card; defaults are transparent */
   background: transparent;
@@ -367,11 +368,20 @@
   border-radius: 0;
 }
 
-/* Move the services trend area slightly lower inside the Services Online card */
-.services-online .stats-trend { margin-top: 12px }
+/* Slight adjustment inside the Services Online card */
+.services-online .stats-trend { margin-top: 6px }
 
-/* Nudge the percent/delta down a touch for a balanced look */
-.percent-delta-wrap { transform: translateY(10px) }
+/* Layout for percent + delta: stack the percent above the pill and right-align */
+.percent-delta-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:6px }
+
+/* Big percent number */
+.percent-number { font-size: 1.6rem; font-weight: 700; color: var(--text-on-accent, #e6eef8) }
+
+/* Small delta pill */
+.delta-pill { font-size: 0.75rem; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.03); }
+.delta-pill.up { color: #16a34a; background: rgba(22,163,74,0.06); border-color: rgba(22,163,74,0.08) }
+.delta-pill.down { color: #ef4444; background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.08) }
+.delta-pill.neutral { color: #94a3b8; background: rgba(148,163,184,0.03) }
 
 /* ===== Services Section ===== */
 .services-section {
