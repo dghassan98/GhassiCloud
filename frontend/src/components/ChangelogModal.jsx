@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.4': {
+    date: 'January 13, 2026',
+    changes: [
+      'Improve background scrolling behavior for installed desktop PWAs by locking overflow only when overlay is visible',
+    ],
+  },
   '1.4.3': {
     date: 'January 13, 2026',
     changes: [
