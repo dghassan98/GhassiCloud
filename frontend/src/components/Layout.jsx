@@ -22,7 +22,40 @@ export default function Layout() {
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
   const { showToast } = useToast()
-  const { openWebview, tabs, activeId, restoreWebview, closeWebview, MAX_MINIMIZED } = useWebview()
+  const { openWebview, tabs, activeId, restoreWebview, closeWebview, clearAllWebviews, MAX_MINIMIZED } = useWebview()
+  const [showRefreshConfirm, setShowRefreshConfirm] = useState(false)
+
+  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app
+  useEffect(() => {
+    const onKey = (e) => {
+      try {
+        const isF5 = e.key === 'F5' || e.keyCode === 116
+        const isCmdR = (e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R')
+        if (!isF5 && !isCmdR) return
+        e.preventDefault(); e.stopImmediatePropagation()
+        setShowRefreshConfirm(true)
+      } catch (err) {}
+    }
+
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [])
+
+  useEffect(() => {
+    if (!showRefreshConfirm) return
+    const onKey = (e) => { if (e.key === 'Escape') setShowRefreshConfirm(false) }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [showRefreshConfirm])
+
+  const confirmReload = () => {
+    try { clearAllWebviews() } catch (e) {}
+    setShowRefreshConfirm(false)
+    setTimeout(() => { window.location.reload() }, 60)
+  }
+
+  const cancelReload = () => setShowRefreshConfirm(false)
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const navigate = useNavigate()
@@ -364,6 +397,19 @@ export default function Layout() {
       <main className="main-content">
         <Outlet />
       </main>
+
+      {showRefreshConfirm && (
+        <div className="webview-close-confirm" role="alertdialog" aria-modal="true" aria-labelledby="refresh-confirm-title">
+          <div className="webview-close-confirm-card">
+            <h3 id="refresh-confirm-title">{t('webview.refreshConfirm.title') || 'Reload application?'}</h3>
+            <p>{t('webview.refreshConfirm.message') || 'This will close all open webview tabs and reload the app. Continue?'}</p>
+            <div className="webview-close-confirm-actions">
+              <button className="btn" onClick={cancelReload}>{t('webview.refreshConfirm.cancel') || 'Cancel'}</button>
+              <button className="btn btn-danger" onClick={confirmReload}>{t('webview.refreshConfirm.confirm') || 'Reload'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

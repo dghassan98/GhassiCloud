@@ -40,10 +40,24 @@ export default function WebViewModal() {
     if (!active || !iframeRef.current) return
 
     const iframe = iframeRef.current
+
+    // If this iframe has already loaded the current URL, don't re-run the load detector
+    try {
+      if (iframe.dataset && iframe.dataset.loaded === '1' && iframe.src === active.url) {
+        setLoadingMap(prev => ({ ...prev, [active.id]: false }))
+        return
+      }
+    } catch (e) {
+      // ignore cross-origin dataset access issues
+    }
+
     let didLoad = false
 
     const onLoad = () => {
       didLoad = true
+      // Mark this iframe as loaded for this URL so repeated re-renders (e.g., maximize) won't retrigger fallback
+      try { if (iframe.dataset) iframe.dataset.loaded = '1' } catch(e) {}
+
       // Try to detect obvious frame blocking (about:blank)
       let blocked = false
       try {

@@ -3,6 +3,14 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.2': {
+    date: 'January 13, 2026',
+    changes: [
+      'Add refresh confirmation dialog before reloading the app',
+      'enhance webview context with clearAllWebviews function',
+      'and update localization for refresh confirmation messages',
+    ],
+  },
   '1.4.1': {
     date: 'January 13, 2026',
     changes: [

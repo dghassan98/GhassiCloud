@@ -344,7 +344,13 @@
     "trayLabel": "Minimierte Webansichten",
     "restore": "Wiederherstellen",
     "maximize": "Maximieren",
-    "restoreWindow": "Fenster wiederherstellen"
+    "restoreWindow": "Fenster wiederherstellen",
+    "refreshConfirm": {
+      "title": "Anwendung neu laden?",
+      "message": "Dadurch werden alle geöffneten Webansichten geschlossen und die App neu geladen. Fortfahren?",
+      "confirm": "Neu laden",
+      "cancel": "Abbrechen"
+    }
   },
   "common": {
     "cancel": "Abbrechen",

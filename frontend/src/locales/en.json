@@ -330,7 +330,13 @@
     "trayLabel": "Minimized webviews",
     "restore": "Restore",
     "maximize": "Maximize",
-    "restoreWindow": "Restore Window"
+    "restoreWindow": "Restore Window",
+    "refreshConfirm": {
+      "title": "Reload application?",
+      "message": "This will close all open webview tabs and reload the app. Continue?",
+      "confirm": "Reload",
+      "cancel": "Cancel"
+    }
   },
   "common": {
     "cancel": "Cancel",

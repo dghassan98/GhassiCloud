@@ -65,6 +65,12 @@ export function WebviewProvider({ children }) {
     setActiveId(id)
   }, [])
 
+  // Clear all webviews (used before full app reload)
+  const clearAllWebviews = useCallback(() => {
+    setTabs([])
+    setActiveId(null)
+  }, [])
+
   // Maximize (make full-screen) a webview. Only one webview is maximized at a time.
   const maximizeWebview = useCallback((id) => {
     setTabs(prev => prev.map(t => ({ ...t, maximized: t.id === id })))
@@ -86,6 +92,7 @@ export function WebviewProvider({ children }) {
     restoreWebview,
     maximizeWebview,
     restoreMaximizedWebview,
+    clearAllWebviews,
     MAX_MINIMIZED
   }
 

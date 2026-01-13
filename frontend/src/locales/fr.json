@@ -346,7 +346,13 @@
     "trayLabel": "Vues web réduites",
     "restore": "Restaurer",
     "maximize": "Agrandir",
-    "restoreWindow": "Restaurer la fenêtre"
+    "restoreWindow": "Restaurer la fenêtre",
+    "refreshConfirm": {
+      "title": "Recharger l'application ?",
+      "message": "Cela fermera toutes les vues web ouvertes et rechargera l'application. Continuer ?",
+      "confirm": "Recharger",
+      "cancel": "Annuler"
+    }
   },
   "common": {
     "cancel": "Annuler",

@@ -344,7 +344,13 @@
     "trayLabel": "Vistas web minimizadas",
     "restore": "Restaurar",
     "maximize": "Maximizar",
-    "restoreWindow": "Restaurar ventana"
+    "restoreWindow": "Restaurar ventana",
+    "refreshConfirm": {
+      "title": "¿Recargar la aplicación?",
+      "message": "Esto cerrará todas las vistas web abiertas y recargará la aplicación. ¿Continuar?",
+      "confirm": "Recargar",
+      "cancel": "Cancelar"
+    }
   },
   "common": {
     "cancel": "Cancelar",
