@@ -330,6 +330,22 @@
   "app": {
     "loading": "GhassiCloud wird geladen..."
   },
+  "webview": {
+    "closeConfirm": {
+      "title": "Webansicht schließen?",
+      "message": "Sie sind dabei, dieses Fenster zu schließen. Fortfahren?",
+      "confirm": "Schließen",
+      "cancel": "Abbrechen"
+    },
+    "minimize": "Minimieren",
+    "minimizeLimit": "Maximale Anzahl minimierter Webansichten erreicht",
+    "openExternal": "Im externen Browser öffnen",
+    "close": "Schließen",
+    "trayLabel": "Minimierte Webansichten",
+    "restore": "Wiederherstellen",
+    "maximize": "Maximieren",
+    "restoreWindow": "Fenster wiederherstellen"
+  },
   "common": {
     "cancel": "Abbrechen",
     "close": "Schließen",

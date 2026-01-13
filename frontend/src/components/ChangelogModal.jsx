@@ -3,6 +3,14 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.1': {
+    date: 'January 13, 2026',
+    changes: [
+      'Enhance webview functionality with minimize, maximize, and restore features',
+      'add close confirmation',
+      'improve localization for webview actions',
+    ],
+  },
   '1.4.0': {
     date: 'January 12, 2026',
     changes: [

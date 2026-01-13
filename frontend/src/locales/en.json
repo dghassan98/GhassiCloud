@@ -316,6 +316,22 @@
     "loading": "Loading GhassiCloud...",
     "offline": "You are offline"
   },
+  "webview": {
+    "closeConfirm": {
+      "title": "Close webview?",
+      "message": "You're about to close this window. Continue?",
+      "confirm": "Close",
+      "cancel": "Cancel"
+    },
+    "minimize": "Minimize",
+    "minimizeLimit": "Maximum minimized webviews reached",
+    "openExternal": "Open in external browser",
+    "close": "Close",
+    "trayLabel": "Minimized webviews",
+    "restore": "Restore",
+    "maximize": "Maximize",
+    "restoreWindow": "Restore Window"
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",

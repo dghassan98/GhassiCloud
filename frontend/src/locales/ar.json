@@ -178,5 +178,21 @@
     "ghassiShareDesc": "خدمة مشاركة الملفات الشخصية"
   },
   "app": { "loading": "جارٍ تحميل GhassiCloud..." },
+  "webview": {
+    "closeConfirm": {
+      "title": "إغلاق نافذة الويب؟",
+      "message": "أنت على وشك إغلاق هذه النافذة. هل تريد المتابعة؟",
+      "confirm": "إغلاق",
+      "cancel": "إلغاء"
+    },
+    "minimize": "تصغير",
+    "minimizeLimit": "تم الوصول إلى الحد الأقصى للنوافذ المصغرة",
+    "openExternal": "فتح في متصفح خارجي",
+    "close": "إغلاق",
+    "trayLabel": "النوافذ المصغرة",
+    "restore": "استعادة",
+    "maximize": "تكبير",
+    "restoreWindow": "استعادة النافذة"
+  },
   "common": { "cancel": "إلغاء", "close": "إغلاق", "loading": "جارٍ التحميل..." }
 }

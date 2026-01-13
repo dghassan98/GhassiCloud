@@ -156,6 +156,50 @@
   border-top: 1px solid var(--border-color);
 }
 
+/* Divider below navigation: double-line */
+.sidebar-separator {
+  margin: 8px 0 10px 0.5rem;
+  position: relative;
+  height: 12px;
+}
+.sidebar-separator::before,
+.sidebar-separator::after {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 1px;
+  background: rgba(255,255,255,0.03);
+}
+.sidebar-separator::before { top: 0 }
+.sidebar-separator::after { top: 6px; opacity: 0.6 }
+
+/* Minimized webviews displayed in the sidebar under Settings */
+.minimized-tray-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.5rem 0.5rem;
+}
+.minimized-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
+  color: var(--text-primary);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+}
+.minimized-item:hover { transform: translateY(-1px) }
+.minimized-favicon { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; background: linear-gradient(90deg,var(--accent), color-mix(in srgb, var(--accent) 40%, black)); color:var(--text-on-accent); font-weight:700; overflow:hidden }
+.minimized-favicon img { display:block; width:100%; height:100%; object-fit:cover }
+.minimized-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.9rem }
+.minimized-close { margin-left:8px; background:transparent; border:none; color:var(--text-muted); font-size:1rem }
+
+
 /* Clickable user card */
 .user-info.clickable {
   cursor: pointer;

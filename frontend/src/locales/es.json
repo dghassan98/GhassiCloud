@@ -330,6 +330,22 @@
   "app": {
     "loading": "Cargando GhassiCloud..."
   },
+  "webview": {
+    "closeConfirm": {
+      "title": "¿Cerrar la vista web?",
+      "message": "Estás a punto de cerrar esta ventana. ¿Continuar?",
+      "confirm": "Cerrar",
+      "cancel": "Cancelar"
+    },
+    "minimize": "Minimizar",
+    "minimizeLimit": "Número máximo de vistas minimizadas alcanzado",
+    "openExternal": "Abrir en el navegador externo",
+    "close": "Cerrar",
+    "trayLabel": "Vistas web minimizadas",
+    "restore": "Restaurar",
+    "maximize": "Maximizar",
+    "restoreWindow": "Restaurar ventana"
+  },
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",

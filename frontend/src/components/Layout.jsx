@@ -13,6 +13,7 @@ import { useToast } from '../context/ToastContext'
 import { useGestures, useSwipe } from '../hooks/useGestures'
 import { isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import Favicon from './Favicon'
 import '../styles/layout.css'
 
 export default function Layout() {
@@ -21,7 +22,7 @@ export default function Layout() {
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
   const { showToast } = useToast()
-  const { openWebview, tabs, activeId } = useWebview()
+  const { openWebview, tabs, activeId, restoreWebview, closeWebview, MAX_MINIMIZED } = useWebview()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const navigate = useNavigate()
@@ -284,6 +285,23 @@ export default function Layout() {
             <Settings size={20} />
             <span>{t('nav.settings')}</span>
           </NavLink>
+
+          {tabs && tabs.length > 0 && tabs.some(t => t.minimized) && (
+            <>
+              {/* Divider + minimized webviews */}
+              <div className="sidebar-separator" aria-hidden="true" />
+
+              <div className="minimized-tray-sidebar" aria-label={t('webview.trayLabel') || 'Minimized webviews'}>
+                {tabs.filter(x => x.minimized).slice(0, MAX_MINIMIZED).map(m => (
+                  <div key={m.id} className="minimized-item" onClick={() => restoreWebview(m.id)} role="button" tabIndex={0} onKeyDown={(e)=>{ if (e.key === 'Enter' || e.key === ' ') { restoreWebview(m.id) } }}>
+                    <div className="minimized-favicon"><Favicon url={m.url} size={24} alt={m.title || m.hostname} /></div>
+                    <div className="minimized-title">{m.title || m.hostname}</div>
+                    <button className="minimized-close" onClick={(e) => { e.stopPropagation(); closeWebview(m.id) }} aria-label={t('webview.close') || 'Close'}>×</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </nav>
 
         <div className="sidebar-footer">
