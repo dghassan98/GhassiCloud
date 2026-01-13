@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.8': {
+    date: 'January 13, 2026',
+    changes: [
+      'Enhance F5/Ctrl+R reload confirmation for installed desktop PWAs with active webview overlay check',
+    ],
+  },
   '1.4.7': {
     date: 'January 13, 2026',
     changes: [

@@ -25,9 +25,14 @@ export default function Layout() {
   const { openWebview, tabs, activeId, restoreWebview, closeWebview, clearAllWebviews, MAX_MINIMIZED } = useWebview()
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false)
 
-  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app (only in installed desktop PWAs)
+  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app (only in installed desktop PWAs and only when a webview modal is open)
   useEffect(() => {
+    // Only active for installed desktop PWAs
     if (!isPWA() || isMobile()) return
+
+    // Is there a currently visible (non-minimized) webview overlay open?
+    const overlayOpen = !!(tabs && tabs.length && activeId && tabs.some(t => t.id === activeId && !t.minimized))
+    if (!overlayOpen) return
 
     const onKey = (e) => {
       try {
@@ -41,7 +46,7 @@ export default function Layout() {
 
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
-  }, [])
+  }, [tabs, activeId])
 
   useEffect(() => {
     if (!showRefreshConfirm) return
