@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.9': {
+    date: 'January 14, 2026',
+    changes: [
+      'Backend Changes',
+    ],
+  },
   '1.4.8': {
     date: 'January 13, 2026',
     changes: [
@@ -230,7 +236,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.0.0';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.4.9';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
