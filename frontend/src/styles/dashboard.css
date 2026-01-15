@@ -355,7 +355,7 @@
 /* Hide the stats-trend only when it's empty — otherwise show sparkline/trend */
 .services-online .stats-trend:empty { display: none; }
 
-..stats-trend {
+.stats-trend {
   display: flex;
   align-items: flex-start; /* align to top so the percent sits at the top-right */
   justify-content: flex-end;

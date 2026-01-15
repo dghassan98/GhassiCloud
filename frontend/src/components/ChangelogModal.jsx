@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.0': {
+    date: 'January 15, 2026',
+    changes: [
+      'Update Dockerfile to use Node 22 LTS for compatibility and adjust CSS class selector for stats-trend',
+    ],
+  },
   '1.4.11': {
     date: 'January 15, 2026',
     changes: [
@@ -250,7 +256,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.4.11';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

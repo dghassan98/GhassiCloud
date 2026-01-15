@@ -1,7 +1,8 @@
 # Frontend Dockerfile - Multi-stage build
 
 # Stage 1: Build the application
-FROM node:20-alpine AS builder
+# Use Node 22 LTS for compatibility with some dev deps (e.g., @capacitor/cli requires Node >= 22)
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
