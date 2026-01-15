@@ -3,24 +3,6 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
-  '1.5.1': {
-    date: 'January 15, 2026',
-    changes: [
-      'Add npm engine requirements and ensure recent npm version in Dockerfiles',
-    ],
-  },
-  '1.5.0': {
-    date: 'January 15, 2026',
-    changes: [
-      'Update Dockerfile to use Node 22 LTS for compatibility and adjust CSS class selector for stats-trend',
-    ],
-  },
-  '1.4.11': {
-    date: 'January 15, 2026',
-    changes: [
-      'Ensure mobile header is hidden on wide screens and improve role select width on mobile settings',
-    ],
-  },
   '1.4.10': {
     date: 'January 15, 2026',
     changes: [
@@ -262,7 +244,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.1';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.4.10';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

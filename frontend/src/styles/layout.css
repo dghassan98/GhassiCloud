@@ -301,9 +301,8 @@
 }
 
 /* ===== Mobile Header ===== */
-/* Ensure mobile header is explicitly hidden on wide screens. Use high specificity + !important to protect against injected/third-party overrides in production. */
-body .mobile-header {
-  display: none !important;
+.mobile-header {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
