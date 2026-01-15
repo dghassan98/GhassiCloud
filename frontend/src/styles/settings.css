@@ -1528,6 +1528,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
   /* Make role select full width on mobile table */
   .role-select {
     min-width: 100px;
