@@ -9,6 +9,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Ensure a recent npm version to avoid EBADENGINE / npm notices during install
+RUN npm install -g npm@11.7.0
+
 # Install dependencies
 RUN npm install
 
