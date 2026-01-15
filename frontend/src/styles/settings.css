@@ -1502,15 +1502,32 @@
   
   /* Stack user info vertically on very small screens */
   .user-info {
-    flex-direction: row;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
   }
-  
+
   .user-avatar-small {
     width: 32px;
     height: 32px;
   }
-  
+
+  /* Ensure names and usernames truncate cleanly to avoid overlapping in tight layouts */
+  .users-table .user-name {
+    flex: none;
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .users-table .user-username {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   /* Make role select full width on mobile table */
   .role-select {
     min-width: 100px;
@@ -1527,6 +1544,25 @@
   .user-actions button {
     padding: 0.35rem 0.5rem;
   }
+
+  /* Convert table to card-like rows on very small screens to avoid overlap */
+  @media (max-width: 480px) {
+    .users-table thead { display: none; }
+    .users-table, .users-table tbody, .users-table tr { display: block; width: 100%; }
+    .users-table tr { padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); }
+    .users-table td { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; width: 100%; }
+    .users-table td[data-label]::before { content: attr(data-label); font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.75rem; flex-shrink: 0; }
+    .users-table .user-info { flex: 1; justify-content: flex-start; gap: 0.5rem; }
+    /* Hide the secondary username line on very small screens to avoid layout clutter */
+    .users-table .user-username { display: none; }
+    .users-table td:last-child { justify-content: flex-end; }
+    .users-table td[data-label='Email'] { text-align: right; }
+  }
+}
+
+/* Also hide username at a slightly larger breakpoint to catch more devices */
+@media (max-width: 640px) {
+  .users-table .user-username { display: none !important; }
 }
 
 /* Logo Selector */

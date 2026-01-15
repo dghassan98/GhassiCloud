@@ -1679,7 +1679,7 @@ const res = await fetch('/api/auth/admin/settings', {
                     <tbody>
                       {allUsers.map(u => (
                         <tr key={u.id}>
-                          <td>
+                          <td data-label={t('settings.userManagement.tableUser') || 'User'}>
                             <div className="user-info">
                               {u.avatar ? (
                                 <img src={u.avatar} alt={u.username} className="user-avatar-small" />
@@ -1694,8 +1694,8 @@ const res = await fetch('/api/auth/admin/settings', {
                               </div>
                             </div>
                           </td>
-                          <td>{u.email}</td>
-                          <td>
+                          <td data-label={t('settings.userManagement.tableEmail') || 'Email'}>{u.email}</td>
+                          <td data-label={t('settings.userManagement.tableRole') || 'Role'}>
                             <select
                               className="role-select"
                               value={u.role}
@@ -1706,7 +1706,7 @@ const res = await fetch('/api/auth/admin/settings', {
                               <option value="admin">{t('settings.userManagement.roleAdmin') || 'Admin'}</option>
                             </select>
                           </td>
-                          <td>
+                          <td data-label={t('settings.userManagement.tableSSO') || 'SSO'}>
                             {u.sso_provider ? (
                               <span className="sso-badge">
                                 <Check size={14} />
@@ -1716,7 +1716,7 @@ const res = await fetch('/api/auth/admin/settings', {
                               <span className="local-badge">{t('settings.userManagement.localAccount') || 'Local'}</span>
                             )}
                           </td>
-                          <td>
+                          <td data-label={t('settings.userManagement.tableActions') || 'Actions'}>
                             {u.id !== user?.id && (
                               <button
                                 className="btn-icon-danger"
