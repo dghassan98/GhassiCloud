@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 // Default English strings - translations passed via props from parent
 const defaultStrings = {
@@ -32,13 +32,18 @@ export default function SessionExpirationWarning({
 
   const [countdown, setCountdown] = useState(expiresInSeconds || 300)
   const [extending, setExtending] = useState(false)
+  const [error, setError] = useState(null)
+  const suppressCountdownRef = useRef(false) // When true, ignore external expiresInSeconds updates (prevents visible bumps during extend)
 
   // Update countdown
   useEffect(() => {
     if (!visible) return
-    
-    setCountdown(expiresInSeconds || 300)
-    
+
+    // If we're suppressing external updates (e.g., during an extend attempt), don't overwrite local countdown
+    if (!suppressCountdownRef.current) {
+      setCountdown(expiresInSeconds || 300)
+    }
+
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -56,15 +61,31 @@ export default function SessionExpirationWarning({
 
   const handleExtend = useCallback(async () => {
     setExtending(true)
+    setError(null)
+    // Prevent external updates to the countdown while we attempt a refresh
+    suppressCountdownRef.current = true
+    let success = false
     try {
-      await onExtendSession()
-      onDismiss && onDismiss()
+      // Expect the callback to return true on success, false on failure
+      success = await onExtendSession()
+      if (success) {
+        onDismiss && onDismiss()
+      } else {
+        setError('Failed to extend session. Please try again or logout.')
+        console.warn('Silent refresh returned false, leaving warning open')
+      }
     } catch (err) {
       console.error('Failed to extend session:', err)
+      setError('Failed to extend session. Please try again or logout.')
     } finally {
       setExtending(false)
+      suppressCountdownRef.current = false
+      // If refresh failed, do not increase the visible countdown — keep it the same or lower
+      if (!success) {
+        setCountdown(prev => Math.min(prev, expiresInSeconds || prev))
+      }
     }
-  }, [onExtendSession, onDismiss])
+  }, [onExtendSession, onDismiss, expiresInSeconds])
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -281,6 +302,13 @@ export default function SessionExpirationWarning({
             {t('sessionWarning.stayLoggedIn')}
           </button>
         </div>
+
+        {/* Error message (if extend failed) */}
+        {error && (
+          <p style={{ textAlign: 'center', color: '#ff4444', fontSize: '0.85rem', margin: '8px 0 0 0' }}>
+            {error}
+          </p>
+        )}
 
         {/* Helper text */}
         <p 

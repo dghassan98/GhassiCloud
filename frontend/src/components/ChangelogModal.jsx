@@ -3,6 +3,14 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.4.10': {
+    date: 'January 15, 2026',
+    changes: [
+      'Enhance session expiration warning with error handling and countdown suppression during session extension',
+      'Enhance PWA experience by disabling back swipe on mobile, improve haptic feedback handling, and optimize reporting styles for small screens',
+      'feat: Improve user management table layout for better mobile responsiveness and accessibility',
+    ],
+  },
   '1.4.9': {
     date: 'January 14, 2026',
     changes: [
@@ -236,7 +244,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.4.9';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.4.10';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
