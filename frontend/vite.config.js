@@ -63,5 +63,13 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    // Increase the warning threshold so large but intentional chunks don't spam CI logs
+    chunkSizeWarningLimit: 1000,
+    // You can add manualChunks here later to improve chunking if needed
+    // rollupOptions: {
+    //   output: { manualChunks: { /* ... */ } }
+    // }
   }
 })
