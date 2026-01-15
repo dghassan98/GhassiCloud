@@ -1548,12 +1548,16 @@
 
   /* Convert table to card-like rows on very small screens to avoid overlap */
   @media (max-width: 480px) {
+    .users-table { min-width: auto; }
     .users-table thead { display: none; }
     .users-table, .users-table tbody, .users-table tr { display: block; width: 100%; }
     .users-table tr { padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); }
     .users-table td { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; width: 100%; }
     .users-table td[data-label]::before { content: attr(data-label); font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.75rem; flex-shrink: 0; }
-    .users-table .user-info { flex: 1; justify-content: flex-start; gap: 0.5rem; }
+    /* Keep user info compact and horizontal inside the users table on narrow screens */
+    .users-table .user-info { flex-direction: row; align-items: center; flex: 1; justify-content: flex-start; gap: 0.5rem; }
+    .users-table .user-info > div { min-width: 0; overflow: hidden; }
+    .users-table .user-name { font-size: 0.95rem; margin-bottom: 0; }
     /* Hide the secondary username line on very small screens to avoid layout clutter */
     .users-table .user-username { display: none; }
     .users-table td:last-child { justify-content: flex-end; }

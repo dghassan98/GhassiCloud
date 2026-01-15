@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.3': {
+    date: 'January 15, 2026',
+    changes: [
+      'Improve users table layout for small screens with compact user info',
+    ],
+  },
   '1.5.2': {
     date: 'January 15, 2026',
     changes: [
@@ -250,7 +256,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.2';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.3';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
