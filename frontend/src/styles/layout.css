@@ -400,4 +400,19 @@
     padding-top: var(--header-height);
     overflow-x: hidden;
   }
+
+  /* Keep sidebar user card compact on mobile (override generic .user-info mobile rules) */
+  .sidebar .user-info {
+    flex-direction: row;
+    align-items: center;
+  }
+  .sidebar .user-info .avatar {
+    width: 40px; /* keep avatar readable */
+    height: 40px;
+  }
+  .sidebar .footer-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
 }
