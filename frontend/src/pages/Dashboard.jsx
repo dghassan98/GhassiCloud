@@ -16,7 +16,6 @@ import { RefreshCw, Loader2 } from 'lucide-react'
 import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
-import NowPlayingCard from '../components/NowPlayingCard'
 import { isNative, isPWA } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import '../styles/dashboard.css'
@@ -566,11 +565,7 @@ export default function Dashboard() {
           <p>{t('general.welcome')}</p>
         </div>
         <div className="hero-stats">
-          <div style={{marginBottom:8, width: '100%', display: 'flex', justifyContent:'center'}}>
-            <NowPlayingCard
-              accent={musicAccent}
-            />
-          </div>
+          {/* NowPlayingCard temporarily removed */}
           <motion.div ref={servicesCardRef} className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="stats-content">
               <span className="stats-label">{t('dashboard.servicesOnline')}</span>

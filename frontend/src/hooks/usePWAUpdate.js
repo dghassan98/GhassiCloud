@@ -37,7 +37,7 @@ export function usePWAUpdate() {
 
   // Check if this is a new version on app load (for changelog)
   useEffect(() => {
-    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.3';
+    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.4';
     const lastSeenVersion = localStorage.getItem('lastSeenVersion');
     const changelogShownThisSession = sessionStorage.getItem('changelogShown');
     const runningAsPWA = isPWA();
