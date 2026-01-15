@@ -217,8 +217,10 @@ export default function Layout() {
   })
 
   // Swipe gestures for navigation
+  // Disable back swipe on mobile when running as an installed PWA (conflicts with platform back gesture)
+  const backGestureEnabled = !(isPWA() && isMobile())
   const swipeGestures = useSwipe({
-    onRight: handleBackGesture,
+    onRight: backGestureEnabled ? handleBackGesture : undefined,
     onLeft: () => {
       // Swipe left to close sidebar
       if (sidebarOpen) {

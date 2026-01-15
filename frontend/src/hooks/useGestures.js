@@ -27,9 +27,13 @@ export function useGestures(options = {}) {
   const isLongPressRef = useRef(false)
 
   const triggerHaptic = useCallback(async (style = ImpactStyle.Light) => {
-    if (enableHaptics && isNative()) {
+    // `isNative` is a boolean exported from useCapacitor — do not call as a function
+    if (enableHaptics && isNative) {
       try {
-        await Haptics.impact({ style })
+        // Guard against Haptics API not being available on some platforms
+        if (Haptics && typeof Haptics.impact === 'function') {
+          await Haptics.impact({ style })
+        }
       } catch (error) {
         // Haptics not available
       }

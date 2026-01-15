@@ -555,7 +555,9 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
-}
+  /* allow shrinking inside grid to avoid overflow on very narrow screens */
+  min-width: 0;
+} 
 
 .analytics-card.wide {
   grid-column: span 2;
@@ -1166,6 +1168,72 @@
   
   .detail-item.full-width {
     grid-column: span 1;
+  }
+  
+  /* Small phones: further tighten analytics layout to avoid broken/overflowing cards in PWAs */
+  @media (max-width: 420px) {
+    .analytics-card {
+      padding: 0.75rem;
+      min-width: 0;
+      border-radius: var(--radius-md);
+    }
+
+    .analytics-grid {
+      gap: 0.9rem;
+      grid-auto-rows: auto;
+    }
+
+    .breakdown-label {
+      min-width: 70px;
+      font-size: 0.72rem;
+    }
+
+    .breakdown-count {
+      min-width: 36px;
+      font-size: 0.8rem;
+    }
+
+    .timeline-bar {
+      max-width: 26px;
+    }
+
+    .analytics-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .top-actions-list .action-item,
+    .user-item {
+      padding: 0.35rem;
+      gap: 0.5rem;
+    }
+
+    .action-name {
+      font-size: 0.82rem;
+    }
+
+    .action-rank,
+    .user-rank {
+      width: 20px;
+      height: 20px;
+      font-size: 0.72rem;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-count, .action-count {
+      font-size: 0.8rem;
+    }
+
+    /* Prevent any horizontal scroller inside the reporting section */
+    .reporting-section {
+      overflow-x: hidden;
+    }
   }
   
   /* Pagination on mobile */

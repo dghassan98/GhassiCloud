@@ -26,9 +26,12 @@ export function usePullToRefresh(onRefresh, options = {}) {
   const hapticTriggeredRef = useRef(false)
 
   const triggerHaptic = useCallback(async (style = ImpactStyle.Light) => {
-    if (isNative()) {
+    // `isNative` is a boolean (do not call as a function)
+    if (isNative) {
       try {
-        await Haptics.impact({ style })
+        if (Haptics && typeof Haptics.impact === 'function') {
+          await Haptics.impact({ style })
+        }
       } catch (error) {
         // Haptics not available
       }
