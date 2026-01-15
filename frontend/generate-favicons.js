@@ -22,6 +22,7 @@ const logos = [
   { input: 'logo-circle-dark-alternative.png', output: 'favicon-circle-dark-alternative' },
   { input: 'logo-circle-dark.png', output: 'favicon-circle-dark' },
   { input: 'logo-circle-cyan.png', output: 'favicon-circle-cyan' },
+  { input: 'ghassi_music.png', output: 'favicon-ghassi-music' },
   { input: 'logo-circle-yellow.png', output: 'favicon-circle-yellow' },
 ];
 

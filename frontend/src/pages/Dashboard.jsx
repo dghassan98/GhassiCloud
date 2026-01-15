@@ -71,12 +71,11 @@ const defaultServices = [
     name: 'GhassiMusic',
     description: 'Your personal music library',
     descriptionKey: 'service.ghassiMusicDesc',
-    url: 'https://music.ghassi.cloud',
+    url: 'https://music.ghassi.cloud/sso/OID/start/keycloak',
     icon: 'music',
     color: '#41bdf5',
     status: 'online',
     useFavicon: true,
-    requiresExtraAuth: true,
     sortOrder: 2
   },
   {

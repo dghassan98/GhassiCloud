@@ -78,12 +78,18 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
   const getFaviconUrl = () => {
     if (service.useFavicon === false) return null
     try {
+      // Local override for GhassiMusic: prefer our bundled asset
+      const hostname = new URL(service.url).hostname
+      if (hostname === 'music.ghassi.cloud' || (service.name && service.name.toLowerCase().includes('ghassimusic')) ) {
+        return '/logos/ghassi_music.png'
+      }
+
       const origin = new URL(service.url).origin
       if (faviconPathIndex < FAVICON_PATHS.length) {
         return `${origin}${FAVICON_PATHS[faviconPathIndex]}`
       }
       // Final fallback: DuckDuckGo's favicon service
-      const domain = new URL(service.url).hostname
+      const domain = hostname
       return `https://icons.duckduckgo.com/ip3/${domain}.ico`
     } catch {
       return null

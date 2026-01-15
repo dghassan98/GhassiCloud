@@ -33,6 +33,12 @@ export const logoOptions = [
     description: 'Circle with cyan background'
   },
   {
+    id: 'ghassi-music',
+    name: 'GhassiMusic',
+    path: '/logos/ghassi_music.png',
+    description: 'GhassiMusic - music logo'
+  },
+  {
     id: 'circle-yellow',
     name: 'Circle Yellow',
     path: '/logos/logo-circle-yellow.png',
@@ -159,6 +165,19 @@ export function LogoProvider({ children }) {
       }
     }
   }, [logoId, isPreview])
+
+  // Update favicon when GhassiMusic is selected (reverts to theme default otherwise)
+  useEffect(() => {
+    try {
+      const link = document.querySelector("link[rel='icon']") || document.createElement('link')
+      link.setAttribute('rel', 'icon')
+      const ghassiIcon = '/favicon-ghassi-music.ico'
+      const defaultIcon = theme === 'dark' ? '/favicon-circle-dark.ico' : '/favicon-circle-cyan.ico'
+      const href = logoId === 'ghassi-music' ? ghassiIcon : defaultIcon
+      if (!document.querySelector("link[rel='icon']")) document.head.appendChild(link)
+      link.setAttribute('href', href)
+    } catch (err) { console.debug('Favicon update failed', err) }
+  }, [logoId, theme])
 
   return (
     <LogoContext.Provider value={{ logoId, currentLogo, setLogo, logoOptions }}>
