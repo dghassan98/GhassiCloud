@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.6': {
+    date: 'January 16, 2026',
+    changes: [
+      'Add SSO session behavior preferences for silent refresh and warning suppression',
+    ],
+  },
   '1.5.5': {
     date: 'January 16, 2026',
     changes: [
@@ -268,7 +274,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.5';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.6';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

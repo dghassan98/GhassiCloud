@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 // Default English strings - translations passed via props from parent
 const defaultStrings = {
   title: 'Session Expiring Soon',
-  description: 'Your login session is about to expire due to inactivity. Would you like to stay logged in?',
+  description: 'Your login session is about to expire. Would you like to stay logged in?',
   logout: 'Log Out',
   stayLoggedIn: 'Stay Logged In',
   helperText: "Click 'Stay Logged In' to continue your session"

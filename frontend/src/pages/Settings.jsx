@@ -119,6 +119,22 @@ export default function Settings() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
 
+  // SSO session behavior preferences (stored locally per device)
+  const [ssoSilentRefreshEnabled, setSsoSilentRefreshEnabled] = useState(() => {
+    try {
+      const v = localStorage.getItem('ghassicloud-sso-silent-refresh')
+      return v === null ? true : v === 'true'
+    } catch (e) { return true }
+  })
+
+  const [ssoSuppressWarnings, setSsoSuppressWarnings] = useState(() => {
+    try {
+      const v = localStorage.getItem('ghassicloud-sso-suppress-warnings')
+      // Default to true so long-lived Keycloak sessions don't show frequent warnings
+      return v === null ? true : v === 'true'
+    } catch (e) { return true }
+  })
+
   // Admin-only: PWA devtools toggle state (stored as 'true'/'false' strings on server)
   const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const [savingPwaSetting, setSavingPwaSetting] = useState(false)
@@ -923,6 +939,56 @@ export default function Settings() {
                     </div>
                   </div>
 
+                  {/* SSO session behaviour: proactive refresh & warning suppression */}
+                  {isSSO && (
+                    <div className="sso-card">
+                      <div className="sso-card-left"><Monitor size={22} /></div>
+                      <div className="sso-card-body">
+                        <h4>{t('settings.sessionBehaviour.title') || 'Session behavior'}</h4>
+                        <p className="form-hint">{t('settings.sessionBehaviour.desc') || 'Keycloak session max has been increased — use these options to keep your PWA signed in.'}</p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+                          <label className="toggle" style={{ alignItems: 'flex-start' }}>
+                            <input
+                              type="checkbox"
+                              checked={!!ssoSilentRefreshEnabled}
+                              onChange={(e) => {
+                                const next = !!e.target.checked
+                                setSsoSilentRefreshEnabled(next)
+                                try { localStorage.setItem('ghassicloud-sso-silent-refresh', next ? 'true' : 'false') } catch (err) {}
+                                showToast({ message: next ? (t('settings.sessionBehaviour.silentRefreshEnabled') || 'Silent refresh enabled') : (t('settings.sessionBehaviour.silentRefreshDisabled') || 'Silent refresh disabled'), type: 'success' })
+                              }}
+                            />
+                            <span className="toggle-slider" />
+                            <div style={{ marginLeft: '8px' }}>
+                              <strong>{t('settings.sessionBehaviour.silentRefreshTitle') || 'Enable silent token refresh'}</strong>
+                              <div className="muted small">{t('settings.sessionBehaviour.silentRefreshDesc') || 'Keeps you signed in automatically (recommended for long Keycloak sessions)'}</div>
+                            </div>
+                          </label>
+
+                          <label className="toggle" style={{ alignItems: 'flex-start' }}>
+                            <input
+                              type="checkbox"
+                              checked={!!ssoSuppressWarnings}
+                              onChange={(e) => {
+                                const next = !!e.target.checked
+                                setSsoSuppressWarnings(next)
+                                try { localStorage.setItem('ghassicloud-sso-suppress-warnings', next ? 'true' : 'false') } catch (err) {}
+                                showToast({ message: next ? (t('settings.sessionBehaviour.suppressEnabled') || 'Session warnings suppressed') : (t('settings.sessionBehaviour.suppressDisabled') || 'Session warnings enabled'), type: 'success' })
+                              }}
+                            />
+                            <span className="toggle-slider" />
+                            <div style={{ marginLeft: '8px' }}>
+                              <strong>{t('settings.sessionBehaviour.suppressTitle') || 'Suppress session expiration warnings'}</strong>
+                              <div className="muted small">{t('settings.sessionBehaviour.suppressDesc') || "If enabled, you won't see the 'session expiring' modal (silent refresh will be attempted automatically)"}</div>
+                            </div>
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                  )}
+
 
                 </>
               ) : (
@@ -1520,7 +1586,7 @@ const res = await fetch('/api/auth/admin/settings', {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.5'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.6'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>

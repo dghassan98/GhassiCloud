@@ -28,6 +28,8 @@ export function useSSOSessionMonitor({
   warningThresholdSec = 300, // Warn when 5 minutes remain
   refreshTimeoutMs = 3000, // Timeout for silent refresh iframe (ms)
   refreshCooldownMs = 3000, // Cooldown between refresh attempts (ms)
+  proactiveRefreshIntervalMs = 5 * 60 * 1000, // Proactive silent refresh every 5 minutes (Option B)
+  showWarning = true, // Whether to show expiration warnings to the user
 } = {}) {
   const intervalRef = useRef(null)
   const warningShownRef = useRef(false)
@@ -79,7 +81,7 @@ export function useSSOSessionMonitor({
         expiresIn: data.expiresIn || null,
         checking: false,
         lastChecked: new Date(),
-        warning: data.expiresIn && data.expiresIn <= warningThresholdSec,
+        warning: showWarning && data.expiresIn && data.expiresIn <= warningThresholdSec,
       })
 
       return data
@@ -308,8 +310,8 @@ export function useSSOSessionMonitor({
           // Refresh succeeded silently
           warningShownRef.current = false
           setSessionStatus(prev => ({ ...prev, warning: false }))
-        } else if (onSessionWarning) {
-          // Show warning to user
+        } else if (showWarning && onSessionWarning) {
+          // Show warning to user (only if warnings enabled)
           onSessionWarning(result.expiresIn)
         }
       }
