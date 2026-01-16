@@ -902,7 +902,24 @@ export default function Settings() {
                       <p>{t('settings.passwordManagedBySSO') || 'Your account uses single sign-on. To change your password, please visit your authentication provider.'}</p>
                     </div>
                     <div className="sso-card-actions">
-                      <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview('https://auth.ghassi.cloud/realms/master/account/account-security/signing-in','Auth') } else { window.open('https://auth.ghassi.cloud/realms/master/account/account-security/signing-in','_blank','noopener,noreferrer') } }}><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
+                      <a className="btn-primary btn-icon" href="https://auth.ghassi.cloud/realms/master/account/account-security/signing-in" target="_blank" rel="noopener noreferrer" onClick={(e) => {
+                        const href = 'https://auth.ghassi.cloud/realms/master/account/account-security/signing-in'
+                        // Desktop PWA: open in an embedded webview modal
+                        if (isPWA() && !isMobile()) {
+                          e.preventDefault()
+                          openWebview(href, 'Auth')
+                          return
+                        }
+
+                        // Non-PWA (normal browser): open a new tab
+                        if (!isPWA()) {
+                          e.preventDefault()
+                          window.open(href, '_blank', 'noopener,noreferrer')
+                          return
+                        }
+
+                        // Mobile PWA: allow the default behaviour (opens externally in the system browser)
+                      }}><Lock size={14} />{t('settings.changeOnAuthPlatform') || 'Change password'}</a>
                     </div>
                   </div>
 
@@ -1503,7 +1520,7 @@ const res = await fetch('/api/auth/admin/settings', {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.4'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.5'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>

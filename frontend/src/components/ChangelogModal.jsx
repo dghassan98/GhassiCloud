@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.5': {
+    date: 'January 16, 2026',
+    changes: [
+      'Improve password change link handling for PWA and mobile responsiveness',
+    ],
+  },
   '1.5.4': {
     date: 'January 15, 2026',
     changes: [
@@ -262,7 +268,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.4';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.5';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
