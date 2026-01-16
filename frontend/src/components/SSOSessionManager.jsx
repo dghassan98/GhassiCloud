@@ -35,17 +35,7 @@ export default function SSOSessionManager() {
   }, [logout])
 
   // SSO Session Monitor
-  // Read local device preferences for SSO behaviour (defaults: silent refresh ON, warnings suppressed)
-  const getFlag = (key, defaultVal) => {
-    try {
-      const v = localStorage.getItem(key)
-      if (v === null) return defaultVal
-      return v === 'true'
-    } catch (e) { return defaultVal }
-  }
-  const silentRefreshEnabled = getFlag('ghassicloud-sso-silent-refresh', true)
-  const suppressWarnings = getFlag('ghassicloud-sso-suppress-warnings', true)
-
+  // Default behaviour: proactively refresh in background and suppress warnings by default
   const { attemptSilentRefresh } = useSSOSessionMonitor({
     user,
     logout,
@@ -53,8 +43,8 @@ export default function SSOSessionManager() {
     onSessionExpired: handleSessionExpired,
     checkIntervalMs: 60000, // Check every minute
     warningThresholdSec: 300, // Warn when 5 minutes remain
-    proactiveRefreshIntervalMs: silentRefreshEnabled ? 5 * 60 * 1000 : 0, // run background refresh if enabled
-    showWarning: !suppressWarnings, // suppress UI warning if the user chose to
+    proactiveRefreshIntervalMs: 5 * 60 * 1000, // proactive silent refresh every 5 minutes
+    showWarning: false, // don't show modal warnings unless refresh fails and hook decides so
   })
 
   // Handle extend session from warning modal

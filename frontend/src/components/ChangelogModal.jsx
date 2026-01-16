@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.7': {
+    date: 'January 16, 2026',
+    changes: [
+      'Remove SSO session behavior preferences from Settings and streamline session management',
+    ],
+  },
   '1.5.6': {
     date: 'January 16, 2026',
     changes: [
@@ -274,7 +280,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.6';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.7';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
