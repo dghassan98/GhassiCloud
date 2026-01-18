@@ -3,6 +3,12 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.10': {
+    date: 'January 18, 2026',
+    changes: [
+      'Enhance iframe functionality to allow modals/print popups',
+    ],
+  },
   '1.5.9': {
     date: 'January 18, 2026',
     changes: [
@@ -293,7 +299,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.9';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.10';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
