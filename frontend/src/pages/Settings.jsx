@@ -326,6 +326,10 @@ export default function Settings() {
 
 
   const [confirmSessionLoading, setConfirmSessionLoading] = useState(false)
+  // Export / Import state
+  const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importFileRef = useRef(null)
 
   const getAuthToken = () => {
     let token = localStorage.getItem('ghassicloud-token')
@@ -514,6 +518,91 @@ export default function Settings() {
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [t, isAdmin])
+
+  // Export user data as JSON + CSV files
+  const handleExportData = async () => {
+    setExporting(true)
+    try {
+      const token = getAuthToken()
+      const headers = token ? { Authorization: token } : {}
+      const res = await fetch('/api/auth/export', { headers })
+      if (!res.ok) {
+        showToast({ message: t('settings.exportFailed') || 'Failed to export data', type: 'error' })
+        return
+      }
+      const data = await res.json()
+
+      // Download JSON
+      const jsonBlob = new Blob([JSON.stringify(data.json, null, 2)], { type: 'application/json' })
+      const jsonName = `ghassicloud-backup-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g,'')}.json`
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(jsonBlob)
+      a.download = jsonName
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(a.href)
+
+      // Download CSVs (users, audit_logs, sessions)
+      if (data.csv) {
+        for (const [key, csv] of Object.entries(data.csv)) {
+          if (!csv) continue
+          const blob = new Blob([csv], { type: 'text/csv' })
+          const name = `ghassicloud-${key}-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g,'')}.csv`
+          const link = document.createElement('a')
+          link.href = URL.createObjectURL(blob)
+          link.download = name
+          document.body.appendChild(link)
+          link.click()
+          link.remove()
+          URL.revokeObjectURL(link.href)
+        }
+      }
+
+      showToast({ message: t('settings.exportSuccess') || 'Exported data', type: 'success' })
+    } catch (err) {
+      console.error('Export failed:', err)
+      showToast({ message: t('settings.exportFailed') || 'Export failed', type: 'error' })
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleImportClick = () => {
+    importFileRef.current?.click()
+  }
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    setImporting(true)
+    try {
+      const text = await file.text()
+      let parsed
+      try { parsed = JSON.parse(text) } catch (err) { showToast({ message: t('settings.importInvalid') || 'Invalid import file', type: 'error' }); setImporting(false); return }
+
+      const token = getAuthToken()
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = token
+
+      const res = await fetch('/api/auth/import', { method: 'POST', headers, body: JSON.stringify(parsed) })
+      if (res.ok) {
+        showToast({ message: t('settings.importSuccess') || 'Import complete', type: 'success' })
+        try { await refreshUser() } catch (e) {}
+      } else {
+        let msg = t('settings.importFailed') || 'Import failed'
+        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) {}
+        showToast({ message: msg, type: 'error' })
+      }
+    } catch (err) {
+      console.error('Import failed:', err)
+      showToast({ message: t('settings.importFailed') || 'Import failed', type: 'error' })
+    } finally {
+      setImporting(false)
+      // clear file input so same file can be selected again if needed
+      try { e.target.value = '' } catch (e) {}
+    }
+  }
 
   const handleResetServices = async () => {
     setResetting(true)
@@ -1522,7 +1611,7 @@ const res = await fetch('/api/auth/admin/settings', {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.7'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.8'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -1604,13 +1693,16 @@ const res = await fetch('/api/auth/admin/settings', {
                   <Database size={32} />
                   <h4>{t('settings.exportData')}</h4>
                   <p>{t('settings.exportDataDesc')}</p>
-                  <button className="btn-secondary">{t('settings.exportJSON')}</button>
+                  <button className="btn-secondary" onClick={handleExportData} disabled={exporting} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    {exporting ? <div className="button-spinner" /> : t('settings.exportJSON')}
+                  </button>
                 </div>
                 <div className="data-card">
                   <Database size={32} />
                   <h4>{t('settings.importData')}</h4>
                   <p>{t('settings.importDataDesc')}</p>
-                  <button className="btn-secondary">{t('settings.import')}</button>
+                  <button className="btn-secondary" onClick={handleImportClick} disabled={importing} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>{importing ? <div className="button-spinner" /> : t('settings.import')}</button>
+                  <input ref={importFileRef} type="file" accept="application/json" style={{ display: 'none' }} onChange={handleImportFile} />
                 </div>
               </div>
               <div className="danger-zone">

@@ -635,6 +635,127 @@ router.get('/me', authenticateToken, (req, res) => {
   }
 })
 
+// Export user data (JSON + CSV). Admins can add ?all=true to export all users/audit if desired.
+router.get('/export', authenticateToken, (req, res) => {
+  try {
+    const db = getDb()
+    const isAdmin = req.user && req.user.role === 'admin'
+    const wantAll = isAdmin && String(req.query.all) === 'true'
+
+    // Users: either current user only, or all when admin + all=true
+    const users = wantAll ? db.prepare('SELECT * FROM users').all() : [db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)]
+
+    // Audit logs: user's logs (or all when requested)
+    const auditLogs = wantAll ? db.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC').all() : db.prepare('SELECT * FROM audit_logs WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id)
+
+    // Sessions: user's sessions
+    const sessions = wantAll ? db.prepare('SELECT * FROM user_sessions ORDER BY last_seen DESC').all() : db.prepare('SELECT * FROM user_sessions WHERE user_id = ? ORDER BY last_seen DESC').all(req.user.id)
+
+    // Navidrome credentials and settings (global)
+    const navCred = db.prepare('SELECT * FROM navidrome_credentials').all()
+    const settings = db.prepare('SELECT * FROM settings').all()
+
+    const jsonData = { users, auditLogs, sessions, navCred, settings, exportedAt: new Date().toISOString() }
+
+    const toCSV = (rows) => {
+      if (!rows || rows.length === 0) return ''
+      const keys = Object.keys(rows[0])
+      const escape = (v) => {
+        if (v === null || typeof v === 'undefined') return ''
+        let s = String(v)
+        s = s.replace(/"/g, '""')
+        if (s.includes(',') || s.includes('\n') || s.includes('"')) return `"${s}"`
+        return s
+      }
+      const lines = [keys.join(',')]
+      for (const r of rows) lines.push(keys.map(k => escape(r[k])).join(','))
+      return lines.join('\n')
+    }
+
+    const csv = {
+      users: toCSV(users),
+      audit_logs: toCSV(auditLogs),
+      sessions: toCSV(sessions)
+    }
+
+    res.json({ json: jsonData, csv })
+  } catch (err) {
+    console.error('Export user data error:', err)
+    res.status(500).json({ message: 'Failed to export data' })
+  }
+})
+
+// Import user data exported by this endpoint. Only updates the authenticated user's profile/preferences by default.
+router.post('/import', authenticateToken, async (req, res) => {
+  try {
+    const payload = req.body
+    if (!payload || !payload.user) return res.status(400).json({ message: 'Invalid import payload' })
+
+    const db = getDb()
+    const isAdmin = req.user && req.user.role === 'admin'
+    // Admins may import for arbitrary user IDs; regular users may only import to their own account
+    const targetUserId = (isAdmin && payload.user && payload.user.id) ? payload.user.id : req.user.id
+
+    // Upsert basic profile fields (do not change password unless admin provided explicit override)
+    const fieldsToUpdate = {}
+    if (payload.user.email) fieldsToUpdate.email = payload.user.email
+    if (payload.user.displayName) fieldsToUpdate.display_name = payload.user.displayName
+    if (payload.user.firstName) fieldsToUpdate.first_name = payload.user.firstName
+    if (payload.user.lastName) fieldsToUpdate.last_name = payload.user.lastName
+    if (payload.user.avatar) fieldsToUpdate.avatar = payload.user.avatar
+    if (payload.user.language) fieldsToUpdate.language = payload.user.language
+    if (payload.user.preferences) fieldsToUpdate.preferences = JSON.stringify(payload.user.preferences)
+
+    if (Object.keys(fieldsToUpdate).length > 0) {
+      const sets = []
+      const params = []
+      Object.entries(fieldsToUpdate).forEach(([k,v]) => { sets.push(`${k} = ?`); params.push(v) })
+      params.push(targetUserId)
+      db.prepare(`UPDATE users SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(...params)
+    }
+
+    // Optionally import audit logs and sessions (only for the target user)
+    if (Array.isArray(payload.auditLogs)) {
+      for (const log of payload.auditLogs) {
+        try {
+          const id = log.id || crypto.randomUUID()
+          db.prepare(`INSERT OR IGNORE INTO audit_logs (id, user_id, username, action, category, resource_type, resource_id, resource_name, details, ip_address, user_agent, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .run(id, targetUserId, log.username || null, log.action || null, log.category || null, log.resource_type || null, log.resource_id || null, log.resource_name || null, log.details || null, log.ip_address || null, log.user_agent || null, log.status || null, log.created_at || new Date().toISOString())
+        } catch (e) {
+          // ignore individual insert errors
+        }
+      }
+    }
+
+    if (Array.isArray(payload.sessions)) {
+      for (const s of payload.sessions) {
+        try {
+          const sid = s.session_id || crypto.randomUUID()
+          db.prepare(`INSERT OR IGNORE INTO user_sessions (session_id, user_id, client_id, ip, user_agent, last_seen, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+            .run(sid, targetUserId, s.client_id || null, s.ip || null, s.user_agent || null, s.last_seen || null, s.created_at || new Date().toISOString())
+        } catch (e) {}
+      }
+    }
+
+    // Log import action
+    logAuditEvent({
+      userId: req.user.id,
+      username: req.user.username,
+      action: 'data_imported',
+      category: 'user',
+      details: { targetUserId },
+      ipAddress: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      status: 'success'
+    })
+
+    res.json({ message: 'Import complete' })
+  } catch (err) {
+    console.error('Import error:', err)
+    res.status(500).json({ message: 'Failed to import data' })
+  }
+})
+
 // Update password
 router.put('/password', authenticateToken, (req, res) => {
   try {

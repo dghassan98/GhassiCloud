@@ -3,6 +3,13 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.8': {
+    date: 'January 18, 2026',
+    changes: [
+      'Add export and import functionality for user data in JSON and CSV formats',
+      'Allow Downloads in PWA',
+    ],
+  },
   '1.5.7': {
     date: 'January 16, 2026',
     changes: [
@@ -280,7 +287,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.7';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.8';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
