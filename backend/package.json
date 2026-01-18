@@ -1,6 +1,6 @@
 {
   "name": "ghassicloud-backend",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "GhassiCloud API backend",
   "main": "src/index.js",
   "type": "module",

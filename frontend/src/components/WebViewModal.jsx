@@ -186,13 +186,14 @@ export default function WebViewModal() {
 
             {/* Render an iframe per tab and keep them mounted so minimizing won't lose state */}
             {tabs.map(t => (
-              // Allow downloads initiated by user interaction inside the iframe (required when sandboxed)
+              // Allow downloads and clipboard access initiated by user interaction inside the iframe (required when sandboxed)
               <iframe
                 key={t.id}
                 data-wv-id={t.id}
                 title={t.title || t.hostname}
                 src={t.url}
                 sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-downloads"
+                allow="clipboard-read; clipboard-write"
                 style={{ display: (active && active.id === t.id && !t.minimized) ? 'block' : 'none', width: '100%', height: '100%', border: 0 }}
               />
             ))}
