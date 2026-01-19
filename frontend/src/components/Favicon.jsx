@@ -13,7 +13,6 @@ export default function Favicon({ url, size = 24, alt }) {
   const [errored, setErrored] = useState(false)
 
   useEffect(() => {
-    // Reset when URL changes
     setPathIndex(0)
     setErrored(false)
   }, [url])
@@ -44,7 +43,6 @@ export default function Favicon({ url, size = 24, alt }) {
   }
 
   if (!faviconUrl || errored) {
-    // Fallback: first letter of hostname or a globe
     try {
       const hostname = new URL(url).hostname
       const ch = hostname ? hostname.charAt(0).toUpperCase() : 'W'

@@ -1,142 +1,125 @@
 # GhassiCloud
 
-A beautiful PWA dashboard for your self-hosted cloud services. One entry point to access all your services with authentication and a modern UI.
+A self-hosted cloud services dashboard and mobile-capable frontend that manages and monitors multiple services. Built with a Node.js/Express backend and a Vite + React (Capacitor-ready) frontend.
 
-![GhassiCloud Dashboard](https://via.placeholder.com/800x400?text=GhassiCloud+Dashboard)
+---
+
+## Table of contents
+
+- [Project](#project)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Getting started (development)](#getting-started-development)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+  - [Common tasks](#common-tasks)
+- [Docker / Production](#docker--production)
+- [Scripts & utilities](#scripts--utilities)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Project
+
+GhassiCloud provides a dashboard to manage self-hosted services, offers SSO integration, and exposes monitoring and administration functionality through a modern SPA and a simple REST API.
+
+Key characteristics:
+- Backend: Node.js/Express
+- Frontend: Vite + React, prepared for Capacitor mobile builds
+- Supports SSO, service management, logging, and health/audit routes
+- Docker-first with Compose files for dev and production
+
+---
 
 ## Features
 
-- 🎨 **Modern UI** - Beautiful, responsive design with dark/light themes
-- 🔐 **Authentication** - JWT-based auth with support for future SSO integration
-- 📱 **PWA** - Install on any device, works offline
-- ⚡ **Fast** - Built with Vite and React for blazing fast performance
-- 🎯 **Service Cards** - Easy access to all your self-hosted services
-- 📊 **Stats Dashboard** - Overview of your infrastructure (placeholder for future metrics)
-- ⚙️ **Settings** - Customize your experience
+- Centralized UI for service status and control
+- SSO and session management
+- Audit and reporting endpoints
+- Multi-language support (locales included)
+- Mobile-ready with Capacitor integration
 
-## Tech Stack
+---
 
-**Frontend:**
-- React 18
-- Vite (with PWA plugin)
-- React Router
-- Framer Motion (animations)
-- Lucide React (icons)
+## Architecture
 
-**Backend:**
-- Node.js / Express
-- SQLite (better-sqlite3)
-- JWT Authentication
-- bcrypt for password hashing
+- `backend/` – Express API server, middleware for auth, DB helpers, and routes (`auth`, `audit`, `navidrome`, `services`). Includes Dockerfiles and dev helpers.
+- `frontend/` – Vite + React application. Uses contexts, hooks, and componentized UI. Has PWA and Capacitor config to generate mobile builds.
+- `docker-compose.yml` and `docker-compose.dev.yml` – orchestration for local setups and development.
 
-## Getting Started
+---
 
-### Prerequisites
+## Getting started (development)
 
-- Node.js 18+ installed
-- npm or yarn
+Prerequisites:
+- Node.js (LTS recommended)
+- npm
+- Docker/docker-compose (for containerized setups)
 
-### Installation
+Quick start (run services locally):
 
-1. **Clone and install dependencies:**
+1. Install dependencies
 
-```bash
-cd GhassiCloud
-npm install
-```
+   - Backend:
+     ```bash
+     cd backend
+     npm install
+     ```
 
-2. **Configure environment (optional):**
+   - Frontend:
+     ```bash
+     cd frontend
+     npm install
+     ```
 
-Copy `.env.example` to `.env` and edit the values (do NOT commit `.env`):
+2. Start development servers
 
-```bash
-cp .env.example .env
-# then edit .env and fill secrets
-```
+   - Backend (from `backend/`):
+     ```bash
+     npm run dev
+     ```
 
-Example values in `.env` include:
-```env
-PORT=3001
-JWT_SECRET=your-super-secret-key
-DEFAULT_ADMIN_USER=admin
-DEFAULT_ADMIN_PASS=admin
+   - Frontend (from `frontend/`):
+     ```bash
+     npm run dev
+     ```
 
-# Keycloak admin service account (recommended)
-KEYCLOAK_URL=https://auth.example.com
-KEYCLOAK_REALM=master
-KEYCLOAK_ADMIN_CLIENT_ID=ghassicloud-admin
-KEYCLOAK_ADMIN_CLIENT_SECRET=your-client-secret
+3. Open the frontend in your browser (Vite will show the local URL, e.g. `http://localhost:3000` by default).
 
-# Or, for quick testing only, you can paste a short-lived admin token (not recommended for production)
-# KEYCLOAK_ADMIN_TOKEN=<access_token>
-```
+Notes:
+- The backend includes `middleware/auth.js` and an auth route. Make sure any required environment variables (auth, DB, Keycloak settings) are present. Check `backend/` for references and scripts such as `keycloak-inspect.js` if using Keycloak.
+- The project includes localized translations in `frontend/src/locales/`.
 
-Note: `.env` is already included in `.gitignore` to prevent accidentally committing secrets.
-3. **Start development servers:**
+---
+
+## Docker / Production
+
+Run with Docker Compose for a production-like environment:
 
 ```bash
-npm run dev
+# From project root
+docker-compose up -d --build
 ```
 
-This starts both frontend (http://localhost:3000) and backend (http://localhost:3001)
-
-4. **Login:**
-
-Default credentials:
-- Username: `admin`
-- Password: `admin`
-
-## Production Build
+For development with services defined in the dev Compose file:
 
 ```bash
-# Build frontend
-npm run build
-
-# Start production server
-npm start
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
-## Adding Services
+Notes:
+- The repository contains `Dockerfile` and `Dockerfile.dev` in both service folders to support optimized production builds and developer-friendly images.
+- If using Keycloak or external services, configure environment variables or secrets via your orchestration system.
 
-1. Click "Add Service" on the dashboard
-2. Enter service details:
-   - Name (e.g., "Jellyfin")
-   - Description (e.g., "Video and Audio Streaming")
-   - URL (e.g., "https://cloud.example.com")
-   - Choose an icon and color
+---
 
-## Project Structure
+## Scripts & utilities
 
-```
-GhassiCloud/
-├── frontend/
-│   ├── public/           # Static assets & PWA icons
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   ├── context/      # React context (Auth, Theme)
-│   │   ├── pages/        # Page components
-│   │   └── styles/       # CSS styles
-│   └── vite.config.js    # Vite configuration
-├── backend/
-│   ├── src/
-│   │   ├── db/           # Database setup
-│   │   ├── middleware/   # Express middleware
-│   │   └── routes/       # API routes
-│   └── data/             # SQLite database
-└── package.json          # Root package.json
-```
+Useful scripts are located at the repository root and in subfolders:
 
-## Future Features
+- `scripts/` – various helper scripts (e.g., `bump-version.js`, `check-avatar-url.js`).
+- `backend/scripts/` – admin utilities (e.g., `make-admin.js`, `keycloak-inspect.js`).
+- `make-admin.ps1` – PowerShell helper for Windows environments.
 
-- [ ] SSO Integration (Keycloak, Authentik, Authelia)
-- [ ] Service health checks
-- [ ] Real-time metrics from Prometheus/Grafana
-- [ ] Custom dashboard widgets
-- [ ] Service categories/grouping
-- [ ] Drag-and-drop service ordering
-- [ ] Import/Export configuration
-- [ ] Multi-user support with permissions
-
-## License
-
-MIT
+There are also VS Code tasks defined in the workspace for installing and starting frontend/backend services (see `.vscode/tasks.json` if present).

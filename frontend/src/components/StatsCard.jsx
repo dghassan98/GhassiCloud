@@ -7,7 +7,7 @@ export default function StatsCard({ label, value, trend, change, index }) {
     down: TrendingDown,
     neutral: Minus
   }
-  
+
   const trendColors = {
     up: '#22c55e',
     down: '#ef4444',

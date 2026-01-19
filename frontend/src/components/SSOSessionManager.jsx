@@ -4,11 +4,6 @@ import { useLanguage } from '../context/LanguageContext'
 import useSSOSessionMonitor from '../hooks/useSSOSessionMonitor'
 import SessionExpirationWarning from './SessionExpirationWarning'
 
-/**
- * SSO Session Manager Component
- * Monitors SSO session validity and shows expiration warnings.
- * Must be placed inside both AuthProvider and LanguageProvider.
- */
 export default function SSOSessionManager() {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
@@ -16,38 +11,33 @@ export default function SSOSessionManager() {
   const [showWarning, setShowWarning] = useState(false)
   const [expiresIn, setExpiresIn] = useState(null)
 
-  // Handle session warning callback
   const handleSessionWarning = useCallback((seconds) => {
     logger.info('SSO session warning: expires in', seconds, 'seconds')
     setExpiresIn(seconds)
     setShowWarning(true)
   }, [])
 
-  // Handle session expired callback  
   const handleSessionExpired = useCallback(() => {
     logger.info('SSO session expired, logging out')
     setShowWarning(false)
-    // Set flag so login page can show "session expired" message
     try {
       localStorage.setItem('session_expired', 'true')
     } catch (e) {}
     logout()
   }, [logout])
 
-  // SSO Session Monitor
-  // Default behaviour: proactively refresh in background and suppress warnings by default
+
   const { attemptSilentRefresh } = useSSOSessionMonitor({
     user,
     logout,
     onSessionWarning: handleSessionWarning,
     onSessionExpired: handleSessionExpired,
-    checkIntervalMs: 60000, // Check every minute
-    warningThresholdSec: 300, // Warn when 5 minutes remain
-    proactiveRefreshIntervalMs: 5 * 60 * 1000, // proactive silent refresh every 5 minutes
-    showWarning: false, // don't show modal warnings unless refresh fails and hook decides so
+    checkIntervalMs: 60000,
+    warningThresholdSec: 300, 
+    proactiveRefreshIntervalMs: 5 * 60 * 1000, 
+    showWarning: false, 
   })
 
-  // Handle extend session from warning modal
   const handleExtendSession = useCallback(async () => {
     logger.info('User clicked "Stay Logged In", attempting silent refresh...')
     const success = await attemptSilentRefresh()
@@ -56,13 +46,10 @@ export default function SSOSessionManager() {
       setShowWarning(false)
       return true
     }
-    // If silent refresh fails, just log it but don't logout immediately
-    // Let the warning stay open so user can try again or choose to logout
     logger.warn('Failed to extend session - user may need to re-authenticate')
     return false
   }, [attemptSilentRefresh])
 
-  // Get translated strings for the warning modal
   const warningStrings = {
     title: t('sessionWarning.title'),
     description: t('sessionWarning.description'),

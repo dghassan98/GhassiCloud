@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { useHaptics, isNative, isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import logger from '../logger'
 
-// Common favicon paths to try
 const FAVICON_PATHS = [
   '/favicon.ico',
   '/favicon.png', 
@@ -17,7 +17,6 @@ const FAVICON_PATHS = [
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
   const { t } = useLanguage()
   const { impact, notification } = useHaptics()
-  // Localized description if a translation key is provided on the service
   const descText = service.descriptionKey ? t(service.descriptionKey) : service.description
   const [showMenu, setShowMenu] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
@@ -25,13 +24,9 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
   const rootRef = useRef(null)
   const authBtnRef = useRef(null)
   const [authOpen, setAuthOpen] = useState(false)
-  // Inline auth message state
-  const [tooltipVisible, setTooltipVisible] = useState(false)
-  const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0, placement: 'top' })
-  // NOTE: legacy portal tooltip code removed; keeping placeholders in case we reintroduce later.
+
   const Icon = iconMap[service.icon] || iconMap.default
 
-  // Local inline auth message (no header dispatch) — show/hide inside the card
   const showAuthLabel = () => {
     setAuthOpen(true)
   }
@@ -44,10 +39,8 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     if (authOpen) hideAuthLabel()
     else showAuthLabel()
   }
-  // keep inline auth message open/closed on outside clicks
   useEffect(() => {
     const onDoc = (ev) => {
-      // close inline auth message when clicking elsewhere
       if (authBtnRef.current && authBtnRef.current.contains(ev.target)) return
       if (authOpen) hideAuthLabel()
     }
@@ -59,7 +52,6 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     }
   }, [authOpen])
 
-  // Close auth message on outside clicks when open
   useEffect(() => {
     const onDocClick = (ev) => {
       if (!authOpen) return
@@ -74,7 +66,6 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     }
   }, [authOpen])
   
-  // Get favicon URL - try multiple paths
   const getFaviconUrl = () => {
     if (service.useFavicon === false) return null
     try {
@@ -88,7 +79,6 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
       if (faviconPathIndex < FAVICON_PATHS.length) {
         return `${origin}${FAVICON_PATHS[faviconPathIndex]}`
       }
-      // Final fallback: DuckDuckGo's favicon service
       const domain = hostname
       return `https://icons.duckduckgo.com/ip3/${domain}.ico`
     } catch {
@@ -101,10 +91,9 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
   
   const handleFaviconError = () => {
     if (faviconPathIndex < FAVICON_PATHS.length) {
-      // Try next favicon path
       setFaviconPathIndex(prev => prev + 1)
     } else {
-      // All paths failed, show icon
+      logger.warn(`Favicon load failed for service ${service.name} (${service.url})`)
       setFaviconError(true)
     }
   }
@@ -119,6 +108,7 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
 
   const handleClick = (e) => {
     if (e.target.closest('.card-menu') || e.target.closest('.menu-button') || e.target.closest('.pin-button')) {
+      logger.debug('ServiceCard: Click on menu or pin button, not opening service')
       return
     }
 

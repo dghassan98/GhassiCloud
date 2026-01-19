@@ -30,11 +30,10 @@ router.get('/status/ping', async (req, res) => {
   }
 })
 
-// Check online status for provided services (body: { services: [{id,name,url,...}] })
+// Check online status for provided services
 router.post('/status/check', async (req, res) => {
   try {
     const items = Array.isArray(req.body?.services) ? req.body.services : []
-    // if nothing provided, return empty
     const results = await Promise.all(items.map(async (s) => {
       let online = false
       try {
@@ -52,7 +51,6 @@ router.post('/status/check', async (req, res) => {
   }
 })
 
-// Get all services
 router.get('/', (req, res) => {
   try {
     const db = getDb()
@@ -76,7 +74,6 @@ router.get('/', (req, res) => {
   }
 })
 
-// Get single service
 router.get('/:id', (req, res) => {
   try {
     const db = getDb()
@@ -132,7 +129,6 @@ router.post('/', authenticateToken, (req, res) => {
     
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(id)
     
-    // Log service creation
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -197,7 +193,6 @@ router.put('/:id', authenticateToken, (req, res) => {
     
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id)
     
-    // Log service update
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -248,7 +243,6 @@ router.delete('/:id', authenticateToken, (req, res) => {
     
     db.prepare('DELETE FROM services WHERE id = ?').run(req.params.id)
     
-    // Log service deletion
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -280,7 +274,6 @@ router.put('/order/bulk', (req, res) => {
       return res.status(400).json({ message: 'Services array required' })
     }
     
-    // Update each service's sort order
     for (const item of services) {
       db.prepare('UPDATE services SET sort_order = ? WHERE id = ?').run(item.sortOrder, item.id)
     }
@@ -297,13 +290,11 @@ router.delete('/reset/all', authenticateToken, (req, res) => {
   try {
     const db = getDb()
     
-    // Count services before deletion for audit log
     const countResult = db.prepare('SELECT COUNT(*) as count FROM services').get()
     const count = countResult?.count || 0
     
     db.prepare('DELETE FROM services').run()
     
-    // Log services reset
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,

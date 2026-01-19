@@ -44,7 +44,13 @@
     "lastChecked": "Zuletzt geprüft",
     "checking": "Prüfe...",
     "never": "Nie",
-    "yourServices": "Deine Dienste"
+    "yourServices": "Deine Dienste",
+    "greetings": {
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Tag",
+      "evening": "Guten Abend",
+      "night": "Gute Nacht"
+    }
   },
   "auth": {
     "completingSignIn": "Anmeldung wird abgeschlossen...",
@@ -131,6 +137,7 @@
     "uploadAvatar": "Avatar hochladen",
     "removeAvatar": "Entfernen",
     "language": "Sprache",
+    "languageSystem": "System",
     "languageHint": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
     "tabs": {
       "profile": "Profil",

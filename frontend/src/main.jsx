@@ -11,11 +11,8 @@ import './styles/globals.css'
 import { isPWA } from './hooks/useCapacitor'
 import logger from './logger'
 
-// Expose logger on the global object as a safe fallback for any legacy code
-// that references `logger` as a global rather than importing it.
 try { if (typeof globalThis !== 'undefined') globalThis.logger = logger } catch (e) {}
 
-// Optionally route global console to logger so existing console.* calls respect VITE_LOG_LEVEL
 if (typeof window !== 'undefined' && window.console) {
   const originalConsole = { ...window.console }
   window.console = {
@@ -28,7 +25,6 @@ if (typeof window !== 'undefined' && window.console) {
   }
 }
 
-// Fetch global log level from server and apply to frontend logger (so all users get consistent level)
 const getAuthToken = () => {
   try {
     const t = localStorage.getItem('ghassicloud-token')
@@ -40,40 +36,36 @@ const getAuthToken = () => {
 ;(async () => {
   try {
     const token = getAuthToken()
-    // Avoid anonymous requests which cause 401s in the console.
     if (!token) return
 
     const res = await fetch('/api/auth/admin/settings/logLevel', { headers: { Authorization: token } })
     if (res.ok) {
       const data = await res.json()
       if (data && data.value) {
-        try { logger.setLevel(data.value) } catch (e) {}
-        try { window.LOG_LEVEL = data.value } catch (e) {}
+        try { logger.setLevel(data.value) } catch (e) { logger.error('Failed to set log level:', e) }
+        try { window.LOG_LEVEL = data.value } catch (e) { logger.error('Failed to set window.LOG_LEVEL:', e) }
       }
     }
   } catch (e) {
-    // Ignore failures — fallback to default
+    logger.error('Failed to fetch stored log level on app start:', e)
   }
 })()
 
-// React to settings change events (useful for admin changing log level in another tab)
 window.addEventListener('ghassicloud:settings-updated', (e) => {
   try {
     const d = e && e.detail
     if (!d || !d.key) return
     if (d.key === 'logLevel' && d.value) {
-      try { logger.setLevel(d.value); window.LOG_LEVEL = d.value } catch (err) {}
+      try { logger.setLevel(d.value); window.LOG_LEVEL = d.value } catch (err) { logger.error('Failed to set log level:', err) }
     }
-  } catch (err) {}
+  } catch (err) { logger.error('Failed to apply updated settings from event:', err) }
 })
 
-// Backwards-compat global for legacy code paths that reference `isPWA` without import
 if (typeof window !== 'undefined' && typeof window.isPWA === 'undefined') {
-  try { window.isPWA = isPWA } catch (e) { /* ignore */ }
+  try { window.isPWA = isPWA } catch (e) { logger.error('Failed to set global isPWA:', e) }
 }
 
-// 🔧 Disable right-click everywhere in the app
-// Prevents the browser context menu from opening on right-click or Shift+F10
+// Disable right-click everywhere in the app
 document.addEventListener('contextmenu', (e) => e.preventDefault())
 
 ReactDOM.createRoot(document.getElementById('root')).render(

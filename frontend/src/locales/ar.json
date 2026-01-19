@@ -17,7 +17,25 @@
   },
   
 
-  "dashboard": { "servicesOnline": "الخدمات المتصلة", "addService": "إضافة خدمة", "searchPlaceholder": "ابحث عن الخدمات...", "noServices": "لم يتم العثور على خدمات", "loadingServices": "جارٍ تحميل الخدمات...", "getStarted": "أضف خدمتك الأولى للبدء", "noServicesPopover": "لا توجد خدمات", "lastChecked": "آخر فحص", "checking": "جارٍ الفحص...", "never": "أبدًا", "yourServices": "خدماتك" },
+  "dashboard": {
+    "servicesOnline": "الخدمات المتصلة",
+    "addService": "إضافة خدمة",
+    "searchPlaceholder": "ابحث عن الخدمات...",
+    "noServices": "لم يتم العثور على خدمات",
+    "loadingServices": "جارٍ تحميل الخدمات...",
+    "getStarted": "أضف خدمتك الأولى للبدء",
+    "noServicesPopover": "لا توجد خدمات",
+    "lastChecked": "آخر فحص",
+    "checking": "جارٍ الفحص...",
+    "never": "أبدًا",
+    "yourServices": "خدماتك",
+    "greetings": {
+      "morning": "صباح الخير",
+      "afternoon": "مساء الخير",
+      "evening": "مساء الخير",
+      "night": "تصبح على خير"
+    }
+  },
   "auth": { "completingSignIn": "جارٍ إتمام تسجيل الدخول...", "ssoSignIn": "تسجيل الدخول عبر GhassiCloud", "redirecting": "جارٍ إعادة التوجيه…", "redirectingA11y": "جارٍ إعادة التوجيه إلى تسجيل الدخول الموحد GhassiCloud", "signInWithGhassiAuth": "تسجيل الدخول عبر GhassiAuth", "socialsNotePrefix": "ملاحظة:", "socialsNote": "توجد ميزة تسجيل الدخول عبر الشبكات الاجتماعية تحت <strong>تسجيل الدخول عبر GhassiAuth</strong>.", "registerPrompt": "جديد هنا؟ سجل الآن", "registering": "جاري التسجيل…", "registerAria": "تسجيل حساب جديد" },
   "settings": {
     "title": "الإعدادات",
@@ -68,6 +86,7 @@
     "uploadAvatar": "تحميل الصورة",
     "removeAvatar": "إزالة",
     "language": "اللغة",
+    "languageSystem": "النظام",
     "languageHint": "اختر لغة واجهة المستخدم المفضلة لديك",
     "tabs": { "profile": "الملف الشخصي", "appearance": "المظهر", "security": "الأمان", "notifications": "الإشعارات", "data": "البيانات والنسخ الاحتياطي", "updates": "التحديثات" },
     "syncPreferences": { "title": "مزامنة التفضيلات عبر الأجهزة", "desc": "احفظ تفضيلات المظهر في حسابك وقم بمزامنتها عبر الأجهزة. قم بإيقاف التشغيل للاحتفاظ بالإعدادات محليًا في هذا المتصفح.", "enabled": "سيتم مزامنة التفضيلات", "disabled": "سيتم تخزين التفضيلات محليًا", "toggleFailed": "فشل تحديث تفضيل المزامنة" },

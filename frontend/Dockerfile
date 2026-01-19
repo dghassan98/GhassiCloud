@@ -1,42 +1,29 @@
-# Frontend Dockerfile - Multi-stage build
-
-# Stage 1: Build the application
-# Use Node 22 LTS for compatibility with some dev deps (e.g., @capacitor/cli requires Node >= 22)
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 
-# Ensure a recent npm version to avoid EBADENGINE / npm notices during install
 RUN npm install -g npm@11.7.0
 
-# Install dependencies
 RUN npm install
 
-# Copy source code (excluding android/ios for web build)
 COPY index.html ./
 COPY vite.config.js ./
 COPY public ./public
 COPY src ./src
 
-# Build the application
 RUN npm run build
 
-# Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-# Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create nginx config for SPA with API proxy
 RUN echo 'server { \
     listen 80; \
     root /usr/share/nginx/html; \
     index index.html; \
     \
-    # Set real IP from Cloudflare/Caddy \
     set_real_ip_from 0.0.0.0/0; \
     real_ip_header X-Forwarded-For; \
     real_ip_recursive on; \
@@ -55,12 +42,9 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose port
 EXPOSE 80
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

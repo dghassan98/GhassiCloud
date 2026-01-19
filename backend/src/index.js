@@ -6,7 +6,6 @@ import { dirname, join } from 'path'
 import { initDatabase } from './db/index.js'
 import authRoutes from './routes/auth.js'
 import servicesRoutes from './routes/services.js'
-import navidromeRoutes from './routes/navidrome.js'
 import auditRoutes from './routes/audit.js'
 import { authenticateToken } from './middleware/auth.js'
 import logger from './logger.js'
@@ -22,7 +21,6 @@ global.console = {
   debug: (...a) => logger.debug(...a)
 }
 
-// Load environment variables
 dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
@@ -31,15 +29,12 @@ const __dirname = dirname(__filename)
 const app = express()
 const PORT = process.env.PORT || 3001
 
-// Middleware
 app.use(cors())
 app.use(express.json())
 
-// Initialize database and start server
 async function startServer() {
   await initDatabase()
 
-  // Apply stored global log level (if exists)
   try {
     const db = getDb()
     const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('logLevel')
@@ -59,18 +54,14 @@ async function startServer() {
     logger.warn('Failed to read stored log level from DB', e)
   }
 
-  // Routes
   app.use('/api/auth', authRoutes)
   app.use('/api/services', servicesRoutes)
-  app.use('/api/navidrome', navidromeRoutes)
   app.use('/api/audit', auditRoutes)
 
-  // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() })
   })
 
-  // Error handling
   app.use((err, req, res, next) => {
     logger.error(err.stack)
     res.status(500).json({ message: 'Something went wrong!' })

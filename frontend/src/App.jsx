@@ -17,8 +17,7 @@ import logger from './logger'
 import { 
   initializeNativeFeatures, 
   useAppLifecycle, 
-  useNetwork,
-  isNative 
+  useNetwork 
 } from './hooks/useCapacitor'
 import { WebviewProvider } from './context/WebviewContext'
 import WebViewModal from './components/WebViewModal'
@@ -39,7 +38,6 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" />
 }
 
-// Offline banner component
 function OfflineBanner() {
   const { t } = useLanguage()
   return (
@@ -55,7 +53,6 @@ function App() {
   const { isConnected } = useNetwork()
   const { showUpdateModal, showChangelog, updateNow, dismissUpdate, dismissChangelog } = usePWAUpdate()
 
-  // Initialize native features on mount
   useEffect(() => {
     const statusBarColor = theme === 'dark' ? '#0f172a' : '#ffffff'
     initializeNativeFeatures({
@@ -65,10 +62,9 @@ function App() {
     })
   }, [theme])
 
-  // Lock orientation to portrait on phones (not tablets)
+  // PWA mobile
   useEffect(() => {
     const lockOrientation = async () => {
-      // Check if device is a tablet (width >= 768px typically indicates tablet)
       const isTablet = window.innerWidth >= 768
       
       if (!isTablet && screen.orientation && screen.orientation.lock) {
@@ -84,19 +80,15 @@ function App() {
     lockOrientation()
   }, [])
 
-  // Handle app lifecycle events
   useAppLifecycle({
     onResume: () => {
       logger.info('App resumed')
-      // You can refresh data here when app comes back to foreground
     },
     onPause: () => {
       logger.info('App paused')
-      // Save any pending state here
     },
     onBackButton: ({ canGoBack }) => {
       if (!canGoBack) {
-        // At root of app - could show exit confirmation
         logger.info('At root, cannot go back')
       }
     }

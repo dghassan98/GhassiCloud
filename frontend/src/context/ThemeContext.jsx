@@ -9,21 +9,18 @@ function updateFavicon(theme) {
   const favicon = document.querySelector('link[rel="icon"]')
   if (favicon) {
     if (theme === 'dark') {
-      // Always use circle-dark-alternative for dark theme
       favicon.href = '/favicon-circle-dark-alternative.ico'
     } else {
-      // For light theme, use the user's selected logo from localStorage
       const savedLogo = localStorage.getItem('ghassicloud-logo') || 'circle'
       
-      // Map logo IDs to their favicon paths
       const logoMap = {
         'circle': '/favicon-circle-cyan.ico',
         'circle-dark-alternative': '/favicon-circle-dark-alternative.ico',
         'circle-dark': '/favicon-circle-dark.ico',
         'circle-cyan': '/favicon-circle-cyan.ico',
         'circle-yellow': '/favicon-circle-yellow.ico',
-        'full-logo': '/favicon-circle-cyan.ico',   // Default to circle-cyan
-        'cloud-only': '/favicon-circle-cyan.ico'   // Default to circle-cyan
+        'full-logo': '/favicon-circle-cyan.ico',
+        'cloud-only': '/favicon-circle-cyan.ico'
       }
       
       favicon.href = logoMap[savedLogo] || '/favicon-circle-cyan.ico'
@@ -36,19 +33,17 @@ export function ThemeProvider({ children }) {
 
   const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem('ghassicloud-theme')
-    return saved || 'system' // Default to system auto-detection
+    return saved || 'system'
   })
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isPreview, setIsPreview] = useState(false)
 
   const setTheme = (newTheme, preview = false) => {
-    // Debug: log explicit calls to the theme setter so we can trace user actions
     try { logger.debug('setTheme called', { newTheme, preview }) } catch (e) {}
     setThemeState(newTheme)
     setIsPreview(preview)
   }
 
-  // Get the effective theme (resolve 'system' to actual theme)
   const getEffectiveTheme = (themeValue) => {
     if (themeValue === 'system') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -57,7 +52,6 @@ export function ThemeProvider({ children }) {
   }
 
   useEffect(() => {
-    // Only persist if not in preview mode
     if (!isPreview) {
       localStorage.setItem('ghassicloud-theme', theme)
     }
@@ -66,26 +60,20 @@ export function ThemeProvider({ children }) {
     document.documentElement.setAttribute('data-theme', effectiveTheme)
     updateFavicon(effectiveTheme)
     
-    // Skip logging on initial load or preview
     if (isInitialLoad) {
       setIsInitialLoad(false)
       return
     }
     
-    // Only log if not in preview mode
     if (!isPreview) {
-      // Decide whether we should sync this change to server
       const localSyncPref = (() => { try { const s = localStorage.getItem('ghassicloud-sync-preferences'); if (s !== null) return s === 'true'; return false } catch (e) { return false } })()
-      // Allow syncing unless server explicitly disabled it; if auth isn't loaded yet but a token exists, we still allow posting
       const serverSyncPref = (() => { try { return !(auth && auth.user && auth.user.preferences && auth.user.preferences.syncPreferences === false) } catch (e) { return true } })()
       const authReady = Boolean(auth && auth.user)
       const serverPrefsApplied = Boolean(window && window.__ghassicloud_server_prefs_applied)
       const tokenPresent = !!localStorage.getItem('ghassicloud-token')
       const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
 
-      // Log theme change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
-      // Debug: log sync decision and token presence + server prefs
       try { logger.debug('Theme update:', { theme, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!token, authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
       if (token && shouldSync) {
         logger.debug('Posting theme update to /api/auth/appearance', { theme })
@@ -97,8 +85,7 @@ export function ThemeProvider({ children }) {
           },
           body: JSON.stringify({ theme })
         }).then(() => {
-          // Refresh user state from server so other contexts/components pick up new preferences
-          try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {}
+          try { auth && auth.refreshUser && auth.refreshUser() } catch (e) { logger.debug('Failed to refresh user after theme update:', e) }
         }).catch(err => logger.debug('Failed to log theme change:', err))
       } else {
         logger.debug('Skipping theme POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
@@ -106,7 +93,6 @@ export function ThemeProvider({ children }) {
     }
   }, [theme, isPreview, isInitialLoad])
 
-  // Listen for system theme changes
   useEffect(() => {
     if (theme !== 'system') return
 
@@ -117,19 +103,16 @@ export function ThemeProvider({ children }) {
       updateFavicon(effectiveTheme)
     }
 
-    // Modern browsers
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange)
       return () => mediaQuery.removeEventListener('change', handleChange)
     }
-    // Fallback for older browsers
     else if (mediaQuery.addListener) {
       mediaQuery.addListener(handleChange)
       return () => mediaQuery.removeListener(handleChange)
     }
   }, [theme])
 
-  // Prefer server-side preference when user is signed in
   useEffect(() => {
     if (!auth || !auth.user) return
     const serverTheme = auth.user.theme
@@ -139,7 +122,6 @@ export function ThemeProvider({ children }) {
     }
   }, [auth && auth.user])
 
-  // Re-apply preferences when a force-refresh or auth refresh writes server prefs to localStorage
   useEffect(() => {
     const handler = (e) => {
       try {

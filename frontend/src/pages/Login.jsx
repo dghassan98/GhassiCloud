@@ -15,8 +15,7 @@ export default function Login() {
   const [ssoLoading, setSsoLoading] = useState(false)
   const [registering, setRegistering] = useState(false)
   const [showSessionExpired, setShowSessionExpired] = useState(false)
-  const { login, loginWithSSO, checkAuth, user } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { loginWithSSO, checkAuth, user } = useAuth()
   const { currentLogo } = useLogo()
   const { t } = useLanguage()
   const { isConnected } = useNetwork()
@@ -25,7 +24,6 @@ export default function Login() {
   const showBrandText = currentLogo.id !== 'cloud-only'
   const isWideLogo = currentLogo.id === 'cloud-only'
 
-  // Check for SSO errors from callback page
   useEffect(() => {
     try {
       const ssoError = localStorage.getItem('sso_error')
@@ -33,10 +31,9 @@ export default function Login() {
         setError(ssoError)
         localStorage.removeItem('sso_error')
       }
-    } catch (e) { }
+    } catch (e) { logger.error('Failed to retrieve SSO error from localStorage', e) }
   }, [])
 
-  // Check for session expired flag
   useEffect(() => {
     try {
       const sessionExpired = localStorage.getItem('session_expired')
@@ -44,38 +41,31 @@ export default function Login() {
         setShowSessionExpired(true)
         localStorage.removeItem('session_expired')
       }
-    } catch (e) { }
+    } catch (e) { logger.error('Failed to retrieve session expired flag from localStorage', e) }
   }, [])
 
-  // If user is already authenticated (e.g., after SSO callback), redirect to dashboard
   useEffect(() => {
     const token = localStorage.getItem('ghassicloud-token')
     if (token && !user) {
-      // Check if authentication is valid
       checkAuth()
     }
   }, [checkAuth, user])
 
-  // Redirect when user becomes authenticated
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true })
     }
   }, [user, navigate])
 
-
-
   const handleSSOLogin = async () => {
     setError('')
     setSsoLoading(true)
 
     try {
-      // loginWithSSO may navigate away for redirect flow (mobile/PWA)
-      // In that case, this promise never resolves
       await loginWithSSO()
-      // Only reached for popup flow that succeeds
       navigate('/')
     } catch (err) {
+      logger.error('SSO login failed:', err)
       setError(err.message)
     } finally {
       setSsoLoading(false)
@@ -96,7 +86,6 @@ export default function Login() {
     return { codeVerifier, codeChallenge }
   }
 
-  // Registration flow: build Keycloak registrations URL and redirect
   const handleRegister = async () => {
     setError('')
     setRegistering(true)
@@ -106,27 +95,21 @@ export default function Login() {
       if (!configRes.ok) throw new Error('Failed to get SSO configuration')
       const config = await configRes.json()
 
-      // Create CSRF state
       const state = crypto.randomUUID()
       sessionStorage.setItem('sso_state', state)
       localStorage.setItem('sso_state', state)
 
-      // Generate PKCE values and persist verifier for token exchange
       const { codeVerifier, codeChallenge } = await generatePKCE()
       sessionStorage.setItem('sso_code_verifier', codeVerifier)
       localStorage.setItem('sso_code_verifier', codeVerifier)
 
-      // Build redirect URI for the callback (same as SSO login)
       const redirectUri = `${window.location.origin}/sso-callback`
       sessionStorage.setItem('sso_redirect_uri', redirectUri)
       localStorage.setItem('sso_redirect_uri', redirectUri)
 
-      // Ensure redirect flow marker is set (we'll navigate away)
       localStorage.setItem('sso_redirect_flow', 'true')
 
-      // Build registrations endpoint from authUrl
       const authUrl = new URL(config.authUrl)
-      // Prefer robust replacement to swap /auth -> /registrations
       let registrationsPath = authUrl.pathname.replace('/protocol/openid-connect/auth', '/protocol/openid-connect/registrations')
       if (registrationsPath === authUrl.pathname) registrationsPath = authUrl.pathname.replace('/auth', '/registrations')
       authUrl.pathname = registrationsPath
@@ -140,7 +123,6 @@ export default function Login() {
       authUrl.searchParams.set('code_challenge', codeChallenge)
       authUrl.searchParams.set('code_challenge_method', 'S256')
 
-      // Redirect user to registration on the identity provider
       window.location.href = authUrl.toString()
 
     } catch (err) {
@@ -276,7 +258,7 @@ export default function Login() {
               </>
             )}
           </motion.button>
-          <p className="login-note">{t('auth.socialsNotePrefix') || 'Note:'} {t('auth.socialsNote') ? <><span dangerouslySetInnerHTML={{__html: t('auth.socialsNote')}} /></> : <>Sign in with Socials is available under <strong>{t('auth.signInWithGhassiAuth') || 'Sign in with GhassiAuth'}</strong>.</>} </p>
+          <p className="login-note">{t('auth.socialsNotePrefix') || 'Note:'} {t('auth.socialsNote') ? <><span dangerouslySetInnerHTML={{ __html: t('auth.socialsNote') }} /></> : <>Sign in with Socials is available under <strong>{t('auth.signInWithGhassiAuth') || 'Sign in with GhassiAuth'}</strong>.</>} </p>
 
         </motion.div>
 

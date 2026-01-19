@@ -6,22 +6,18 @@ export default function SSOCallback() {
   const { t } = useLanguage()
 
   useEffect(() => {
-    // Create an AbortController to handle cleanup
     const abortController = new AbortController()
     let isNavigating = false
     
     const handleCallback = async () => {
-      // Parse the authorization response from URL
       const params = new URLSearchParams(window.location.search)
       const code = params.get('code')
       const state = params.get('state')
       const error = params.get('error')
       const errorDescription = params.get('error_description')
 
-      // Check if we used redirect flow (mobile/PWA)
       const usedRedirectFlow = localStorage.getItem('sso_redirect_flow') === 'true'
       
-      // Debug: log callback params for investigation
       logger.debug('SSOCallback loaded', { 
         code: !!code, 
         state, 
@@ -30,11 +26,7 @@ export default function SSOCallback() {
         hasOpener: !!window.opener,
         isInFrame: window.parent !== window
       })
-
-      // Check if this is a silent refresh in an iframe
-      const isSilentRefresh = sessionStorage.getItem('sso_silent_refresh') === 'true'
       
-      // If we have a popup opener, always try to communicate back and close
       if (window.opener) {
         try {
           window.opener.postMessage({
@@ -44,45 +36,34 @@ export default function SSOCallback() {
             error: error ? (errorDescription || error) : null
           }, window.location.origin)
           
-          // Try to close this popup/tab
           window.close()
           
-          // If window.close() didn't work (some browsers block it), 
-          // wait a moment then handle directly
           setTimeout(() => {
-            // If we're still here, the window didn't close
-            // Handle the callback directly
             handleDirectCallback()
           }, 1000)
           return
         } catch (e) {
           logger.error('Failed to communicate with opener:', e)
-          // Fall through to direct handling
         }
       }
       
-      // Handle callback directly (redirect flow, no opener, or fallback)
       await handleDirectCallback()
       
       async function handleDirectCallback() {
-        // Check if we're already navigating or aborted
         if (isNavigating || abortController.signal.aborted) return
         
-        // Handle errors
         if (error) {
           logger.error('SSO error:', errorDescription || error)
           localStorage.setItem('sso_error', errorDescription || error)
           cleanupSSOData()
-          // Use full page reload to ensure clean state
+
           isNavigating = true
           window.location.href = '/login'
           return
         }
 
-        // Get saved state from storage (try sessionStorage first, then localStorage)
         const savedState = sessionStorage.getItem('sso_state') || localStorage.getItem('sso_state')
         
-        // Verify state
         if (!savedState) {
           logger.error('No saved state found - session may have expired')
           localStorage.setItem('sso_error', 'Session expired. Please try logging in again.')
@@ -103,7 +84,6 @@ export default function SSOCallback() {
 
         if (code) {
           try {
-            // Exchange code for token with PKCE code_verifier
             const savedRedirectUri = sessionStorage.getItem('sso_redirect_uri') || 
                                      localStorage.getItem('sso_redirect_uri') ||
                                      `${window.location.origin}/sso-callback`
@@ -141,14 +121,12 @@ export default function SSOCallback() {
               throw new Error(data.message || 'SSO authentication failed')
             }
 
-            // Store token and user data
             localStorage.setItem('ghassicloud-token', data.token)
             localStorage.setItem('ghassicloud-sso', 'true')
             if (data.user) {
               localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() }))
             }
 
-            // Notify parent window (useful when running inside an iframe/webview)
             if (window.parent && window.parent !== window) {
               try {
                 window.parent.postMessage({ type: 'SSO_CALLBACK', success: true }, window.location.origin)
@@ -157,17 +135,12 @@ export default function SSOCallback() {
               }
             }
 
-            // NOTE: do not auto-apply server preferences on SSO redirect login; user must enable Sync in Settings to apply server prefs.
-            // Leave local sync marker unchanged so the user's device preference isn't overwritten.
-
-            // Clean up SSO session data
             cleanupSSOData()
             localStorage.removeItem('sso_error')
             
             isNavigating = true
             window.location.href = '/'
           } catch (err) {
-            // Ignore abort errors - they're expected when component unmounts
             if (err.name === 'AbortError') {
               logger.debug('SSO callback request was cancelled (component unmounting)')
               return
@@ -180,14 +153,12 @@ export default function SSOCallback() {
             window.location.href = '/login'
           }
         } else {
-          // No code provided, redirect to login
           cleanupSSOData()
           isNavigating = true
           window.location.href = '/login'
         }
       }
       
-      // Helper to clean up all SSO-related storage
       function cleanupSSOData() {
         sessionStorage.removeItem('sso_state')
         sessionStorage.removeItem('sso_redirect_uri')
@@ -202,11 +173,10 @@ export default function SSOCallback() {
 
     handleCallback()
     
-    // Cleanup function to abort pending requests if component unmounts
     return () => {
       abortController.abort()
     }
-  }, []) // No dependencies - we use window.location for navigation
+  }, []) 
 
   return (
     <div style={{

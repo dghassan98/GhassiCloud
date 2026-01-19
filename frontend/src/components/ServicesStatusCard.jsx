@@ -33,7 +33,6 @@ export default function ServicesStatusCard({ token }) {
     fetchStatus();
     intervalRef.current = setInterval(fetchStatus, 5 * 60 * 1000); // 5 min
     return () => clearInterval(intervalRef.current);
-    // eslint-disable-next-line
   }, []);
 
   return (

@@ -11,7 +11,6 @@ import { useAuth } from '../context/AuthContext'
 import logger from '../logger'
 import '../styles/reporting.css'
 
-// Action icons mapping
 const ACTION_ICONS = {
   login: LogIn,
   login_failed: XCircle,
@@ -29,7 +28,6 @@ const ACTION_ICONS = {
   default: Activity
 }
 
-// Category colors
 const CATEGORY_COLORS = {
   authentication: '#3b82f6',
   user_management: '#8b5cf6',
@@ -45,7 +43,6 @@ export default function Reporting() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
   
-  // State
   const [activeTab, setActiveTab] = useState('activity')
   const [logs, setLogs] = useState([])
   const [stats, setStats] = useState(null)
@@ -54,12 +51,10 @@ export default function Reporting() {
   const [statsLoading, setStatsLoading] = useState(true)
   const [error, setError] = useState(null)
   
-  // Pagination
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   
-  // Filters
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedAction, setSelectedAction] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
@@ -68,16 +63,13 @@ export default function Reporting() {
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
   const [showFilters, setShowFilters] = useState(false)
   
-  // Export state
   const [exporting, setExporting] = useState(false)
   
-  // Detail modal
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedLog, setSelectedLog] = useState(null)
   
   const token = localStorage.getItem('ghassicloud-token')
   
-  // Fetch audit logs
   const fetchLogs = useCallback(async () => {
     if (!token) return
     setLoading(true)
@@ -111,7 +103,6 @@ export default function Reporting() {
     }
   }, [token, page, selectedCategory, selectedAction, selectedStatus, selectedUser, searchQuery, dateRange])
   
-  // Fetch stats (admin only)
   const fetchStats = useCallback(async () => {
     if (!token || !isAdmin) {
       setStatsLoading(false)
@@ -135,7 +126,6 @@ export default function Reporting() {
     }
   }, [token, isAdmin])
   
-  // Fetch filter options
   const fetchFilters = useCallback(async () => {
     if (!token) return
     
@@ -162,7 +152,6 @@ export default function Reporting() {
     fetchFilters()
   }, [fetchStats, fetchFilters])
   
-  // Export functions
   const handleExport = async (format) => {
     if (!token || !isAdmin) return
     setExporting(true)
@@ -193,7 +182,7 @@ export default function Reporting() {
       a.click()
       window.URL.revokeObjectURL(url)
       a.remove()
-      setError(null) // Clear any previous errors on success
+      setError(null)
     } catch (err) {
       logger.error('Export error:', err)
       setError(err.message || 'Export failed. Please try again.')
@@ -202,7 +191,6 @@ export default function Reporting() {
     }
   }
   
-  // Format timestamp
   const formatTimestamp = (ts) => {
     if (!ts) return '-'
     const date = new Date(ts)
@@ -215,25 +203,21 @@ export default function Reporting() {
     })
   }
   
-  // Format action name
   const formatAction = (action) => {
     if (!action) return '-'
     return action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\bSso\b/g, 'SSO')
   }
   
-  // Format category name
   const formatCategory = (category) => {
     if (!category) return '-'
     return category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   }
   
-  // Get icon for action
   const getActionIcon = (action) => {
     const IconComponent = ACTION_ICONS[action] || ACTION_ICONS.default
     return <IconComponent size={16} />
   }
   
-  // Clear all filters
   const clearFilters = () => {
     setSelectedCategory('')
     setSelectedAction('')

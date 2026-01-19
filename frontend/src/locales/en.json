@@ -52,6 +52,12 @@
     "checking": "Checking...",
     "never": "Never",
     "yourServices": "Your Services",
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
     "pullToRefresh": "Pull to refresh",
     "releaseToRefresh": "Release to refresh",
     "refreshing": "Refreshing..."
@@ -162,6 +168,7 @@
     "profileSaved": "Profile saved",
     "saveFailed": "Failed to save profile",
     "language": "Language",
+    "languageSystem": "System",
     "languageConfirmTitle": "Change language?",
     "languageConfirmMsg": "Apply the selected language to the UI? If you don't apply, it will revert to the previous language.",
     "languageConfirmApply": "Apply",

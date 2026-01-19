@@ -44,7 +44,13 @@
     "lastChecked": "Последняя проверка",
     "checking": "Проверка...",
     "never": "Никогда",
-    "yourServices": "Ваши сервисы"
+    "yourServices": "Ваши сервисы",
+    "greetings": {
+      "morning": "Доброе утро",
+      "afternoon": "Добрый день",
+      "evening": "Добрый вечер",
+      "night": "Доброй ночи"
+    }
   },
   "auth": {
     "completingSignIn": "Завершение входа...",
@@ -131,6 +137,7 @@
     "uploadAvatar": "Загрузить аватар",
     "removeAvatar": "Удалить",
     "language": "Язык",
+    "languageSystem": "Системный",
     "languageHint": "Выберите предпочитаемый язык интерфейса",
     "tabs": {
       "profile": "Профиль",

@@ -5,8 +5,7 @@ import {
   Plus, Search, Grid, List, ExternalLink, 
   Server, Database, Cloud, HardDrive, Shield, 
   Monitor, Film, Music, FileText, Image,
-  Home, Cpu, Activity, MoreVertical, Edit2, Trash2, Smartphone,
-  AlignCenter
+  Home, Cpu, Smartphone
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -21,7 +20,6 @@ import { useWebview } from '../context/WebviewContext'
 import '../styles/dashboard.css'
 import logger from '../logger' 
 
-// Icon mapping for services
 const iconMap = {
   server: Server,
   database: Database,
@@ -39,7 +37,6 @@ const iconMap = {
 };
 
 
-// Placeholder services - will be loaded from API
 const defaultServices = [
   {
     id: '1',
@@ -116,30 +113,10 @@ const defaultServices = [
     status: 'online',
     useFavicon: true,
     sortOrder: 5
-   }//,
-  // {
-  //   id: '7',
-  //   name: 'Jellyfin',
-  //   description: 'Free media system',
-  //   url: 'https://jellyfin.org',
-  //   icon: 'media',
-  //   color: '#00a4dc',
-  //   status: 'offline',
-  //   useFavicon: true
-  // },
-  // {
-  //   id: '8',
-  //   name: 'GitHub',
-  //   description: 'Code repository',
-  //   url: 'https://github.com',
-  //   icon: 'documents',
-  //   color: '#171515',
-  //   status: 'online',
-  //   useFavicon: true
-  // }
+   }
 ]
 
-// Placeholder stats (without Services Online)
+//TODO: Placeholder stats - NEEDS REVISION
 const defaultStats = [
   { label: 'CPU Usage', value: '34%', trend: 'down', change: '-5%' },
   { label: 'Memory', value: '12.4 GB', trend: 'up', change: '+2.1 GB' },
@@ -160,10 +137,8 @@ export default function Dashboard() {
   const [servicesOnline, setServicesOnline] = useState({ value: '', trend: 'neutral', change: '' })
   const [servicesOnlineLoading, setServicesOnlineLoading] = useState(false)
   const [servicesStatus, setServicesStatus] = useState({ total: 0, online: 0, offline: 0 })
-  // small history for sparkline (keeps last 12 samples)
   const [servicesOnlineHistory, setServicesOnlineHistory] = useState([])
   const [showServicesPopover, setShowServicesPopover] = useState(false)
-  // ref to the services card so we can position the popover outside stacking contexts
   const servicesCardRef = useRef(null)
   const [popoverStyle, setPopoverStyle] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
@@ -174,14 +149,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const token = localStorage.getItem('ghassicloud-token')
 
-  // Fetch real-time services online status
-  // Real-time Services Online with manual refresh
+  // RT Services Online with manual refresh
   const fetchServicesOnline = async () => {
     setServicesOnlineLoading(true);
     try {
       const payloadServices = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : defaultServices
       logger.debug('[DEBUG] fetchServicesOnline payloadServices count:', payloadServices.length, payloadServices.map(p => p.id))
-      // send minimal fields
       const toCheck = payloadServices.map(s => ({ id: s.id, name: s.name, url: s.url }))
       const res = await fetch('/api/services/status/check', {
         method: 'POST',
@@ -195,7 +168,6 @@ export default function Dashboard() {
         const online = data.services.filter(s => s.online).length;
         const offline = total - online;
 
-        // compute simple trend based on the most recent history point
         const prevCount = servicesOnlineHistory.length > 0 ? servicesOnlineHistory[servicesOnlineHistory.length - 1] : null
         const diff = prevCount === null ? 0 : (online - prevCount)
         let trend = 'neutral'
@@ -206,14 +178,11 @@ export default function Dashboard() {
         setServicesOnline({ value: `${online}/${total}`, trend, change: changeText });
         setServicesStatus({ total, online, offline });
 
-        // push to short history for sparkline (max 12)
         setServicesOnlineHistory(h => {
           const next = [...h, online]
           if (next.length > 12) next.shift()
           return next
         })
-
-        // Merge returned online status into the services list so each card updates
         try {
           const current = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : payloadServices
           logger.debug('[DEBUG] fetchServicesOnline current before merge:', current.length, current.map(s => s.id))
@@ -225,14 +194,12 @@ export default function Dashboard() {
             return s
           })
           logger.debug('[DEBUG] fetchServicesOnline merged:', merged.length, merged.map(s => ({ id: s.id, status: s.status })))
-          // only update if merge produced a list (defensive)
           if (Array.isArray(merged) && merged.length > 0) {
             setServicesAndRef(merged)
           } else {
             logger.warn('Status check returned no merge results, keeping existing services')
           }
         } catch (e) {
-          // if merge fails, ignore — indicator will fall back to stored status
           logger.error('Merge services status error', e)
         }
       } else {
@@ -249,7 +216,6 @@ export default function Dashboard() {
 
   const checkSingleService = async (service) => {
     try {
-      // send single service to check endpoint
       const res = await fetch('/api/services/status/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -260,7 +226,6 @@ export default function Dashboard() {
       const result = Array.isArray(data.services) && data.services[0]
       if (result) {
         setServicesAndRef(prev => prev.map(s => s.id === result.id ? { ...s, status: result.online ? 'online' : 'offline' } : s))
-        // refresh overall counts
         fetchServicesOnline()
       }
     } catch (err) {
@@ -269,14 +234,12 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    // start checking on mount and then every interval; avoid depending on `services` to prevent loops
     fetchServicesOnline()
     const interval = setInterval(fetchServicesOnline, 5 * 60 * 1000)
+    logger.debug('Started services online interval')
     return () => clearInterval(interval)
-    // eslint-disable-next-line
   }, [])
 
-  // Percent + delta component (shows percent and a small delta pill)
   function PercentDelta({ online = 0, total = 0, trend = 'neutral', change = '' }) {
     const pct = total ? Math.round((online / total) * 100) : null
     return (
@@ -287,22 +250,18 @@ export default function Dashboard() {
     )
   }
 
-  // compute and set popover position based on the services card bounding box (places popover in fixed layer)
   function computePopoverStyle() {
     if (!servicesCardRef.current) return {}
     const rect = servicesCardRef.current.getBoundingClientRect()
-    // prefer a popover width close to the card width, clamp to reasonable size
     const popWidth = Math.min(360, Math.max(260, rect.width + 20))
-    const popHeight = 280 // rough estimate used for flipping logic
+    const popHeight = 280
 
-    // Center the popover horizontally over the card
     let left = rect.left + window.scrollX + (rect.width - popWidth) / 2
     const minLeft = 12 + window.scrollX
     const maxLeft = window.innerWidth - popWidth - 12 + window.scrollX
     if (left < minLeft) left = minLeft
     if (left > maxLeft) left = maxLeft
 
-    // Prefer placing below the card; flip above if there's not enough space
     let top
     if (rect.bottom + popHeight + 16 > window.innerHeight) {
       top = rect.top + window.scrollY - popHeight - 8
@@ -323,7 +282,6 @@ export default function Dashboard() {
     setShowServicesPopover(true)
   }
 
-  // reposition popover on resize/scroll while it's open
   useEffect(() => {
     if (!showServicesPopover) return
     const update = () => setPopoverStyle(computePopoverStyle())
@@ -339,13 +297,9 @@ export default function Dashboard() {
     fetchServices()
   }, [])
 
-  // close services popover when clicking outside
   useEffect(() => {
     if (!showServicesPopover) return
     const onDoc = (e) => {
-      // If the mousedown happened inside the services card OR the portaled popover,
-      // don't close it. This prevents the popover from being closed on mousedown
-      // before button click handlers (which run on click) can fire.
       if (!e.target.closest('.stats-card.services-online') && !e.target.closest('.services-popover')) {
         setShowServicesPopover(false)
       }
@@ -363,9 +317,7 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json()
         logger.debug('[DEBUG] fetchServices fetched:', data.length, data.map(s => s.id))
-        // expose for quick console inspection during debugging
         window.__FETCHED_SERVICES = data
-        // If backend returned very few services (e.g. only demo), merge with default placeholders
         let finalList = data
         if (Array.isArray(data) && data.length > 0 && data.length < defaultServices.length) {
           const existingIds = new Set(data.map(s => s.id))
@@ -374,7 +326,6 @@ export default function Dashboard() {
           logger.debug('[DEBUG] fetchServices merged with defaults:', finalList.map(s => s.id))
         }
         setServicesAndRef(finalList.length > 0 ? finalList : defaultServices)
-        // trigger an immediate status refresh now that we have the canonical list
         fetchServicesOnline()
       } else {
         setServicesAndRef(defaultServices)
@@ -406,7 +357,6 @@ export default function Dashboard() {
       if (res.ok) {
         const service = await res.json()
         setServicesAndRef(prev => [...prev, service])
-        // refresh services-online after adding
         try { fetchServicesOnline() } catch (e) { logger.debug('post-add refresh failed', e) }
       }
     } catch (err) {
@@ -423,7 +373,6 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setServicesAndRef(prev => prev.filter(s => s.id !== id))
-      // refresh services-online after delete
       try { fetchServicesOnline() } catch (e) { logger.debug('post-delete refresh failed', e) }
     } catch (err) {
       logger.error('Failed to delete service:', err)
@@ -436,12 +385,10 @@ export default function Dashboard() {
   }
 
   const handlePinService = async (id, pinned) => {
-    // Helper to sort: pinned first, then by original index
     const sortServices = (servicesList) => {
       return [...servicesList].sort((a, b) => {
         if (a.pinned && !b.pinned) return -1
         if (!a.pinned && b.pinned) return 1
-        // If same pin status, sort by sortOrder or original index
         return (a.sortOrder || 0) - (b.sortOrder || 0)
       })
     }
@@ -460,7 +407,6 @@ export default function Dashboard() {
         const updatedService = await res.json()
         setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? updatedService : s)))
       } else {
-        // API failed, update local state anyway (for default services)
         setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
       }
     } catch (err) {
@@ -483,7 +429,6 @@ export default function Dashboard() {
       if (res.ok) {
         const service = await res.json()
         setServicesAndRef(prev => prev.map(s => s.id === service.id ? service : s))
-        // refresh services-online after update
         try { fetchServicesOnline() } catch (e) { logger.debug('post-update refresh failed', e) }
       }
     } catch (err) {
@@ -493,43 +438,36 @@ export default function Dashboard() {
     setEditingService(null)
   }
 
-  function getGreeting(firstName) {
-    const hour = new Date().getHours()
-    const locale = navigator.language || 'en'
-    const lang = locale.split('-')[0]
-    const greetings = {
-      en: ['Good morning', 'Good afternoon', 'Good evening', 'Good night'],
-      es: ['Buenos días', 'Buenas tardes', 'Buenas tardes', 'Buenas noches'],
-      fr: ['Bonjour', 'Bon après-midi', 'Bonsoir', 'Bonne nuit'],
-      de: ['Guten Morgen', 'Guten Tag', 'Guten Abend', 'Gute Nacht'],
-      it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera', 'Buonanotte'],
-      pt: ['Bom dia', 'Boa tarde', 'Boa noite', 'Boa noite'],
-      nl: ['Goedemorgen', 'Goedemiddag', 'Goedenavond', 'Goedenacht'],
-      ar: ['صباح الخير', 'مساء الخير', 'مساء الخير', 'تصبح على خير'],
-      zh: ['早上好', '下午好', '晚上好', '晚安'],
-      ja: ['おはようございます', 'こんにちは', 'こんばんは', 'おやすみなさい'],
-      ko: ['좋은 아침이에요', '좋은 오후에요', '좋은 저녁이에요', '좋은 밤이에요'],
-      ru: ['Доброе утро', 'Добрый день', 'Добрый вечер', 'Доброй ночи'],
-      hi: ['सुप्रभात', 'नमस्ते', 'शुभ संध्या', 'शुभ रात्रि'],
-      tr: ['Günaydın', 'İyi günler', 'İyi akşamlar', 'İyi geceler']
-    }
-    const msgs = greetings[lang] || greetings.en
-    let greeting
-    // Night: 22:00 - 05:59, Morning: 06:00 - 11:59, Afternoon: 12:00 - 17:59, Evening: 18:00 - 21:59
-    if (hour >= 6 && hour < 12) greeting = msgs[0]       // Morning
-    else if (hour >= 12 && hour < 18) greeting = msgs[1] // Afternoon
-    else if (hour >= 18 && hour < 22) greeting = msgs[2] // Evening
-    else greeting = msgs[3]                               // Night (22-5)
-    
-    return firstName ? `${greeting}, ${firstName}!` : greeting
-  }
+
 
   const { t } = useLanguage()
   const { user } = useAuth()
   const { openWebview } = useWebview()
+
+  const getGreeting = (firstName) => {
+    const hour = new Date().getHours()
+    let slot
+    // Night: 22:00 - 05:59, Morning: 06:00 - 11:59, Afternoon: 12:00 - 17:59, Evening: 18:00 - 21:59
+    if (hour >= 6 && hour < 12) slot = 'morning'
+    else if (hour >= 12 && hour < 18) slot = 'afternoon'
+    else if (hour >= 18 && hour < 22) slot = 'evening'
+    else slot = 'night'
+    const key = `dashboard.greetings.${slot}`
+    let greeting = t(key)
+    if (!greeting || greeting === key) {
+      const fallbacks = {
+        morning: 'Good morning',
+        afternoon: 'Good afternoon',
+        evening: 'Good evening',
+        night: 'Good night'
+      }
+      greeting = fallbacks[slot]
+    }
+    return firstName ? `${greeting}, ${firstName}!` : greeting
+  }
+
   const greeting = getGreeting(user?.firstName);
 
-  // compute status class for styling the existing top-right pill
   const offlineCount = servicesStatus.offline || 0;
   const statusClass = servicesStatus.total === 0
     ? 'status-neutral'

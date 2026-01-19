@@ -4,75 +4,67 @@ import { useWebview } from '../context/WebviewContext'
 import { useToast } from '../context/ToastContext'
 import { useLanguage } from '../context/LanguageContext'
 import { isPWA, isMobile } from '../hooks/useCapacitor'
-import '../styles/webview.css' 
+import '../styles/webview.css'
+import logger from '../logger'
 
 export default function WebViewModal() {
   const { tabs, activeId, closeWebview, setActiveWebview, minimizeWebview, restoreWebview, maximizeWebview, restoreMaximizedWebview, MAX_MINIMIZED } = useWebview()
   const { showToast } = useToast()
   const { t } = useLanguage()
   const [loadingMap, setLoadingMap] = useState({})
-  const [showCloseConfirm, setShowCloseConfirm] = useState(false) 
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
-  // Compute active tab (always computed so hooks are stable)
   const active = (tabs && tabs.length) ? (tabs.find(t => t.id === activeId) || tabs[tabs.length - 1]) : null
 
   useEffect(() => {
-    // Listen for messages from SSO callback inside iframe so we can close or react
     const onMessage = (ev) => {
       try {
         if (ev.origin !== window.location.origin) return
         if (ev.data && ev.data.type === 'SSO_CALLBACK') {
-          // We could close SSO tab if open
           const ssoTab = tabs.find(t => t.hostname && t.hostname.includes('auth.ghassi.cloud'))
           if (ssoTab) closeWebview(ssoTab.id)
-          // Let auth context pick up storage changes
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
   }, [tabs, closeWebview])
 
-  // Manage load/detection for blocked frames (bind to the currently active iframe element)
   useEffect(() => {
     if (!active) return
 
-    // Find the iframe element for the active tab (we render one iframe per tab to preserve state across minimize)
     const iframe = document.querySelector(`iframe[data-wv-id="${active.id}"]`)
     if (!iframe) return
 
-    // If this iframe has already loaded the current URL, don't re-run the load detector
     try {
       if (iframe.dataset && iframe.dataset.loaded === '1' && iframe.src === active.url) {
         setLoadingMap(prev => ({ ...prev, [active.id]: false }))
         return
       }
     } catch (e) {
-      // ignore cross-origin dataset access issues
+      logger.warn('Failed to access iframe dataset', e)
     }
 
     let didLoad = false
 
     const onLoad = () => {
       didLoad = true
-      // Mark this iframe as loaded for this URL so repeated re-renders (e.g., maximize) won't retrigger fallback
-      try { if (iframe.dataset) iframe.dataset.loaded = '1' } catch(e) {}
+      try { if (iframe.dataset) iframe.dataset.loaded = '1' } catch (e) { logger.warn('Failed to set iframe dataset', e) }
 
-      // Try to detect obvious frame blocking (about:blank)
       let blocked = false
       try {
         const href = iframe.contentWindow && iframe.contentWindow.location && iframe.contentWindow.location.href
         if (!href || href === 'about:blank') blocked = true
       } catch (e) {
-        // Cross-origin - likely loaded fine
+        logger.info('Cross-origin access blocked, assuming iframe loaded fine', e)
         blocked = false
       }
 
       setLoadingMap(prev => ({ ...prev, [active.id]: false }))
 
       if (blocked) {
-        // Fallback to opening in external browser
+        logger.warn('Iframe blocked by X-Frame-Options or CSP, opening in external browser', { url: active.url })
         showToast({ message: 'This site prevents embedding. Opening in external browser.', type: 'warning' })
         closeWebview(active.id)
         window.open(active.url, '_blank', 'noopener,noreferrer')
@@ -86,37 +78,32 @@ export default function WebViewModal() {
       window.open(active.url, '_blank', 'noopener,noreferrer')
     }
 
-    // Attach handlers
     iframe.addEventListener('load', onLoad)
     iframe.addEventListener('error', onError)
 
-    // Set a timeout to fallback if nothing happens (e.g., blocked by X-Frame-Options)
     setLoadingMap(prev => ({ ...prev, [active.id]: true }))
     const t = setTimeout(() => {
       if (!didLoad) {
-        // Give it a final fallback
+        logger.warn('Site did not load in-app within timeout, opening in external browser', { url: active.url })
         showToast({ message: 'Site did not load in-app, opening in external browser.', type: 'warning' })
-        try { closeWebview(active.id) } catch (e) {}
+        try { closeWebview(active.id) } catch (e) { }
         window.open(active.url, '_blank', 'noopener,noreferrer')
       }
     }, 6000)
 
     return () => {
-      try { iframe.removeEventListener('load', onLoad) } catch(e) {}
-      try { iframe.removeEventListener('error', onError) } catch(e) {}
+      try { iframe.removeEventListener('load', onLoad) } catch (e) { }
+      try { iframe.removeEventListener('error', onError) } catch (e) { }
       clearTimeout(t)
     }
   }, [active, closeWebview, showToast])
 
   // Prevent background scrolling while modal is open (only on installed desktop PWAs)
   useEffect(() => {
-    // Only apply locking when running as an installed desktop PWA AND the overlay is visible.
-    // Use `active` directly (avoids referencing `overlayVisible` before it's declared and prevents TDZ errors).
     if (!(isPWA() && !isMobile() && active && !active.minimized)) return
 
     const prevOverflow = document.body.style.overflow
     const prevPaddingRight = document.body.style.paddingRight
-    // Compensate for scrollbar to avoid layout shift
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
 
     document.body.style.overflow = 'hidden'
@@ -133,17 +120,14 @@ export default function WebViewModal() {
     if (!active) return
     const onKey = (e) => {
       if (e.key !== 'Escape') return
-      // If confirm is already shown, pressing Escape cancels it
       if (showCloseConfirm) { setShowCloseConfirm(false); return }
-      // If the active webview is maximized, restore it first
       if (active && active.maximized) { restoreMaximizedWebview(active.id); return }
       if (isPWA() && !isMobile()) {
         setShowCloseConfirm(true)
       } else {
-        try { closeWebview(active.id) } catch (err) {}
+        try { closeWebview(active.id) } catch (err) { }
       }
     }
-    // Use capture phase so we catch Escape even when an iframe is focused
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
   }, [active, closeWebview, showCloseConfirm])
@@ -154,7 +138,7 @@ export default function WebViewModal() {
   return (
     <>
       {/* Overlay modal (rendered always so iframes remain mounted; visibility toggled with a CSS class) */}
-      <div className={`webview-overlay ${overlayVisible ? '' : 'hidden'}`} role="dialog" aria-modal="true" onPointerDown={(e) => { if (e.target === e.currentTarget) { if (isPWA() && !isMobile()) { e.preventDefault(); setShowCloseConfirm(true) } else if (active) { closeWebview(active.id) } } }}> 
+      <div className={`webview-overlay ${overlayVisible ? '' : 'hidden'}`} role="dialog" aria-modal="true" onPointerDown={(e) => { if (e.target === e.currentTarget) { if (isPWA() && !isMobile()) { e.preventDefault(); setShowCloseConfirm(true) } else if (active) { closeWebview(active.id) } } }}>
         <div className={`webview-window ${active && active.maximized ? 'maximized' : ''}`}>
           <div className="webview-header">
             <div className="webview-tabs">
@@ -186,7 +170,6 @@ export default function WebViewModal() {
 
             {/* Render an iframe per tab and keep them mounted so minimizing won't lose state */}
             {tabs.map(t => (
-              // Allow downloads, clipboard access, and modals/print popups initiated by user interaction inside the iframe (required when sandboxed)
               <iframe
                 key={t.id}
                 data-wv-id={t.id}

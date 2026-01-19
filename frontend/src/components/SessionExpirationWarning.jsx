@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import logger from '../logger'
 
-// Default English strings - translations passed via props from parent
+// Default English strings - translations via locale's overriden
 const defaultStrings = {
   title: 'Session Expiring Soon',
   description: 'Your login session is about to expire. Would you like to stay logged in?',
@@ -10,11 +10,6 @@ const defaultStrings = {
   helperText: "Click 'Stay Logged In' to continue your session"
 }
 
-/**
- * Session Expiration Warning Modal
- * Displays a warning when the user's SSO session is about to expire,
- * offering options to extend the session or logout.
- */
 export default function SessionExpirationWarning({ 
   expiresInSeconds, 
   onExtendSession, 
@@ -34,13 +29,11 @@ export default function SessionExpirationWarning({
   const [countdown, setCountdown] = useState(expiresInSeconds || 300)
   const [extending, setExtending] = useState(false)
   const [error, setError] = useState(null)
-  const suppressCountdownRef = useRef(false) // When true, ignore external expiresInSeconds updates (prevents visible bumps during extend)
+  const suppressCountdownRef = useRef(false) 
 
-  // Update countdown
   useEffect(() => {
     if (!visible) return
 
-    // If we're suppressing external updates (e.g., during an extend attempt), don't overwrite local countdown
     if (!suppressCountdownRef.current) {
       setCountdown(expiresInSeconds || 300)
     }
@@ -49,7 +42,6 @@ export default function SessionExpirationWarning({
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer)
-          // Auto logout when timer reaches 0
           onLogout && onLogout()
           return 0
         }
@@ -63,11 +55,9 @@ export default function SessionExpirationWarning({
   const handleExtend = useCallback(async () => {
     setExtending(true)
     setError(null)
-    // Prevent external updates to the countdown while we attempt a refresh
     suppressCountdownRef.current = true
     let success = false
     try {
-      // Expect the callback to return true on success, false on failure
       success = await onExtendSession()
       if (success) {
         onDismiss && onDismiss()
@@ -81,7 +71,6 @@ export default function SessionExpirationWarning({
     } finally {
       setExtending(false)
       suppressCountdownRef.current = false
-      // If refresh failed, do not increase the visible countdown — keep it the same or lower
       if (!success) {
         setCountdown(prev => Math.min(prev, expiresInSeconds || prev))
       }

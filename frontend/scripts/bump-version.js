@@ -9,18 +9,15 @@ import logger from '../src/logger'
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
-// Read package.json
 const packagePath = join(rootDir, 'package.json');
 const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
 const currentVersion = packageJson.version;
 
-// Parse version
 function parseVersion(version) {
   const [major, minor, patch] = version.split('.').map(Number);
   return { major, minor, patch };
 }
 
-// Increment version
 function incrementVersion(version, type) {
   const v = parseVersion(version);
   switch (type) {
@@ -35,7 +32,6 @@ function incrementVersion(version, type) {
   }
 }
 
-// Create readline interface
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -48,7 +44,6 @@ function question(query) {
 async function main() {
   logger.info(`\n🚀 Current version: ${currentVersion}\n`);
 
-  // Ask for version bump type
   const bumpType = await question(
     'Bump type? (major/minor/patch) [patch]: '
   );
@@ -57,7 +52,6 @@ async function main() {
 
   logger.info(`\n📦 New version will be: ${newVersion}\n`);
 
-  // Get release date
   const dateInput = await question(
     'Release date? (YYYY-MM-DD or leave empty for today): '
   );
@@ -73,7 +67,6 @@ async function main() {
         day: 'numeric',
       });
 
-  // Get changelog entries
   logger.info('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
   const changes = [];
   while (true) {
@@ -88,7 +81,6 @@ async function main() {
     return;
   }
 
-  // Confirm
   logger.info('\n📋 Summary:');
   logger.info(`   Version: ${currentVersion} → ${newVersion}`);
   logger.info(`   Date: ${releaseDate}`);
@@ -103,16 +95,13 @@ async function main() {
     return;
   }
 
-  // Update package.json
   packageJson.version = newVersion;
   writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
   logger.info('\n✅ Updated package.json');
 
-  // Update ChangelogModal.jsx
   const changelogPath = join(rootDir, 'src', 'components', 'ChangelogModal.jsx');
   let changelogContent = readFileSync(changelogPath, 'utf8');
 
-  // Build new changelog entry
   const newEntry = `  '${newVersion}': {
     date: '${releaseDate}',
     changes: [
@@ -120,8 +109,6 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
     ],
   },`;
 
-  // Find the CHANGELOG object and insert new entry after the opening brace
-  // Handle different line endings (Windows \r\n or Unix \n)
   const changelogRegex = /(const CHANGELOG = \{)(\r?\n)/;
   if (changelogRegex.test(changelogContent)) {
     changelogContent = changelogContent.replace(

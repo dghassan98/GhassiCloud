@@ -131,7 +131,7 @@ export default function EditServiceModal({ service, onClose, onSave, iconMap }) 
                       type="button"
                       className={`icon-option ${formData.icon === icon ? 'active' : ''}`}
                       onClick={() => setFormData({ ...formData, icon })}
-                      style={formData.icon === icon ? { 
+                      style={formData.icon === icon ? {
                         backgroundColor: `${formData.color}20`,
                         borderColor: formData.color,
                         color: formData.color
@@ -146,7 +146,7 @@ export default function EditServiceModal({ service, onClose, onSave, iconMap }) 
             {formData.useFavicon && formData.url && (
               <div className="favicon-preview" style={{ marginTop: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('service.fields.preview')}</span>
-                <img 
+                <img
                   src={(() => {
                     try {
                       return `${new URL(formData.url).origin}/favicon.ico`

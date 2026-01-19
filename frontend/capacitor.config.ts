@@ -6,9 +6,8 @@ const config: CapacitorConfig = {
   appName: 'GhassiCloud',
   webDir: 'dist',
   server: {
-    // For development, you can point to your local server
-    // url: 'http://YOUR_LOCAL_IP:3000',
-    // cleartext: true,
+    cleartext: true,
+    url: 'https://ghassi.cloud',
     androidScheme: 'https'
   },
   plugins: {

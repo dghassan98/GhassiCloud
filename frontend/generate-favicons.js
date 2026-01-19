@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Generates properly sized favicon files from existing logo PNGs
- * Requires: npm install sharp png-to-ico
- */
-
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
@@ -18,7 +13,6 @@ const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, 'public', 'logos');
 const outputDir = path.join(__dirname, 'public');
 
-// Logos to convert
 const logos = [
   { input: 'logo-circle-dark-alternative.png', output: 'favicon-circle-dark-alternative' },
   { input: 'logo-circle-dark.png', output: 'favicon-circle-dark' },
@@ -27,13 +21,11 @@ const logos = [
   { input: 'logo-circle-yellow.png', output: 'favicon-circle-yellow' },
 ];
 
-// Sizes to generate
 const sizes = [16, 32, 48];
 
 async function generateFavicons() {
   logger.info('🎨 Generating favicons...\n');
 
-  // Clean up old PNG favicon files
   logger.info('🧹 Cleaning up old favicon files...');
   const files = fs.readdirSync(outputDir);
   let cleanedCount = 0;
@@ -56,7 +48,6 @@ async function generateFavicons() {
   for (const logo of logos) {
     const inputPath = path.join(publicDir, logo.input);
     
-    // Check if input file exists
     if (!fs.existsSync(inputPath)) {
       logger.info(`⚠️  Skipping ${logo.input} - file not found`);
       continue;
@@ -65,7 +56,6 @@ async function generateFavicons() {
     logger.info(`📸 Processing ${logo.input}...`);
 
     try {
-      // Generate temporary PNG files at different sizes
       const tempPngs = [];
       
       for (const size of sizes) {
@@ -81,13 +71,11 @@ async function generateFavicons() {
         logger.info(`   ✓ Generated ${size}x${size} temp PNG`);
       }
 
-      // Convert PNGs to a single .ico file with multiple sizes
       const icoPath = path.join(outputDir, `${logo.output}.ico`);
       const icoBuffer = await pngToIco(tempPngs);
       fs.writeFileSync(icoPath, icoBuffer);
       logger.info(`   ✓ Generated ICO file → ${path.basename(icoPath)}`);
 
-      // Clean up temporary PNG files
       tempPngs.forEach(tempPath => {
         if (fs.existsSync(tempPath)) {
           fs.unlinkSync(tempPath);
@@ -108,10 +96,10 @@ async function generateFavicons() {
   logger.info('  - favicon-square-dark.ico');
   logger.info('  - favicon-circle-dark.ico');
   logger.info('  - favicon-circle-cyan.ico');
+  logger.info('  - favicon-ghassi-music.ico');
   logger.info('  - favicon-circle-yellow.ico');
 }
 
-// Run the favicon generation
 generateFavicons().catch((error) => {
   if (error.code === 'ERR_MODULE_NOT_FOUND') {
     logger.error('❌ Error: sharp package is not installed.');

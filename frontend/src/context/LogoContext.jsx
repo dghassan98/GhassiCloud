@@ -5,12 +5,11 @@ import logger from '../logger'
 
 const LogoContext = createContext()
 
-// Available logo options - circle variants are now automatic based on theme
 export const logoOptions = [
   {
     id: 'circle',
     name: 'Circle',
-    // Path will be determined by theme
+
     pathDark: '/logos/logo-circle-dark.png',
     pathLight: '/logos/logo-circle-cyan.png',
     description: 'Circle background - adapts to theme'
@@ -79,11 +78,8 @@ export function LogoProvider({ children }) {
     }
   }
 
-  // Get the current logo with theme-aware path
   const getLogoWithPath = () => {
     const logo = logoOptions.find(l => l.id === logoId) || logoOptions[0]
-
-    // For circle logo, use theme-specific path
     if (logo.id === 'circle') {
       return {
         ...logo,
@@ -98,9 +94,7 @@ export function LogoProvider({ children }) {
 
   const auth = useAuth()
 
-  // Prefer server-side saved logo when user is signed in
   useEffect(() => {
-    // Run when auth user preferences change so we immediately apply server-side prefs
     if (!auth || !auth.user) return
     const prefsStr = auth.user.preferences ? JSON.stringify(auth.user.preferences) : ''
     const serverLogo = auth.user.logo
@@ -110,7 +104,6 @@ export function LogoProvider({ children }) {
     }
   }, [auth && auth.user && (auth.user.preferences ? JSON.stringify(auth.user.preferences) : '')])
 
-  // Re-apply preferences when a force-refresh or auth refresh writes server prefs to localStorage
   useEffect(() => {
     const handler = (e) => {
       try {
@@ -125,20 +118,15 @@ export function LogoProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    // Only persist if not in preview mode
     if (!isPreview) {
       localStorage.setItem('ghassicloud-logo', logoId)
     }
 
-    // Skip logging on initial load or preview
     if (isInitialLoad) {
       setIsInitialLoad(false)
       return
     }
-
-    // Only log if not in preview mode
     if (!isPreview) {
-      // Decide whether we should sync this change to server
       const localSyncPref = (() => { try { const s = localStorage.getItem('ghassicloud-sync-preferences'); if (s !== null) return s === 'true'; return false } catch (e) { return false } })()
       const serverSyncPref = (() => { try { return !(auth && auth.user && auth.user.preferences && auth.user.preferences.syncPreferences === false) } catch (e) { return true } })()
       const authReady = Boolean(auth && auth.user)
@@ -146,10 +134,8 @@ export function LogoProvider({ children }) {
       const tokenPresent = !!localStorage.getItem('ghassicloud-token')
       const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
 
-      // Debug: log sync decision and token presence
       try { logger.debug('Logo update:', { logoId, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
 
-      // Log logo change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
       if (token && shouldSync) {
         logger.debug('Posting logo update to /api/auth/appearance', { logo: logoId })

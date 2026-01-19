@@ -8,7 +8,6 @@ export function WebviewProvider({ children }) {
   const MAX_MINIMIZED = 5
 
   const openWebview = useCallback((url, title) => {
-    // create a simple id
     const id = `webtab-${Date.now()}`
     const hostname = (() => {
       try { return new URL(url).hostname } catch { return url }
@@ -23,7 +22,6 @@ export function WebviewProvider({ children }) {
     setTabs(prev => prev.filter(t => t.id !== id))
     setActiveId(prevActive => {
       if (prevActive === id) {
-        // pick another non-minimized tab if any
         const remaining = tabs.filter(t => t.id !== id && !t.minimized)
         return remaining.length ? remaining[remaining.length - 1].id : null
       }
@@ -35,7 +33,6 @@ export function WebviewProvider({ children }) {
     setActiveId(id)
   }, [])
 
-  // Minimize a webview (moves it to tray). Returns true on success, false when limit reached
   const minimizeWebview = useCallback((id) => {
     let success = false
     setTabs(prev => {
@@ -46,7 +43,6 @@ export function WebviewProvider({ children }) {
       return next
     })
 
-    // If the active tab was minimized, pick another active tab (deferred to next tick)
     setTimeout(() => {
       setActiveId(prevActive => {
         if (prevActive === id) {
@@ -65,13 +61,11 @@ export function WebviewProvider({ children }) {
     setActiveId(id)
   }, [])
 
-  // Clear all webviews (used before full app reload)
   const clearAllWebviews = useCallback(() => {
     setTabs([])
     setActiveId(null)
   }, [])
 
-  // Maximize (make full-screen) a webview. Only one webview is maximized at a time.
   const maximizeWebview = useCallback((id) => {
     setTabs(prev => prev.map(t => ({ ...t, maximized: t.id === id })))
     setActiveId(id)

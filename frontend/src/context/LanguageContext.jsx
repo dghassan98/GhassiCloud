@@ -10,7 +10,7 @@ import { useAuth } from './AuthContext'
 
 const translations = { en, de, fr, es, ru, ar }
 const defaultLang = (navigator.language || 'en').split('-')[0]
-const supported = ['en','de','fr','es','ru','ar']
+const supported = ['system', 'en', 'de', 'fr', 'es', 'ru', 'ar']
 
 const LanguageContext = createContext()
 
@@ -19,7 +19,7 @@ export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
     const stored = localStorage.getItem('ghassicloud-lang')
     if (stored && supported.includes(stored)) return stored
-    return supported.includes(defaultLang) ? defaultLang : 'en'
+    return 'system'
   })
 
   useEffect(() => {
@@ -30,17 +30,16 @@ export function LanguageProvider({ children }) {
   }, [user])
 
   useEffect(() => {
-    localStorage.setItem('ghassicloud-lang', language)
-    document.documentElement.lang = language
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+    try { localStorage.setItem('ghassicloud-lang', language) } catch (e) {}
+    const resolved = language === 'system' ? ((navigator.language || 'en').split('-')[0]) : language
+    document.documentElement.lang = resolved
+    document.documentElement.dir = resolved === 'ar' ? 'rtl' : 'ltr'
   }, [language])
 
   const setLanguage = (lang) => {
     if (!supported.includes(lang)) return
-    // No-op if language didn't change
     if (lang === language) return
     setLanguageState(lang)
-    // Persist to server if user exists and if it's actually different
     if (user && updateUser && user.language !== lang) {
       try {
         updateUser({ language: lang })
@@ -62,14 +61,14 @@ export function LanguageProvider({ children }) {
       return node
     }
 
-    let node = resolve(key, language)
+    const resolvedLang = (language === 'system') ? ((navigator.language || 'en').split('-')[0]) : language
+    let node = resolve(key, resolvedLang)
     if (typeof node === 'string') return node
 
     // Fallback to English if not found or not a string
     let nodeEn = resolve(key, 'en')
     if (typeof nodeEn === 'string') return nodeEn
 
-    // Try a few common fallbacks (theme -> themeOptions, notifications -> tabs.notifications)
     const fallbacks = [key.replace('.theme.', '.themeOptions.'), key.replace('.notifications', '.tabs.notifications')]
     for (const alt of fallbacks) {
       if (alt === key) continue

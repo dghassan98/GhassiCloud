@@ -8,11 +8,9 @@ import { App } from '@capacitor/app';
 import { Network } from '@capacitor/network';
 import logger from '../logger'
 
-// Check if running on native platform
 export const isNative = Capacitor.isNativePlatform();
 export const platform = Capacitor.getPlatform(); // 'ios', 'android', or 'web'
 
-// Detect if running as an installed PWA (standalone/display modes) or iOS standalone
 export function isPWA() {
   try {
     const mm = window.matchMedia
@@ -22,26 +20,22 @@ export function isPWA() {
       if (mm('(display-mode: minimal-ui)').matches) return true
     }
 
-    // iOS Safari standalone
     try {
       if (window.navigator && window.navigator.standalone === true) return true
-    } catch (e) {}
+    } catch (e) { logger.debug('isPWA: navigator.standalone check failed', e) }
 
-    // Allow forcing PWA mode via query param for testing (e.g. ?pwa=1)
     try {
       const url = new URL(window.location.href)
       if (url.searchParams.get('pwa') === '1' || url.searchParams.get('standalone') === '1') return true
-    } catch (e) {}
+    } catch (e) { logger.debug('isPWA: URL searchParams check failed', e) }
 
     return false
   } catch (e) {
+    logger.debug('isPWA check failed', e)
     return false
   }
 }
 
-// Detect if running on a mobile device (touch device or small screen). Used to
-// avoid opening the in-app WebView for mobile PWAs; instead we open external
-// tabs (normal browser behavior) on mobile.
 export function isMobile() {
   try {
     const ua = navigator.userAgent || ''
@@ -50,20 +44,19 @@ export function isMobile() {
     const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
     return Boolean(mobileUA || touch || smallScreen)
   } catch (e) {
+    logger.debug('isMobile check failed', e)
     return false
   }
 }
 
-/**
- * Hook to manage the status bar on native platforms
- */
+
 export function useStatusBar() {
   const setStatusBarStyle = useCallback(async (isDark = true) => {
     if (!isNative) return;
-    
+
     try {
-      await StatusBar.setStyle({ 
-        style: isDark ? Style.Dark : Style.Light 
+      await StatusBar.setStyle({
+        style: isDark ? Style.Dark : Style.Light
       });
     } catch (error) {
       logger.warn('StatusBar not available:', error);
@@ -72,7 +65,7 @@ export function useStatusBar() {
 
   const setStatusBarColor = useCallback(async (color) => {
     if (!isNative || platform !== 'android') return;
-    
+
     try {
       await StatusBar.setBackgroundColor({ color });
     } catch (error) {
@@ -82,7 +75,7 @@ export function useStatusBar() {
 
   const hideStatusBar = useCallback(async () => {
     if (!isNative) return;
-    
+
     try {
       await StatusBar.hide();
     } catch (error) {
@@ -92,7 +85,7 @@ export function useStatusBar() {
 
   const showStatusBar = useCallback(async () => {
     if (!isNative) return;
-    
+
     try {
       await StatusBar.show();
     } catch (error) {
@@ -103,13 +96,10 @@ export function useStatusBar() {
   return { setStatusBarStyle, setStatusBarColor, hideStatusBar, showStatusBar };
 }
 
-/**
- * Hook to manage the splash screen
- */
 export function useSplashScreen() {
   const hideSplash = useCallback(async () => {
     if (!isNative) return;
-    
+
     try {
       await SplashScreen.hide();
     } catch (error) {
@@ -119,7 +109,7 @@ export function useSplashScreen() {
 
   const showSplash = useCallback(async () => {
     if (!isNative) return;
-    
+
     try {
       await SplashScreen.show({
         autoHide: false
@@ -132,13 +122,10 @@ export function useSplashScreen() {
   return { hideSplash, showSplash };
 }
 
-/**
- * Hook for haptic feedback
- */
 export function useHaptics() {
   const impact = useCallback(async (style = 'medium') => {
     if (!isNative) return;
-    
+
     try {
       const styleMap = {
         light: ImpactStyle.Light,
@@ -153,7 +140,7 @@ export function useHaptics() {
 
   const notification = useCallback(async (type = 'success') => {
     if (!isNative) return;
-    
+
     try {
       const typeMap = {
         success: NotificationType.Success,
@@ -168,7 +155,7 @@ export function useHaptics() {
 
   const vibrate = useCallback(async (duration = 300) => {
     if (!isNative) return;
-    
+
     try {
       await Haptics.vibrate({ duration });
     } catch (error) {
@@ -206,9 +193,7 @@ export function useHaptics() {
   return { impact, notification, vibrate, selectionStart, selectionChanged, selectionEnd };
 }
 
-/**
- * Hook to handle keyboard events on native platforms
- */
+
 export function useNativeKeyboard() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -244,9 +229,7 @@ export function useNativeKeyboard() {
   return { keyboardHeight, isKeyboardVisible, hideKeyboard };
 }
 
-/**
- * Hook to handle app lifecycle events
- */
+
 export function useAppLifecycle(callbacks = {}) {
   const { onResume, onPause, onBackButton } = callbacks;
 
@@ -275,21 +258,17 @@ export function useAppLifecycle(callbacks = {}) {
   }, [onResume, onPause, onBackButton]);
 }
 
-/**
- * Hook to monitor network status
- */
+
 export function useNetwork() {
   const [isConnected, setIsConnected] = useState(true);
   const [connectionType, setConnectionType] = useState('unknown');
 
   useEffect(() => {
-    // Get initial status
     Network.getStatus().then(status => {
       setIsConnected(status.connected);
       setConnectionType(status.connectionType);
     });
 
-    // Listen for changes
     const listener = Network.addListener('networkStatusChange', (status) => {
       setIsConnected(status.connected);
       setConnectionType(status.connectionType);
@@ -303,9 +282,6 @@ export function useNetwork() {
   return { isConnected, connectionType };
 }
 
-/**
- * Hook to handle safe area insets (notch, etc.)
- */
 export function useSafeArea() {
   const [safeArea, setSafeArea] = useState({
     top: 0,
@@ -316,7 +292,6 @@ export function useSafeArea() {
 
   useEffect(() => {
     if (!isNative) {
-      // Use CSS env() variables for PWA
       const computeInsets = () => {
         const style = getComputedStyle(document.documentElement);
         setSafeArea({
@@ -326,7 +301,7 @@ export function useSafeArea() {
           right: parseInt(style.getPropertyValue('--sar') || '0', 10)
         });
       };
-      
+
       computeInsets();
       window.addEventListener('resize', computeInsets);
       return () => window.removeEventListener('resize', computeInsets);
@@ -336,29 +311,24 @@ export function useSafeArea() {
   return safeArea;
 }
 
-/**
- * Initialize native features on app start
- */
 export async function initializeNativeFeatures(options = {}) {
-  const { 
+  const {
     statusBarColor = '#0f172a',
     statusBarStyle = 'dark',
-    hideSplashDelay = 500 
+    hideSplashDelay = 500
   } = options;
 
   if (!isNative) return;
 
   try {
-    // Set status bar
-    await StatusBar.setStyle({ 
-      style: statusBarStyle === 'dark' ? Style.Dark : Style.Light 
+    await StatusBar.setStyle({
+      style: statusBarStyle === 'dark' ? Style.Dark : Style.Light
     });
-    
+
     if (platform === 'android') {
       await StatusBar.setBackgroundColor({ color: statusBarColor });
     }
 
-    // Hide splash screen after a short delay
     setTimeout(async () => {
       await SplashScreen.hide();
     }, hideSplashDelay);

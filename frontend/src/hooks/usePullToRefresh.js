@@ -27,14 +27,13 @@ export function usePullToRefresh(onRefresh, options = {}) {
   const hapticTriggeredRef = useRef(false)
 
   const triggerHaptic = useCallback(async (style = ImpactStyle.Light) => {
-    // `isNative` is a boolean (do not call as a function)
     if (isNative) {
       try {
         if (Haptics && typeof Haptics.impact === 'function') {
           await Haptics.impact({ style })
         }
       } catch (error) {
-        // Haptics not available
+        logger.warn('Haptics not available:', error);
       }
     }
   }, [])
@@ -50,7 +49,6 @@ export function usePullToRefresh(onRefresh, options = {}) {
       scrollTop
     }
 
-    // Only allow pull if scrolled to top
     setCanPull(scrollTop === 0)
     hapticTriggeredRef.current = false
   }, [enabled, isRefreshing])
@@ -61,19 +59,15 @@ export function usePullToRefresh(onRefresh, options = {}) {
     const touch = e.touches[0]
     const deltaY = touch.clientY - touchStartRef.current.y
 
-    // Only pull down, not up
     if (deltaY > 0) {
-      // Apply resistance
       const distance = deltaY / resistance
       setPullDistance(Math.min(distance, threshold * 1.5))
 
-      // Trigger haptic when crossing threshold
       if (distance >= threshold && !hapticTriggeredRef.current) {
         triggerHaptic(ImpactStyle.Medium)
         hapticTriggeredRef.current = true
       }
 
-      // Prevent default scrolling when pulling
       if (distance > 10) {
         e.preventDefault()
       }
@@ -91,7 +85,7 @@ export function usePullToRefresh(onRefresh, options = {}) {
     if (shouldRefresh) {
       setIsRefreshing(true)
       triggerHaptic(ImpactStyle.Heavy)
-      
+
       try {
         await onRefresh()
       } catch (error) {

@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { authenticateToken } from '../middleware/auth.js'
 
 const router = Router()
-
-// Audit log categories
 export const AUDIT_CATEGORIES = {
   AUTH: 'authentication',
   USER: 'user_management',
@@ -16,9 +14,7 @@ export const AUDIT_CATEGORIES = {
   APPEARANCE: 'appearance'
 }
 
-// Audit log actions
 export const AUDIT_ACTIONS = {
-  // Auth
   LOGIN: 'login',
   LOGIN_FAILED: 'login_failed',
   LOGOUT: 'logout',
@@ -26,7 +22,6 @@ export const AUDIT_ACTIONS = {
   TOKEN_REFRESH: 'token_refresh',
   SESSION_REVOKED: 'session_revoked',
   
-  // User
   USER_CREATED: 'user_created',
   USER_UPDATED: 'user_updated',
   USER_DELETED: 'user_deleted',
@@ -35,28 +30,23 @@ export const AUDIT_ACTIONS = {
   PROFILE_UPDATED: 'profile_updated',
   ROLE_CHANGED: 'role_changed',
   
-  // Service
   SERVICE_CREATED: 'service_created',
   SERVICE_UPDATED: 'service_updated',
   SERVICE_DELETED: 'service_deleted',
   SERVICE_ACCESSED: 'service_accessed',
   SERVICES_RESET: 'services_reset',
   
-  // Settings
   SETTINGS_UPDATED: 'settings_updated',
   SSO_CONFIG_UPDATED: 'sso_config_updated',
   SSO_CONFIG_RESET: 'sso_config_reset',
   
-  // Appearance
   THEME_CHANGED: 'theme_changed',
   ACCENT_CHANGED: 'accent_changed',
   LOGO_CHANGED: 'logo_changed',
   
-  // Data
   DATA_EXPORTED: 'data_exported',
   DATA_IMPORTED: 'data_imported',
   
-  // Security
   FAILED_AUTH_ATTEMPT: 'failed_auth_attempt',
   SUSPICIOUS_ACTIVITY: 'suspicious_activity'
 }
@@ -119,7 +109,6 @@ export function logAuditEvent({
   }
 }
 
-// Helper to extract client IP from request
 export function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for']
   if (forwarded) {
@@ -129,14 +118,12 @@ export function getClientIp(req) {
   return req.ip || req.connection?.remoteAddress || null
 }
 
-// Get audit logs with filtering and pagination (admin only)
 router.get('/', authenticateToken, (req, res) => {
   try {
     // Only admins can view all logs, users can view their own
     const db = getDb()
     const isAdmin = req.user.role === 'admin'
     
-    // Query parameters
     const {
       page = 1,
       limit = 50,
@@ -154,7 +141,6 @@ router.get('/', authenticateToken, (req, res) => {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50))
     const offset = (pageNum - 1) * limitNum
     
-    // Build WHERE clause
     const conditions = []
     const params = []
     
@@ -205,12 +191,10 @@ router.get('/', authenticateToken, (req, res) => {
     
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
     
-    // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM audit_logs ${whereClause}`
     const countResult = db.prepare(countQuery).get(...params)
     const total = countResult?.total || 0
     
-    // Get logs with pagination
     const logsQuery = `
       SELECT * FROM audit_logs 
       ${whereClause}
@@ -219,10 +203,8 @@ router.get('/', authenticateToken, (req, res) => {
     `
     const logs = db.prepare(logsQuery).all(...params, limitNum, offset)
     
-    // Parse details JSON for each log and ensure timestamps are properly formatted as UTC
     const parsedLogs = logs.map(log => ({
       ...log,
-      // SQLite CURRENT_TIMESTAMP is UTC but doesn't include 'Z', so we need to add it
       created_at: log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : log.created_at,
       details: log.details ? tryParseJSON(log.details) : null
     }))
@@ -253,17 +235,14 @@ router.get('/stats', authenticateToken, (req, res) => {
     const { days = 30 } = req.query
     const daysNum = Math.min(365, Math.max(1, parseInt(days, 10) || 30))
     
-    // Calculate date range
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - daysNum)
     const startDateStr = startDate.toISOString()
     
-    // Total events
     const totalResult = db.prepare(`
       SELECT COUNT(*) as total FROM audit_logs WHERE created_at >= ?
     `).get(startDateStr)
     
-    // Events by category
     const byCategory = db.prepare(`
       SELECT category, COUNT(*) as count 
       FROM audit_logs 
@@ -272,7 +251,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       ORDER BY count DESC
     `).all(startDateStr)
     
-    // Events by action
     const byAction = db.prepare(`
       SELECT action, COUNT(*) as count 
       FROM audit_logs 
@@ -282,7 +260,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       LIMIT 10
     `).all(startDateStr)
     
-    // Events by status
     const byStatus = db.prepare(`
       SELECT status, COUNT(*) as count 
       FROM audit_logs 
@@ -290,7 +267,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       GROUP BY status
     `).all(startDateStr)
     
-    // Events by day (for chart)
     const byDay = db.prepare(`
       SELECT DATE(created_at) as date, COUNT(*) as count 
       FROM audit_logs 
@@ -299,7 +275,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       ORDER BY date ASC
     `).all(startDateStr)
     
-    // Top users by activity
     const topUsers = db.prepare(`
       SELECT username, user_id, COUNT(*) as count 
       FROM audit_logs 
@@ -309,7 +284,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       LIMIT 5
     `).all(startDateStr)
     
-    // Recent failures
     const recentFailures = db.prepare(`
       SELECT * FROM audit_logs 
       WHERE status = 'failure' AND created_at >= ?
@@ -317,7 +291,6 @@ router.get('/stats', authenticateToken, (req, res) => {
       LIMIT 10
     `).all(startDateStr)
     
-    // Login attempts stats
     const loginStats = db.prepare(`
       SELECT 
         SUM(CASE WHEN action = 'login' AND status = 'success' THEN 1 ELSE 0 END) as successful_logins,
@@ -358,7 +331,6 @@ router.get('/export/csv', authenticateToken, (req, res) => {
     const db = getDb()
     const { startDate, endDate, category, action } = req.query
     
-    // Build query
     const conditions = []
     const params = []
     
@@ -388,12 +360,10 @@ router.get('/export/csv', authenticateToken, (req, res) => {
       SELECT * FROM audit_logs ${whereClause} ORDER BY created_at DESC LIMIT 10000
     `).all(...params)
     
-    // Generate CSV
     const headers = ['ID', 'Timestamp', 'User ID', 'Username', 'Action', 'Category', 'Resource Type', 'Resource ID', 'Resource Name', 'Status', 'IP Address', 'User Agent', 'Details']
     const csvRows = [headers.join(',')]
     
     for (const log of logs) {
-      // Fix timestamp by adding Z if not present
       const timestamp = log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : ''
       const row = [
         escapeCSV(log.id),
@@ -415,7 +385,6 @@ router.get('/export/csv', authenticateToken, (req, res) => {
     
     const csvContent = csvRows.join('\n')
     
-    // Log the export
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -436,7 +405,6 @@ router.get('/export/csv', authenticateToken, (req, res) => {
   }
 })
 
-// Export audit logs as JSON (admin only)
 router.get('/export/json', authenticateToken, (req, res) => {
   try {
     if (req.user.role !== 'admin') {
@@ -446,7 +414,6 @@ router.get('/export/json', authenticateToken, (req, res) => {
     const db = getDb()
     const { startDate, endDate, category, action } = req.query
     
-    // Build query
     const conditions = []
     const params = []
     
@@ -476,14 +443,12 @@ router.get('/export/json', authenticateToken, (req, res) => {
       SELECT * FROM audit_logs ${whereClause} ORDER BY created_at DESC LIMIT 10000
     `).all(...params)
     
-    // Parse details for each log and fix timestamps
     const parsedLogs = logs.map(log => ({
       ...log,
       created_at: log.created_at ? (log.created_at.endsWith('Z') ? log.created_at : log.created_at + 'Z') : log.created_at,
       details: log.details ? tryParseJSON(log.details) : null
     }))
     
-    // Log the export
     logAuditEvent({
       userId: req.user.id,
       username: req.user.username,
@@ -510,7 +475,6 @@ router.get('/export/json', authenticateToken, (req, res) => {
   }
 })
 
-// Get unique values for filters
 router.get('/filters', authenticateToken, (req, res) => {
   try {
     const db = getDb()
@@ -544,7 +508,6 @@ router.get('/filters', authenticateToken, (req, res) => {
   }
 })
 
-// Helper to safely parse JSON
 function tryParseJSON(str) {
   try {
     return JSON.parse(str)
@@ -553,7 +516,6 @@ function tryParseJSON(str) {
   }
 }
 
-// Helper to escape CSV values
 function escapeCSV(value) {
   if (value === null || value === undefined) return ''
   const str = String(value)

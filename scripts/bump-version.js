@@ -10,18 +10,15 @@ const rootDir = join(__dirname, '..');
 
 import logger from '../backend/src/logger.js'
 
-// Read frontend package.json
 const frontendPackagePath = join(rootDir, 'frontend', 'package.json');
 const frontendPackageJson = JSON.parse(readFileSync(frontendPackagePath, 'utf8'));
 const currentVersion = frontendPackageJson.version;
 
-// Parse version
 function parseVersion(version) {
   const [major, minor, patch] = version.split('.').map(Number);
   return { major, minor, patch };
 }
 
-// Increment version
 function incrementVersion(version, type) {
   const v = parseVersion(version);
   switch (type) {
@@ -36,7 +33,6 @@ function incrementVersion(version, type) {
   }
 }
 
-// Create readline interface (use stderr for prompts so logs don't interfere)
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stderr,
@@ -47,20 +43,16 @@ function question(query) {
 }
 
 async function main() {
-  // Print current version to stderr so it doesn't interfere with prompts
   console.error(`\n🚀 Current version: ${currentVersion}\n`);
 
-  // Ask for version bump type
   const bumpType = await question(
     'Bump type? (major/minor/patch) [patch]: '
   );
   const type = bumpType.trim() || 'patch';
   const newVersion = incrementVersion(currentVersion, type);
 
-  // Show new version on stderr
   console.error(`\n📦 New version will be: ${newVersion}\n`);
 
-  // Get release date
   const dateInput = await question(
     'Release date? (YYYY-MM-DD or leave empty for today): '
   );
@@ -76,7 +68,6 @@ async function main() {
         day: 'numeric',
       });
 
-  // Get changelog entries (write prompt text to stderr)
   console.error('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
   const changes = [];
   while (true) {
@@ -91,7 +82,6 @@ async function main() {
     return;
   }
 
-  // Confirm (print summary to stderr)
   console.error('\n📋 Summary:');
   console.error(`   Version: ${currentVersion} → ${newVersion}`);
   console.error(`   Date: ${releaseDate}`);
@@ -106,12 +96,10 @@ async function main() {
     return;
   }
 
-  // Update frontend/package.json
   frontendPackageJson.version = newVersion;
   writeFileSync(frontendPackagePath, JSON.stringify(frontendPackageJson, null, 2) + '\n');
   logger.info('\n✅ Updated frontend/package.json');
 
-  // Update root package.json
   const rootPackagePath = join(rootDir, 'package.json');
   try {
     const rootPackageJson = JSON.parse(readFileSync(rootPackagePath, 'utf8'));
@@ -122,7 +110,6 @@ async function main() {
     logger.warn('⚠️  Warning: Could not update root package.json:', err.message);
   }
 
-  // Update backend/package.json
   const backendPackagePath = join(rootDir, 'backend', 'package.json');
   try {
     const backendPackageJson = JSON.parse(readFileSync(backendPackagePath, 'utf8'));
@@ -133,13 +120,10 @@ async function main() {
     logger.warn('⚠️  Warning: Could not update backend/package.json:', err.message);
   }
 
-  // Update root package-lock.json (update root/frontend/backend package entries if present)
   const lockPath = join(rootDir, 'package-lock.json');
   try {
     const lockJson = JSON.parse(readFileSync(lockPath, 'utf8'));
-    // Update top-level lock version
     if (lockJson.version) lockJson.version = newVersion;
-    // Support keys like '' (root), 'frontend', './frontend', 'backend', './backend'
     if (lockJson.packages) {
       if (lockJson.packages['']) lockJson.packages[''].version = newVersion;
       const frontKey = lockJson.packages['frontend'] ? 'frontend' : (lockJson.packages['./frontend'] ? './frontend' : null);
@@ -153,11 +137,9 @@ async function main() {
     logger.warn('⚠️  Warning: Could not update root package-lock.json:', err.message);
   }
 
-  // Update ChangelogModal.jsx
   const changelogPath = join(rootDir, 'frontend', 'src', 'components', 'ChangelogModal.jsx');
   let changelogContent = readFileSync(changelogPath, 'utf8');
 
-  // Build new changelog entry
   const newEntry = `  '${newVersion}': {
     date: '${releaseDate}',
     changes: [
@@ -165,8 +147,6 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
     ],
   },`;
 
-  // Find the CHANGELOG object and insert new entry after the opening brace
-  // Handle different line endings (Windows \r\n or Unix \n)
   const changelogRegex = /(const CHANGELOG = \{)(\r?\n)/;
   if (changelogRegex.test(changelogContent)) {
     changelogContent = changelogContent.replace(
@@ -180,7 +160,6 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
     logger.warn('   You may need to manually add the changelog entry.');
   }
 
-  // Update VITE_APP_VERSION fallback defaults in frontend source files
   const viteFallbackRegex = /import\.meta\.env\.VITE_APP_VERSION\s*\|\|\s*'[^']*'/g;
   const filesToPatch = [
     join(rootDir, 'frontend', 'src', 'hooks', 'usePWAUpdate.js'),

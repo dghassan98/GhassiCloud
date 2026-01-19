@@ -22,7 +22,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
     url: '',
     icon: 'cloud',
     color: '#6366f1',
-    useFavicon: true  // Default to using favicon
+    useFavicon: true
   })
 
   const handleSubmit = (e) => {
@@ -119,7 +119,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
                       type="button"
                       className={`icon-option ${formData.icon === icon ? 'active' : ''}`}
                       onClick={() => setFormData({ ...formData, icon })}
-                      style={formData.icon === icon ? { 
+                      style={formData.icon === icon ? {
                         backgroundColor: `${formData.color}20`,
                         borderColor: formData.color,
                         color: formData.color
@@ -137,7 +137,7 @@ export default function AddServiceModal({ onClose, onAdd, iconMap }) {
                 return (
                   <div className="favicon-preview" style={{ marginTop: '0.75rem' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('service.fields.preview')}</span>
-                    <img 
+                    <img
                       src={`${url.origin}/favicon.ico`}
                       alt={t('service.faviconPreview') || 'Favicon preview'}
                       style={{ width: 24, height: 24, marginLeft: '0.5rem' }}

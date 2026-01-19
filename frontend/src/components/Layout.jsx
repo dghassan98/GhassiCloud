@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  LayoutDashboard, Settings, LogOut, 
+import {
+  LayoutDashboard, Settings, LogOut,
   Moon, Sun, Menu, X, Bell, CloudSun, BarChart3
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
@@ -15,6 +15,7 @@ import { isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import Favicon from './Favicon'
 import '../styles/layout.css'
+import logger from '../logger'
 
 export default function Layout() {
   const { user, logout } = useAuth()
@@ -25,12 +26,10 @@ export default function Layout() {
   const { openWebview, tabs, activeId, restoreWebview, closeWebview, clearAllWebviews, MAX_MINIMIZED } = useWebview()
   const [showRefreshConfirm, setShowRefreshConfirm] = useState(false)
 
-  // Capture F5 / Ctrl/Cmd+R and prompt before reloading the whole app (only in installed desktop PWAs and only when a webview modal is open)
+  // F5 /Ctrl/R and prompt before reloading the whole app (only PWA and when webview modal is open)
   useEffect(() => {
-    // Only active for installed desktop PWAs
     if (!isPWA() || isMobile()) return
 
-    // Is there a currently visible (non-minimized) webview overlay open?
     const overlayOpen = !!(tabs && tabs.length && activeId && tabs.some(t => t.id === activeId && !t.minimized))
     if (!overlayOpen) return
 
@@ -41,7 +40,7 @@ export default function Layout() {
         if (!isF5 && !isCmdR) return
         e.preventDefault(); e.stopImmediatePropagation()
         setShowRefreshConfirm(true)
-      } catch (err) {}
+      } catch (err) { }
     }
 
     document.addEventListener('keydown', onKey, true)
@@ -56,7 +55,7 @@ export default function Layout() {
   }, [showRefreshConfirm])
 
   const confirmReload = () => {
-    try { clearAllWebviews() } catch (e) {}
+    try { clearAllWebviews() } catch (e) { }
     setShowRefreshConfirm(false)
     setTimeout(() => { window.location.reload() }, 60)
   }
@@ -70,9 +69,7 @@ export default function Layout() {
   const exitTimerRef = useRef(null)
   const [canExit, setCanExit] = useState(false)
 
-  // Intercept external links (target="_blank") when running as an installed PWA
-  // Note: do NOT intercept on mobile PWAs — we want mobile PWAs to open links in
-  // the external browser/tab instead of an in-app WebView modal.
+  // if PWA open, open links in webview modal, BUT if mobile then open in system browser
   useEffect(() => {
     if (!isPWA() || isMobile()) return
 
@@ -86,7 +83,7 @@ export default function Layout() {
         e.preventDefault()
         openWebview(href, anchor.getAttribute('title') || anchor.textContent?.trim() || undefined)
       } catch (err) {
-        // ignore
+        logger.error('Layout: Error opening webview for external link', err)
       }
     }
 
@@ -94,37 +91,37 @@ export default function Layout() {
     return () => document.removeEventListener('click', onDocClick)
   }, [openWebview, isMobile])
 
-  // Load admin setting to enable F12 / DevTools in PWA (global admin-configured flag)
+  // admin setting to enable F12/DevTools in PWA
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
-      try {
-        const token = localStorage.getItem('ghassicloud-token')
-        const auth = token && token.startsWith('Bearer ') ? token : (token ? `Bearer ${token}` : null)
-        const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers: auth ? { Authorization: auth } : {} })
-        if (!res.ok) return
-        const data = await res.json()
-        if (cancelled) return
-        setPwaDevToolsEnabled(data && data.value === 'true')
-      } catch (e) {
-        // ignore
-      }
-    })()
-    // Update when admin changes setting via UI
+      ; (async () => {
+        try {
+          const token = localStorage.getItem('ghassicloud-token')
+          const auth = token && token.startsWith('Bearer ') ? token : (token ? `Bearer ${token}` : null)
+          const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers: auth ? { Authorization: auth } : {} })
+          if (!res.ok) return
+          const data = await res.json()
+          if (cancelled) return
+          setPwaDevToolsEnabled(data && data.value === 'true')
+        } catch (e) {
+          logger.error('Layout: Error loading PWA devtools setting', e)
+        }
+      })()
     const onSetting = (ev) => {
       try {
         if (ev && ev.detail && ev.detail.key === 'pwaDevtoolsEnabled') {
           setPwaDevToolsEnabled(ev.detail.value === 'true')
         }
-      } catch (e) {}
+      } catch (e) {
+        logger.error('Layout: Error handling settings-updated event', e)
+      }
     }
     window.addEventListener('ghassicloud:settings-updated', onSetting)
 
     return () => { cancelled = true; window.removeEventListener('ghassicloud:settings-updated', onSetting) }
   }, [])
 
-  // Capture DevTools key shortcuts (F12 and Ctrl/Cmd+Shift+I). When running as an installed desktop PWA,
-  // block them by default unless the admin-enabled flag is set, or open the current page/webview in a new window when allowed.
+  // Capture DevTools key shortcuts (F12 and Ctrl/Cmd+Shift+I), block, unless allowed.
   useEffect(() => {
     if (!isPWA() || isMobile()) return
 
@@ -134,34 +131,27 @@ export default function Layout() {
         const isCtrlShiftI = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')
         if (!isF12 && !isCtrlShiftI) return
 
-        // If admin has not enabled devtools in PWA, block and inform
         if (!pwaDevToolsEnabled) {
-          try { e.preventDefault(); e.stopImmediatePropagation(); showToast({ message: t('settings.pwaDevTools.disabledToast') || 'Developer tools are disabled by an administrator', type: 'info' }) } catch (err) {}
+          try { e.preventDefault(); e.stopImmediatePropagation(); showToast({ message: t('settings.pwaDevTools.disabledToast') || 'Developer tools are disabled by an administrator', type: 'info' }) } catch (err) { logger.error('Layout: Error showing devtools disabled toast', err) }
           return
         }
-
-        // When enabled by admin, do not open a new window — allow the key to propagate so native behavior occurs
-        // (some platforms may still disallow devtools in installed PWAs; this makes the behavior opt-in without forcing a new tab)
         return
       } catch (err) {
-        // ignore
+        logger.error('Layout: Error handling devtools key event', err)
       }
     }
 
-    // Use capture phase to intercept keys even when an iframe is focused
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
   }, [pwaDevToolsEnabled, tabs, activeId, isMobile, t, showToast])
-  
+
   const showBrandText = currentLogo.id !== 'cloud-only' && currentLogo.id !== 'full-logo'
   const isWideLogo = currentLogo.id === 'cloud-only'
   const isFullLogo = currentLogo.id === 'full-logo'
 
-  // Navigation history for back gesture
   const canGoBack = location.key !== 'default'
   const isDashboard = location.pathname === '/'
 
-  // Reset exit confirmation when navigating away from dashboard
   useEffect(() => {
     if (!isDashboard) {
       setCanExit(false)
@@ -172,28 +162,21 @@ export default function Layout() {
     }
   }, [isDashboard])
 
-  // Handle back gesture with exit confirmation on dashboard
   const handleBackGesture = () => {
-    // If sidebar is open, close it
     if (sidebarOpen) {
+      setSidebarOpen(false)
       return
     }
-
-    // If on dashboard, handle exit confirmation
     if (isDashboard) {
       if (canExit) {
-        // Second back press - exit app or go to login
         window.history.back()
       } else {
-        // First back press - show warning
         setCanExit(true)
         showToast({
           message: t('nav.pressBackAgain') || 'Press back again to exit',
           type: 'info',
           duration: 2000
         })
-        
-        // Reset after 2 seconds
         if (exitTimerRef.current) {
           clearTimeout(exitTimerRef.current)
         }
@@ -202,27 +185,22 @@ export default function Layout() {
         }, 2000)
       }
     } else if (canGoBack) {
-      // On other pages, navigate back normally
       navigate(-1)
     } else if (!sidebarOpen) {
-      // No history, open sidebar
       setSidebarOpen(true)
     }
   }
 
-  // Long press on hamburger menu
   const hamburgerGestures = useGestures({
     onLongPress: () => setSidebarOpen(true),
     longPressDuration: 400
   })
 
-  // Swipe gestures for navigation
-  // Disable back swipe on mobile when running as an installed PWA (conflicts with platform back gesture)
+
   const backGestureEnabled = !(isPWA() && isMobile())
   const swipeGestures = useSwipe({
     onRight: backGestureEnabled ? handleBackGesture : undefined,
     onLeft: () => {
-      // Swipe left to close sidebar
       if (sidebarOpen) {
         setSidebarOpen(false)
       }
@@ -239,7 +217,7 @@ export default function Layout() {
     <div className="layout" {...swipeGestures}>
       {/* Mobile Header */}
       <header className="mobile-header">
-        <button 
+        <button
           className="menu-toggle long-press-target"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           {...hamburgerGestures.touchHandlers}
@@ -249,10 +227,10 @@ export default function Layout() {
         </button>
         <div className={`logo ${isFullLogo ? 'centered' : ''}`} onClick={() => navigate('/')}>
           <div className="logo-flip">
-            <img 
-              src={currentLogo.path} 
-              alt="GhassiCloud" 
-              className={`logo-img ${isWideLogo ? 'wide' : ''} ${isFullLogo ? 'full' : ''}`} 
+            <img
+              src={currentLogo.path}
+              alt="GhassiCloud"
+              className={`logo-img ${isWideLogo ? 'wide' : ''} ${isFullLogo ? 'full' : ''}`}
             />
           </div>
           <AnimatePresence>
@@ -274,17 +252,17 @@ export default function Layout() {
       </header>
 
       {/* Sidebar */}
-      <motion.aside 
+      <motion.aside
         className={`sidebar ${sidebarOpen ? 'open' : ''}`}
         initial={false}
       >
         <div className="sidebar-header">
           <div className={`logo ${isFullLogo ? 'centered' : ''}`} onClick={() => navigate('/')}>
             <div className="logo-flip">
-              <img 
-                src={currentLogo.path} 
-                alt="GhassiCloud" 
-                className={`logo-img ${isWideLogo ? 'wide' : ''} ${isFullLogo ? 'full' : ''}`} 
+              <img
+                src={currentLogo.path}
+                alt="GhassiCloud"
+                className={`logo-img ${isWideLogo ? 'wide' : ''} ${isFullLogo ? 'full' : ''}`}
               />
             </div>
             <AnimatePresence>
@@ -303,24 +281,24 @@ export default function Layout() {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink 
-            to="/" 
+          <NavLink
+            to="/"
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             onClick={() => setSidebarOpen(false)}
           >
             <LayoutDashboard size={20} />
             <span>{t('nav.dashboard')}</span>
           </NavLink>
-          <NavLink 
-            to="/reporting" 
+          <NavLink
+            to="/reporting"
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             onClick={() => setSidebarOpen(false)}
           >
             <BarChart3 size={20} />
             <span>{t('nav.reporting')}</span>
           </NavLink>
-          <NavLink 
-            to="/settings" 
+          <NavLink
+            to="/settings"
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             onClick={() => setSidebarOpen(false)}
           >
@@ -335,7 +313,7 @@ export default function Layout() {
 
               <div className="minimized-tray-sidebar" aria-label={t('webview.trayLabel') || 'Minimized webviews'}>
                 {tabs.filter(x => x.minimized).slice(0, MAX_MINIMIZED).map(m => (
-                  <div key={m.id} className="minimized-item" onClick={() => restoreWebview(m.id)} role="button" tabIndex={0} onKeyDown={(e)=>{ if (e.key === 'Enter' || e.key === ' ') { restoreWebview(m.id) } }}>
+                  <div key={m.id} className="minimized-item" onClick={() => restoreWebview(m.id)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { restoreWebview(m.id) } }}>
                     <div className="minimized-favicon"><Favicon url={m.url} size={24} alt={m.title || m.hostname} /></div>
                     <div className="minimized-title">{m.title || m.hostname}</div>
                     <button className="minimized-close" onClick={(e) => { e.stopPropagation(); closeWebview(m.id) }} aria-label={t('webview.close') || 'Close'}>×</button>
@@ -371,10 +349,10 @@ export default function Layout() {
               <span className="role">{user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : t('general.memberFallback')}</span>
             </div>
           </div>
-          
+
           <div className="footer-actions">
-            <button 
-              className="icon-button" 
+            <button
+              className="icon-button"
               onClick={toggleTheme}
               title={theme === 'dark' ? t('settings.themeOptions.light') : t('settings.themeOptions.dark')}
             >
@@ -383,8 +361,8 @@ export default function Layout() {
             <button className="icon-button" title={t('layout.notifications') || 'Notifications'}>
               <Bell size={18} />
             </button>
-            <button 
-              className="icon-button" 
+            <button
+              className="icon-button"
               onClick={handleLogout}
               title={t('settings.signOut')}
             >
@@ -396,7 +374,7 @@ export default function Layout() {
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
         />

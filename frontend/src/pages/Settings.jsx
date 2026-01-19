@@ -31,14 +31,12 @@ export default function Settings() {
   const isAdmin = user?.role === 'admin'
   const [forceRefreshing, setForceRefreshing] = useState(false)
 
-  // Sync preferences toggle (default: localStorage, fallback to server or true)
   const [syncPreferences, setSyncPreferences] = useState(() => {
     try {
       const local = localStorage.getItem('ghassicloud-sync-preferences')
       if (local !== null) return local === 'true'
-      // Default to OFF unless server explicitly opted into syncing
       return user?.preferences?.syncPreferences === true
-    } catch (e) { return false }
+    } catch (e) { logger.error('Failed to get sync preferences from localStorage:', e); return false }
   })
 
   useEffect(() => {
@@ -46,13 +44,13 @@ export default function Settings() {
       const local = localStorage.getItem('ghassicloud-sync-preferences')
       if (local !== null) setSyncPreferences(local === 'true')
       else setSyncPreferences(user?.preferences?.syncPreferences === true)
-    } catch (e) {}
+    } catch (e) { logger.error('Failed to get sync preferences from localStorage:', e) }
   }, [user])
 
   const handleToggleSync = async () => {
     const next = !syncPreferences
     setSyncPreferences(next)
-    try { localStorage.setItem('ghassicloud-sync-preferences', next ? 'true' : 'false') } catch (e) {}
+    try { localStorage.setItem('ghassicloud-sync-preferences', next ? 'true' : 'false') } catch (e) { logger.error('Failed to set sync preferences in localStorage:', e) }
 
     if (user) {
       try {
@@ -66,7 +64,6 @@ export default function Settings() {
         if (res.ok) {
           try {
             const data = await res.json()
-            // If server returned updated preferences, apply them immediately to localStorage so UI picks them up
             try {
               const prefs = data && data.preferences ? data.preferences : null
               if (prefs) {
@@ -75,14 +72,14 @@ export default function Settings() {
                 if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
                 if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
                 localStorage.setItem('ghassicloud-sync-preferences', prefs.syncPreferences === true ? 'true' : 'false')
-                try { window.__ghassicloud_server_prefs_applied = true } catch (e) {}
-                try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {}
-                try { setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {} }, 150) } catch (e) {}
+                try { window.__ghassicloud_server_prefs_applied = true } catch (e) { logger.error('Failed to set __ghassicloud_server_prefs_applied flag:', e) }
+                try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) { logger.error('Failed to dispatch preferences-updated event:', e) }
+                try { setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) { logger.error('Failed to dispatch preferences-updated event:', e) } }, 150) } catch (e) { logger.error('Failed to set timeout for preferences-updated event:', e) }
               }
-            } catch (e) {}
+            } catch (e) { logger.error('Failed to apply server preferences:', e) }
 
-            try { await refreshUser() } catch (e) {}
-          } catch (e) { /* ignore json parse errors and still refresh */ try { await refreshUser() } catch (e) {} }
+            try { await refreshUser() } catch (e) { logger.error('Failed to refresh user after updating preferences:', e) }
+          } catch (e) { try { await refreshUser() } catch (e) { logger.error('Failed to refresh user after JSON parse error:', e) } }
 
           showToast({ message: next ? (t('settings.syncPreferences.enabled') || 'Preferences will be synced') : (t('settings.syncPreferences.disabled') || 'Preferences will be stored locally'), type: 'success' })
         } else {
@@ -115,30 +112,33 @@ export default function Settings() {
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [langToConfirm, setLangToConfirm] = useState(null)
 
-  // Sessions & security preferences (user-facing)
+  const languageLabels = {
+    system: t('settings.languageSystem') || 'System',
+    en: 'English',
+    es: 'Español',
+    fr: 'Français',
+    de: 'Deutsch',
+    ar: 'العربية',
+    ru: 'Русский'
+  }
+
   const [sessions, setSessions] = useState([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
-  const [sessionGeoData, setSessionGeoData] = useState({}) // Map of IP -> { lat, lon, city, country }
-
-
-
-  // Admin-only: PWA devtools toggle state (stored as 'true'/'false' strings on server)
+  const [sessionGeoData, setSessionGeoData] = useState({})
+  // Admin-only
   const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const [savingPwaSetting, setSavingPwaSetting] = useState(false)
   const [pwaSaveError, setPwaSaveError] = useState(null)
-
-  // Admin-only: Global log level (affects frontend & backend)
+  // Admin-only
   const [logLevel, setLogLevel] = useState('info')
   const [savingLogLevel, setSavingLogLevel] = useState(false)
   const [logLevelError, setLogLevelError] = useState(null)
 
-  // Reset defaults state
   const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
 
   const handleResetDefaults = async () => {
     if (!window.confirm(t('settings.resetDefaults.confirm') || 'This will restore appearance settings to defaults. Continue?')) return
 
-    // Apply local defaults
     try {
       localStorage.removeItem('ghassicloud-theme')
       localStorage.removeItem('ghassicloud-accent')
@@ -146,17 +146,16 @@ export default function Settings() {
       localStorage.removeItem('ghassicloud-logo')
       localStorage.setItem('ghassicloud-sync-preferences', 'true')
 
-      // Apply to UI immediately
       setTheme('system')
       setAccent('cyan')
       setLogo('circle')
 
       showToast({ message: t('settings.resetDefaults.localReset') || 'Appearance reset locally', type: 'success' })
     } catch (e) {
+      logger.error('Failed to reset appearance locally', e)
       showToast({ message: t('settings.resetDefaults.failed') || 'Failed to reset appearance locally', type: 'error' })
     }
 
-    // If user chose to forget server preferences, call backend
     if (forgetServerPrefs && user) {
       try {
         const token = localStorage.getItem('ghassicloud-token')
@@ -174,31 +173,27 @@ export default function Settings() {
       }
     }
   }
-  // User management (admin only)
   const [allUsers, setAllUsers] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
-  // Profile form state
   const [usernameVal, setUsernameVal] = useState(user?.username || '')
   const [emailVal, setEmailVal] = useState(user?.email || '')
   const [displayNameVal, setDisplayNameVal] = useState(user?.displayName || user?.username || '')
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null)
-  const [avatarFile, setAvatarFile] = useState(null)
+  const [setAvatarFile] = useState(null)
   const [avatarError, setAvatarError] = useState(false)
-  const [avatarRetryCount, setAvatarRetryCount] = useState(0)
+  const [setAvatarRetryCount] = useState(0)
 
-  // Custom color picker state
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [hexInput, setHexInput] = useState('')
   const [hue, setHue] = useState(180)
   const [saturation, setSaturation] = useState(100)
   const [lightness, setLightness] = useState(50)
 
-  // Convert HSL to Hex
   const hslToHex = (h, s, l) => {
     l /= 100
     const a = s * Math.min(l, 1 - l) / 100
@@ -210,7 +205,6 @@ export default function Settings() {
     return `#${f(0)}${f(8)}${f(4)}`.toUpperCase()
   }
 
-  // Convert Hex to HSL
   const hexToHSL = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16) / 255
     const g = parseInt(hex.slice(3, 5), 16) / 255
@@ -235,7 +229,6 @@ export default function Settings() {
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
   }
 
-  // Update HSL when custom color changes
   useEffect(() => {
     if (currentAccent.id === 'custom') {
       const hsl = hexToHSL(currentAccent.color)
@@ -245,16 +238,11 @@ export default function Settings() {
     }
   }, [currentAccent])
 
-  // Helper to proxy external avatar URLs through backend to avoid CORS and rate limiting
   const getProxiedAvatarUrl = (avatarUrl) => {
     if (!avatarUrl) return null
-    // Check if it's already a proxy URL
     if (avatarUrl.startsWith('/api/auth/avatar-proxy')) return avatarUrl
-    // Check if it's a data URL (uploaded file)
     if (avatarUrl.startsWith('data:')) return avatarUrl
-    // Check if it's a relative URL
     if (avatarUrl.startsWith('/')) return avatarUrl
-    // Check if it's an external URL that needs proxying
     const externalDomains = ['googleusercontent.com', 'graph.microsoft.com', 'avatars.githubusercontent.com']
     if (externalDomains.some(domain => avatarUrl.includes(domain))) {
       return `/api/auth/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`
@@ -262,14 +250,13 @@ export default function Settings() {
     return avatarUrl
   }
 
-  // Copy IP helper (click to copy IP to clipboard)
   const copyToClipboard = async (text) => {
     if (!text) return showToast({ message: t('settings.noIp') || 'No IP available', type: 'error' })
     try {
       await navigator.clipboard.writeText(text)
       showToast({ message: t('settings.ipCopied') || 'IP copied to clipboard', type: 'success' })
     } catch (e) {
-      // Fallback: try execCommand
+      logger.error('Clipboard copy failed, falling back to textarea method:', e)
       const ta = document.createElement('textarea')
       ta.value = text
       document.body.appendChild(ta)
@@ -279,7 +266,6 @@ export default function Settings() {
     }
   }
 
-  // Small UA parser for friendly labels
   const parseUserAgent = (ua) => {
     if (!ua || typeof ua !== 'string') return { name: t('settings.ua.unknown') || 'Unknown' }
     const s = ua
@@ -314,25 +300,22 @@ export default function Settings() {
     return { name: s.slice(0, 30) }
   }
 
-  // Detect SSO users reliably: backend flag or local marker set during SSO login
   const isSSO = Boolean(
     user?.ssoProvider || user?.sso_provider || (typeof window !== 'undefined' && localStorage.getItem('ghassicloud-sso') === 'true')
   )
 
-  // SSO editor state (admin)
   const [showSSOEditor, setShowSSOEditor] = useState(false)
   const [ssoConfig, setSsoConfig] = useState({ authUrl: '', clientId: '', scope: '', realm: '' })
-  const [ssoLoading, setSsoLoading] = useState(false)
+  const [setSsoLoading] = useState(false)
   const ssoFirstInputRef = useRef(null)
 
-  // Confirmation modals for sign out actions
   const [showConfirmSignOutAll, setShowConfirmSignOutAll] = useState(false)
   const [confirmSignOutAllLoading, setConfirmSignOutAllLoading] = useState(false)
-  const [confirmSession, setConfirmSession] = useState(null) // holds session object when confirming single session
+  const [confirmSession, setConfirmSession] = useState(null)
 
 
   const [confirmSessionLoading, setConfirmSessionLoading] = useState(false)
-  // Export / Import state
+
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const importFileRef = useRef(null)
@@ -349,7 +332,6 @@ export default function Settings() {
       const res = await fetch('/api/auth/sso/config')
       if (res.ok) {
         const data = await res.json()
-        // Parse realm from URL if not provided
         setSsoConfig({ authUrl: data.authUrl || '', clientId: data.clientId || '', scope: data.scope || '', realm: data.realm || '' })
       } else {
         showToast({ message: 'Failed to load SSO configuration', type: 'error' })
@@ -407,12 +389,10 @@ export default function Settings() {
     }
   }
 
-  // Load SSO config when editor is opened
   useEffect(() => {
     if (showSSOEditor) handleLoadSSOConfig()
   }, [showSSOEditor])
 
-  // Load sessions and user security preferences when entering the 'security' section
   const handleLoadSessions = async () => {
     setSessionsLoading(true)
     try {
@@ -428,11 +408,9 @@ export default function Settings() {
       const sessionList = data.sessions || []
       setSessions(sessionList)
 
-      // Fetch geolocation for each unique IP address
       const uniqueIPs = [...new Set(sessionList.map(s => s.ipAddress).filter(Boolean))]
       const geoPromises = uniqueIPs.map(async (ip) => {
         try {
-          // Use query parameter instead of route parameter for better IPv6 support
           const geoRes = await fetch(`/api/auth/ip-geo?ip=${encodeURIComponent(ip)}`, { headers: { 'Authorization': token } })
           if (geoRes.ok) {
             const geo = await geoRes.json()
@@ -465,35 +443,31 @@ export default function Settings() {
     }
   }, [activeSection])
 
-  // Load admin-only settings when viewing security (keeps call lightweight)
   useEffect(() => {
     if (activeSection !== 'security' || !isAdmin) return
     let cancelled = false
-    ;(async () => {
-      try {
-        const token = getAuthToken()
-        const headers = token ? { Authorization: token } : {}
-        // Fetch pwa devtools
-        const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers })
-        if (res.ok) {
-          const data = await res.json()
-          if (!cancelled) setPwaDevToolsEnabled(data && data.value === 'true')
-        }
-        // Fetch global log level
-        const lvlRes = await fetch('/api/auth/admin/settings/logLevel', { headers })
-        if (lvlRes.ok) {
-          const lvlData = await lvlRes.json()
-          if (!cancelled && lvlData && lvlData.value) setLogLevel(lvlData.value)
-        }
-      } catch (e) { logger.warn('Failed to load admin settings', e) }
-    })()
+      ; (async () => {
+        try {
+          const token = getAuthToken()
+          const headers = token ? { Authorization: token } : {}
+          const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers })
+          if (res.ok) {
+            const data = await res.json()
+            if (!cancelled) setPwaDevToolsEnabled(data && data.value === 'true')
+          }
+          const lvlRes = await fetch('/api/auth/admin/settings/logLevel', { headers })
+          if (lvlRes.ok) {
+            const lvlData = await lvlRes.json()
+            if (!cancelled && lvlData && lvlData.value) setLogLevel(lvlData.value)
+          }
+        } catch (e) { logger.error('Failed to load admin settings', e) }
+      })()
     return () => { cancelled = true }
   }, [activeSection, isAdmin])
 
-  // Admin-only: handle changing the global log level
   const handleLogLevelChange = async (e) => {
     const idx = parseInt(e.target.value)
-    const next = ['error','warn','info','debug'][idx]
+    const next = ['error', 'warn', 'info', 'debug'][idx]
     try {
       setLogLevel(next)
       setSavingLogLevel(true)
@@ -504,18 +478,19 @@ export default function Settings() {
       const res = await fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'logLevel', value: next }) })
       if (res.ok) {
         showToast({ message: t('settings.logLevel.saved') || 'Log level saved', type: 'success' })
-        try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'logLevel', value: next } })) } catch (e) {}
-        try { logger.setLevel(next); window.LOG_LEVEL = next } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'logLevel', value: next } })) } catch (e) { }
+        try { logger.setLevel(next); window.LOG_LEVEL = next } catch (e) { logger.error('Failed to set log level on logger or window:', e) }
       } else {
         let msg = t('settings.logLevel.saveFailed') || 'Failed to save log level'
         if (res.status === 403) msg = t('settings.adminRequired') || 'Admin access required'
         if (res.status === 401) msg = t('settings.notAuthenticated') || 'Not authenticated — please sign in'
-        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) { try { const txt = await res.text(); if (txt) msg = txt } catch (ee) {} }
+        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) { try { const txt = await res.text(); if (txt) msg = txt } catch (ee) { } }
         setLogLevelError(msg)
-        try { const r = await fetch('/api/auth/admin/settings/logLevel'); if (r.ok) { const d = await r.json(); if (d && d.value) setLogLevel(d.value) } } catch (e) {}
+        try { const r = await fetch('/api/auth/admin/settings/logLevel'); if (r.ok) { const d = await r.json(); if (d && d.value) setLogLevel(d.value) } } catch (e) { }
         showToast({ message: msg, type: 'error' })
       }
     } catch (e) {
+      logger.error('Save log level error:', e)
       setLogLevelError(t('settings.logLevel.saveFailed') || 'Failed to save log level')
       showToast({ message: t('settings.logLevel.saveFailed') || 'Failed to save log level', type: 'error' })
     } finally {
@@ -524,12 +499,10 @@ export default function Settings() {
   }
 
 
-  // Focus the SSO modal, trap Escape to close, and prevent background scrolling
   useEffect(() => {
     if (!showSSOEditor) return
-    // Focus first input after it renders
     setTimeout(() => ssoFirstInputRef.current?.focus?.(), 60)
-    // Prevent background scroll
+
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const onKey = (e) => {
@@ -542,14 +515,6 @@ export default function Settings() {
     }
   }, [showSSOEditor])
 
-  // DOM manipulations that removed duplicated Security sections caused intermittent
-  // "Node.removeChild: The node to be removed is not a child of this node" errors
-  // during React reconciliation. Duplicated section renderings were fixed by removing
-  // sidebar-only render blocks earlier. Avoid direct DOM removal and rely on React's
-  // declarative rendering instead. (Effect removed.)
-
-
-  // Make SSO button(s) open the SSO editor modal even if there are multiple rendered button instances
   useEffect(() => {
     const label = t('settings.ssoConfig.button')
     const handler = (e) => {
@@ -558,14 +523,13 @@ export default function Settings() {
       try {
         if ((el.textContent || '').trim() === label && isAdmin) setShowSSOEditor(true)
       } catch (err) {
-        // ignore
+        logger.error('SSO button click handler error:', err)
       }
     }
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [t, isAdmin])
 
-  // Listen for settings updates so UI and logger reflect changes (useful in admin sessions)
   useEffect(() => {
     const handler = (e) => {
       try {
@@ -574,19 +538,18 @@ export default function Settings() {
         if (d.key === 'logLevel') {
           if (d.value) {
             setLogLevel(d.value)
-            try { logger.setLevel(d.value); window.LOG_LEVEL = d.value } catch (e) {}
+            try { logger.setLevel(d.value); window.LOG_LEVEL = d.value } catch (e) { logger.error('Failed to set log level on logger or window:', e) }
           }
         }
         if (d.key === 'pwaDevtoolsEnabled') {
           setPwaDevToolsEnabled(d.value === 'true')
         }
-      } catch (err) { /* ignore */ }
+      } catch (err) { logger.error('Settings update handler error:', err) }
     }
     window.addEventListener('ghassicloud:settings-updated', handler)
     return () => window.removeEventListener('ghassicloud:settings-updated', handler)
   }, [])
 
-  // Export user data as JSON + CSV files
   const handleExportData = async () => {
     setExporting(true)
     try {
@@ -599,9 +562,8 @@ export default function Settings() {
       }
       const data = await res.json()
 
-      // Download JSON
       const jsonBlob = new Blob([JSON.stringify(data.json, null, 2)], { type: 'application/json' })
-      const jsonName = `ghassicloud-backup-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g,'')}.json`
+      const jsonName = `ghassicloud-backup-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g, '')}.json`
       const a = document.createElement('a')
       a.href = URL.createObjectURL(jsonBlob)
       a.download = jsonName
@@ -610,12 +572,11 @@ export default function Settings() {
       a.remove()
       URL.revokeObjectURL(a.href)
 
-      // Download CSVs (users, audit_logs, sessions)
       if (data.csv) {
         for (const [key, csv] of Object.entries(data.csv)) {
           if (!csv) continue
           const blob = new Blob([csv], { type: 'text/csv' })
-          const name = `ghassicloud-${key}-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g,'')}.csv`
+          const name = `ghassicloud-${key}-${user?.username || 'user'}-${new Date().toISOString().replace(/[:.]/g, '')}.csv`
           const link = document.createElement('a')
           link.href = URL.createObjectURL(blob)
           link.download = name
@@ -655,10 +616,10 @@ export default function Settings() {
       const res = await fetch('/api/auth/import', { method: 'POST', headers, body: JSON.stringify(parsed) })
       if (res.ok) {
         showToast({ message: t('settings.importSuccess') || 'Import complete', type: 'success' })
-        try { await refreshUser() } catch (e) {}
+        try { await refreshUser() } catch (e) { }
       } else {
         let msg = t('settings.importFailed') || 'Import failed'
-        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) {}
+        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) { }
         showToast({ message: msg, type: 'error' })
       }
     } catch (err) {
@@ -666,8 +627,7 @@ export default function Settings() {
       showToast({ message: t('settings.importFailed') || 'Import failed', type: 'error' })
     } finally {
       setImporting(false)
-      // clear file input so same file can be selected again if needed
-      try { e.target.value = '' } catch (e) {}
+      try { e.target.value = '' } catch (e) { logger.error('Failed to clear file input value:', e) }
     }
   }
 
@@ -699,7 +659,6 @@ export default function Settings() {
     }
   }
 
-  // User Management Functions (Admin only)
   const fetchUsers = async () => {
     if (!isAdmin) return
     setUsersLoading(true)
@@ -773,7 +732,6 @@ export default function Settings() {
     }
   }, [activeSection, isAdmin])
 
-  // Sync user into form state when loaded
   useEffect(() => {
     if (!user) return
     setUsernameVal(user.username || '')
@@ -781,16 +739,15 @@ export default function Settings() {
     setDisplayNameVal(user.displayName || user.username || '')
     setFirstName(user.firstName || '')
     setLastName(user.lastName || '')
-    // Only update language if it differs to avoid loops
-    const preferred = user.language || (navigator.language || 'en').split('-')[0]
+
+    const preferred = user?.language || null
     if (preferred && preferred !== language) setLanguage(preferred)
     setAvatarPreview(getProxiedAvatarUrl(user.avatar))
     setAvatarFile(null)
     setAvatarError(false)
     setAvatarRetryCount(0)
-    // Keep pendingLanguage in sync with actual language
-    setPendingLanguage(preferred && preferred !== language ? preferred : language)
 
+    setPendingLanguage(preferred && preferred !== language ? preferred : language)
 
   }, [user, language, setLanguage])
 
@@ -813,7 +770,6 @@ export default function Settings() {
   }
 
   const handleSave = async () => {
-    // If language was changed but not yet confirmed, open in-app confirmation dialog
     if (pendingLanguage !== language && !showLangConfirm) {
       setLangToConfirm(pendingLanguage)
       setShowLangConfirm(true)
@@ -826,10 +782,10 @@ export default function Settings() {
         displayName: displayNameVal,
         firstName,
         lastName,
-        language, // language will be updated via LanguageContext when confirmed and applied
-        avatar: avatarPreview // data URL or existing URL
+        language,
+        avatar: avatarPreview
       }
-      // Don't allow changing username/email for SSO users
+
       if (!isSSO) {
         updates.username = usernameVal
         updates.email = emailVal
@@ -845,7 +801,6 @@ export default function Settings() {
   }
 
   const handleSectionClick = (id) => {
-    // lightweight debug logging to help reproduce tab-switching issues
     logger.debug('Settings: switch to', id)
     setActiveSection(id)
   }
@@ -868,7 +823,10 @@ export default function Settings() {
             <AlertTriangle size={36} className="warning-icon" />
             <div className="lang-confirm-body">
               <h3>{t('settings.languageConfirmTitle') || 'Change language?'}</h3>
-              <p>{t('settings.languageConfirmMsg') || `Apply ${langToConfirm} as your UI language? If you don't apply, it will revert to the previous language.`}</p>
+              {(() => {
+                const label = langToConfirm ? (languageLabels[langToConfirm] || langToConfirm) : ''
+                return <p>{t('settings.languageConfirmMsg') || `Apply ${label} as your UI language? If you don't apply, it will revert to the previous language.`}</p>
+              })()}
             </div>
             <div className="lang-confirm-actions">
               <button className="btn-secondary" onClick={() => {
@@ -878,7 +836,6 @@ export default function Settings() {
                 setShowLangConfirm(false)
               }}>{t('common.cancel') || 'Cancel'}</button>
               <button className="btn-primary" onClick={() => {
-                // Apply language change
                 setShowLangConfirm(false)
                 setLangToConfirm(null)
                 try {
@@ -1020,8 +977,7 @@ export default function Settings() {
             </button>
           ))}
 
-          {/* Sidebar-only helper content removed: full section renderings were duplicated in the sidebar and the main content area.
-              Keeping the sidebar compact prevents DOM duplication, layout issues, and unexpected side-effects when switching sections. */}
+          {/* Save changes button */}
 
           <div className="settings-actions">
             <motion.button
@@ -1103,61 +1059,61 @@ export default function Settings() {
               {/* Admin-only: PWA Developer tools card (single area with action) */}
               {isAdmin && (
                 <>
-                <div className="sso-card">
-                  <div className="sso-card-left"><Monitor size={22} /></div>
-                  <div className="sso-card-body">
-                    <h4>{t('settings.pwaDevTools.title') || 'Allow Developer Tools (F12) in PWA'}</h4>
-                    <p className="form-hint">{t('settings.pwaDevTools.desc') || 'When enabled by an administrator, pressing F12 in the installed PWA will open the app (or an embedded webview) in a new window so DevTools can be used.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can enable this setting'}</span></p>
-                  </div>
-                  <div className="sso-card-actions">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <label className="toggle" style={{ margin: 0 }}>
-                        <input
-                          type="checkbox"
-                          checked={!!pwaDevToolsEnabled}
-                          disabled={savingPwaSetting}
-                          onChange={async () => {
-                            const next = !pwaDevToolsEnabled
-                            setPwaDevToolsEnabled(next)
-                            setSavingPwaSetting(true)
-                            setPwaSaveError(null)
-                            try {
-                              const token = getAuthToken()
-                              const headers = { 'Content-Type': 'application/json' }
-                              if (token) headers.Authorization = token
-const res = await fetch('/api/auth/admin/settings', {
-                                method: 'POST',
-                                headers,
-                                body: JSON.stringify({ key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' })
-                              })
+                  <div className="sso-card">
+                    <div className="sso-card-left"><Monitor size={22} /></div>
+                    <div className="sso-card-body">
+                      <h4>{t('settings.pwaDevTools.title') || 'Allow Developer Tools (F12) in PWA'}</h4>
+                      <p className="form-hint">{t('settings.pwaDevTools.desc') || 'When enabled by an administrator, pressing F12 in the installed PWA will open the app (or an embedded webview) in a new window so DevTools can be used.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can enable this setting'}</span></p>
+                    </div>
+                    <div className="sso-card-actions">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <label className="toggle" style={{ margin: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={!!pwaDevToolsEnabled}
+                            disabled={savingPwaSetting}
+                            onChange={async () => {
+                              const next = !pwaDevToolsEnabled
+                              setPwaDevToolsEnabled(next)
+                              setSavingPwaSetting(true)
+                              setPwaSaveError(null)
+                              try {
+                                const token = getAuthToken()
+                                const headers = { 'Content-Type': 'application/json' }
+                                if (token) headers.Authorization = token
+                                const res = await fetch('/api/auth/admin/settings', {
+                                  method: 'POST',
+                                  headers,
+                                  body: JSON.stringify({ key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' })
+                                })
 
-                              if (res.ok) {
-                                showToast({ message: (t('settings.pwaDevTools.saved') || 'Setting saved'), type: 'success' })
-                                try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' } })) } catch (e) {}
-                              } else {
-                                let msg = t('settings.pwaDevTools.saveFailed') || 'Failed to save setting'
-                                if (res.status === 403) msg = t('settings.adminRequired') || 'Admin access required'
-                                if (res.status === 401) msg = t('settings.notAuthenticated') || 'Not authenticated — please sign in'
-                                try {
-                                  const data = await res.json()
-                                  if (data && data.message) msg = data.message
-                                } catch (e) {
-                                  try { const txt = await res.text(); if (txt) msg = txt } catch (ee) {}
+                                if (res.ok) {
+                                  showToast({ message: (t('settings.pwaDevTools.saved') || 'Setting saved'), type: 'success' })
+                                  try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'pwaDevtoolsEnabled', value: next ? 'true' : 'false' } })) } catch (e) { }
+                                } else {
+                                  let msg = t('settings.pwaDevTools.saveFailed') || 'Failed to save setting'
+                                  if (res.status === 403) msg = t('settings.adminRequired') || 'Admin access required'
+                                  if (res.status === 401) msg = t('settings.notAuthenticated') || 'Not authenticated — please sign in'
+                                  try {
+                                    const data = await res.json()
+                                    if (data && data.message) msg = data.message
+                                  } catch (e) {
+                                    try { const txt = await res.text(); if (txt) msg = txt } catch (ee) { }
+                                  }
+                                  setPwaDevToolsEnabled(!next)
+                                  setPwaSaveError(msg)
                                 }
+                              } catch (e) {
                                 setPwaDevToolsEnabled(!next)
-                                setPwaSaveError(msg)
+                                setPwaSaveError(t('settings.pwaDevTools.saveFailed') || 'Failed to save setting')
+                              } finally {
+                                setSavingPwaSetting(false)
                               }
-                            } catch (e) {
-                              setPwaDevToolsEnabled(!next)
-                              setPwaSaveError(t('settings.pwaDevTools.saveFailed') || 'Failed to save setting')
-                            } finally {
-                              setSavingPwaSetting(false)
-                            }
-                          }}
-                        />
-                        <span className="toggle-slider" />
-                      </label>
-                      {pwaSaveError && <div className="muted small" style={{ color: 'var(--danger)', marginLeft: 12 }}>{pwaSaveError}</div>}
+                            }}
+                          />
+                          <span className="toggle-slider" />
+                        </label>
+                        {pwaSaveError && <div className="muted small" style={{ color: 'var(--danger)', marginLeft: 12 }}>{pwaSaveError}</div>}
                       </div>
                     </div>
                   </div>
@@ -1165,36 +1121,36 @@ const res = await fetch('/api/auth/admin/settings', {
                   {/* Admin-only: Global Log Level control */}
                   <div className="sso-card">
                     <div className="sso-card-left"><Terminal size={22} /></div>
-                  <div className="sso-card-body">
-                    <h4>{t('settings.logLevel.title') || 'Global Log Level'}</h4>
-                    <p className="form-hint">{t('settings.logLevel.desc') || 'Administrators can set the global log level. This affects both frontend and backend logging for all users.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can change this setting'}</span></p>
+                    <div className="sso-card-body">
+                      <h4>{t('settings.logLevel.title') || 'Global Log Level'}</h4>
+                      <p className="form-hint">{t('settings.logLevel.desc') || 'Administrators can set the global log level. This affects both frontend and backend logging for all users.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can change this setting'}</span></p>
 
-                    <div style={{ marginTop: 8 }}>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <span className="muted small">error</span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={3}
-                          step={1}
-                          value={['error','warn','info','debug'].indexOf(logLevel)}
-                          disabled={savingLogLevel}
-                          onChange={handleLogLevelChange}
-                        />
-                        <span className="muted small">debug</span>
-                        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <strong>{logLevel}</strong>
-                          <span className="muted small">{t('settings.logLevel.scope') || 'Applies to frontend and backend'}</span>
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span className="muted small">error</span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={3}
+                            step={1}
+                            value={['error', 'warn', 'info', 'debug'].indexOf(logLevel)}
+                            disabled={savingLogLevel}
+                            onChange={handleLogLevelChange}
+                          />
+                          <span className="muted small">debug</span>
+                          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <strong>{logLevel}</strong>
+                            <span className="muted small">{t('settings.logLevel.scope') || 'Applies to frontend and backend'}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {logLevelError && (
-                        <div className="muted small" style={{ color: 'var(--danger)' }}>{logLevelError}</div>
-                      )}
+                        {logLevelError && (
+                          <div className="muted small" style={{ color: 'var(--danger)' }}>{logLevelError}</div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </>)}
+                </>)}
 
 
               {/* Danger Zone (moved below Active sessions) */}
@@ -1365,12 +1321,13 @@ const res = await fetch('/api/auth/admin/settings', {
                         setShowLangConfirm(true)
                       }
                     }}>
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                      <option value="de">Deutsch</option>
-                      <option value="ar">العربية</option>
-                      <option value="ru">Русский</option>
+                      <option value="system">{t('settings.languageSystem') || 'System'}</option>
+                      <option value="en">{languageLabels.en}</option>
+                      <option value="es">{languageLabels.es}</option>
+                      <option value="fr">{languageLabels.fr}</option>
+                      <option value="de">{languageLabels.de}</option>
+                      <option value="ar">{languageLabels.ar}</option>
+                      <option value="ru">{languageLabels.ru}</option>
                     </select>
                     <p className="form-hint">{t('settings.languageHint') || 'Choose your preferred UI language'}</p>
                   </div>
@@ -1656,7 +1613,7 @@ const res = await fetch('/api/auth/admin/settings', {
                 <h3>{t('settings.resetDefaults.title') || 'Reset appearance to defaults'}</h3>
                 <p className="form-hint">{t('settings.resetDefaults.desc') || 'Restore default theme, accent and logo. Optionally forget server-saved preferences.'}</p>
                 <div className="danger-action">
-                  <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <label className="toggle">
                       <input type="checkbox" checked={forgetServerPrefs} onChange={() => setForgetServerPrefs(prev => !prev)} aria-label={t('settings.resetDefaults.forgetServer') || 'Forget server preferences'} />
                       <span className="toggle-slider" />
@@ -1706,7 +1663,7 @@ const res = await fetch('/api/auth/admin/settings', {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.12'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.6.0'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>

@@ -1,6 +1,5 @@
 import pino from 'pino'
 
-// Always enable pretty logs
 const enablePretty = true
 
 let logger

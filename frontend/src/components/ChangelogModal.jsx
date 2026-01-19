@@ -1,8 +1,25 @@
 import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
-// 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.6.0': {
+    date: 'January 19, 2026',
+    changes: [
+      'enhance error handling and logging in Settings component',
+      'Improved error handling for localStorage operations in syncPreferences toggle.',
+      'Added logging for failures when applying server preferences and during user refresh.',
+      'Cleaned up comments and improved code readability in the Settings component.',
+      'Updated language selection to use a labels object for better maintainability.',
+      'Removed unnecessary comments and consolidated related code sections.',
+      'build: adjust Vite configuration',
+      'Removed commented-out code for manualChunks in Vite config.',
+      'Kept the chunkSizeWarningLimit setting for better CI log management',
+      'chore: streamline version bump script',
+      'Removed unnecessary console outputs and comments in bump-version.js.',
+      'Simplified the logic for updating package.json and package-lock.json files.',
+      'Enhanced the changelog entry creation process for better clarity and maintainability.',
+    ],
+  },
   '1.5.12': {
     date: 'January 19, 2026',
     changes: [
@@ -313,11 +330,10 @@ const CHANGELOG = {
       'Bug fixes and performance improvements',
     ],
   },
-  // Add new versions here as you release them
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.12';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.6.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

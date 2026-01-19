@@ -1,5 +1,4 @@
 services:
-  # Backend API Service (Development)
   backend:
     build:
       context: ./backend
@@ -13,16 +12,13 @@ services:
       - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
     volumes:
-      # Mount source code for hot reload
       - ./backend/src:/app/src
-      # Persist SQLite database
       - ./backend/data:/app/data
     ports:
       - "3001:3001"
     networks:
       - ghassi_cloud
 
-  # Frontend Web Service (Development)
   frontend:
     build:
       context: ./frontend
@@ -33,7 +29,6 @@ services:
       - TZ=Europe/Vienna
       - NODE_ENV=development
     volumes:
-      # Mount source code for hot reload
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
       - ./frontend/index.html:/app/index.html

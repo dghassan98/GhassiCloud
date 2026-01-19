@@ -25,12 +25,12 @@ export function useSSOSessionMonitor({
   logout,
   onSessionWarning,
   onSessionExpired,
-  checkIntervalMs = 60000, // Check every minute
-  warningThresholdSec = 300, // Warn when 5 minutes remain
-  refreshTimeoutMs = 3000, // Timeout for silent refresh iframe (ms)
-  refreshCooldownMs = 3000, // Cooldown between refresh attempts (ms)
-  proactiveRefreshIntervalMs = 5 * 60 * 1000, // Proactive silent refresh every 5 minutes (Option B)
-  showWarning = true, // Whether to show expiration warnings to the user
+  checkIntervalMs = 60000,
+  warningThresholdSec = 300,
+  refreshTimeoutMs = 3000, 
+  refreshCooldownMs = 3000,
+  proactiveRefreshIntervalMs = 5 * 60 * 1000,
+  showWarning = true,
 } = {}) {
   const intervalRef = useRef(null)
   const warningShownRef = useRef(false)
@@ -45,16 +45,12 @@ export function useSSOSessionMonitor({
     warning: false,
   })
 
-  // Check if current user is an SSO user
   const isSSO = user && (
     user.ssoProvider || 
     user.sso_provider || 
     localStorage.getItem('ghassicloud-sso') === 'true'
   )
 
-  /**
-   * Validate the SSO session with the backend
-   */
   const validateSession = useCallback(async () => {
     if (!isSSO) return { valid: true, ssoUser: false }
 
@@ -69,7 +65,6 @@ export function useSSOSessionMonitor({
       })
 
       if (!res.ok) {
-        // Server error - don't logout on temporary failures
         logger.warn('SSO validation request failed:', res.status)
         return { valid: true, checkFailed: true }
       }
@@ -88,29 +83,22 @@ export function useSSOSessionMonitor({
       return data
     } catch (err) {
       logger.error('SSO session validation error:', err)
-      // Network error - don't logout
       setSessionStatus(prev => ({ ...prev, checking: false }))
       return { valid: true, checkFailed: true }
     }
   }, [isSSO, warningThresholdSec])
 
-  /**
-   * Attempt silent token refresh using Keycloak's prompt=none
-   * This opens an invisible iframe to refresh the session
-   */
   const attemptSilentRefresh = useCallback(async () => {
     if (!isSSO) return false
 
     const token = localStorage.getItem('ghassicloud-token')
     if (!token) return false
 
-    // Prevent multiple simultaneous refresh attempts
     if (refreshInProgressRef.current) {
       logger.debug('Refresh already in progress, skipping...')
       return false
     }
 
-    // Cooldown period - don't attempt refresh more than once within the cooldown window
     const timeSinceLastAttempt = Date.now() - lastRefreshAttemptRef.current
     if (timeSinceLastAttempt < refreshCooldownMs) {
       logger.debug('Refresh cooldown active, skipping...')
@@ -121,7 +109,6 @@ export function useSSOSessionMonitor({
     lastRefreshAttemptRef.current = Date.now()
 
     try {
-      // Get refresh config from backend
       const configRes = await fetch('/api/auth/sso/refresh-config', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -133,7 +120,6 @@ export function useSSOSessionMonitor({
       const config = await configRes.json()
 
       return new Promise((resolve) => {
-        // Generate new PKCE values
         const generatePKCE = async () => {
           const array = new Uint8Array(64)
           crypto.getRandomValues(array)
@@ -153,14 +139,12 @@ export function useSSOSessionMonitor({
         }
 
         generatePKCE().then(({ codeVerifier, codeChallenge }) => {
-          // Store for callback handling
           sessionStorage.setItem('sso_silent_refresh', 'true')
           sessionStorage.setItem('sso_code_verifier', codeVerifier)
           
           const state = crypto.randomUUID()
           sessionStorage.setItem('sso_state', state)
 
-          // Build silent auth URL with prompt=none
           const redirectUri = `${window.location.origin}/sso-callback`
           sessionStorage.setItem('sso_redirect_uri', redirectUri)
 
@@ -172,9 +156,8 @@ export function useSSOSessionMonitor({
           authUrl.searchParams.set('state', state)
           authUrl.searchParams.set('code_challenge', codeChallenge)
           authUrl.searchParams.set('code_challenge_method', 'S256')
-          authUrl.searchParams.set('prompt', 'none') // Silent auth - no login screen
+          authUrl.searchParams.set('prompt', 'none')
 
-          // Create hidden iframe for silent refresh
           const iframe = document.createElement('iframe')
           iframe.style.display = 'none'
           iframe.setAttribute('aria-hidden', 'true')
@@ -186,9 +169,8 @@ export function useSSOSessionMonitor({
             sessionStorage.removeItem('sso_silent_refresh')
             refreshInProgressRef.current = false
             resolve(false)
-          }, refreshTimeoutMs) // timeout for silent iframe (ms)
+          }, refreshTimeoutMs)
 
-          // Listen for message from iframe
           const handleMessage = async (event) => {
             if (event.origin !== window.location.origin) return
             if (event.data.type !== 'SSO_CALLBACK') return
@@ -212,7 +194,6 @@ export function useSSOSessionMonitor({
               return
             }
 
-            // Verify state
             const savedState = sessionStorage.getItem('sso_state')
             if (returnedState !== savedState) {
               refreshInProgressRef.current = false
@@ -220,7 +201,6 @@ export function useSSOSessionMonitor({
               return
             }
 
-            // Exchange code for new token
             try {
               const savedRedirectUri = sessionStorage.getItem('sso_redirect_uri')
               const savedCodeVerifier = sessionStorage.getItem('sso_code_verifier')
@@ -268,27 +248,20 @@ export function useSSOSessionMonitor({
     }
   }, [isSSO])
 
-  /**
-   * Main check routine - validates session and handles warnings/expiration
-   */
   const performCheck = useCallback(async () => {
     if (!isSSO || !user) return
 
     const result = await validateSession()
 
     if (!result.valid && !result.checkFailed) {
-      // Session is no longer valid
       logger.info('SSO session expired, attempting silent refresh...')
       
-      // Try silent refresh first
       const refreshed = await attemptSilentRefresh()
       
       if (refreshed) {
-        // Refresh succeeded, reset warning state
         warningShownRef.current = false
         setSessionStatus(prev => ({ ...prev, valid: true, warning: false }))
       } else {
-        // Refresh failed, trigger logout
         logger.warn('Silent refresh failed, logging out')
         if (onSessionExpired) {
           onSessionExpired()
@@ -299,33 +272,27 @@ export function useSSOSessionMonitor({
       return
     }
 
-    // Check if we should show expiration warning
     if (result.expiresIn && result.expiresIn <= warningThresholdSec) {
       if (!warningShownRef.current) {
         warningShownRef.current = true
         
-        // Attempt silent refresh in the background
         const refreshed = await attemptSilentRefresh()
         
         if (refreshed) {
-          // Refresh succeeded silently
           warningShownRef.current = false
           setSessionStatus(prev => ({ ...prev, warning: false }))
         } else if (showWarning && onSessionWarning) {
-          // Show warning to user (only if warnings enabled)
           onSessionWarning(result.expiresIn)
         }
       }
     } else {
-      // Reset warning if session was extended
+      logger.debug('SSO session valid, no action needed')
       warningShownRef.current = false
     }
   }, [isSSO, user, validateSession, attemptSilentRefresh, onSessionWarning, onSessionExpired, logout, warningThresholdSec])
 
-  // Start monitoring when SSO user is logged in
   useEffect(() => {
     if (!isSSO || !user) {
-      // Clear any existing interval
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -333,10 +300,7 @@ export function useSSOSessionMonitor({
       return
     }
 
-    // Immediate check on mount - no delay for better UX
     performCheck()
-
-    // Set up periodic checks
     intervalRef.current = setInterval(performCheck, checkIntervalMs)
 
     return () => {
@@ -347,13 +311,11 @@ export function useSSOSessionMonitor({
     }
   }, [isSSO, user, performCheck, checkIntervalMs])
 
-  // Also check on visibility change (user returns to tab)
   useEffect(() => {
     if (!isSSO || !user) return
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Debounce - don't check too frequently (5 seconds minimum)
         const timeSinceLastCheck = Date.now() - lastCheckRef.current
         if (timeSinceLastCheck > 5000) {
           performCheck()

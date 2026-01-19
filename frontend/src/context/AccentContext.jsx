@@ -3,7 +3,6 @@ import { useAuth } from './AuthContext'
 
 const AccentContext = createContext()
 
-// Available accent colors
 export const accentColors = [
   { id: 'indigo', color: '#6366f1', name: 'Indigo' },
   { id: 'purple', color: '#8b5cf6', name: 'Purple' },
@@ -14,7 +13,6 @@ export const accentColors = [
   { id: 'cyan', color: '#06b6d4', name: 'Cyan' },
 ]
 
-// Generate lighter/darker variants
 function hexToHSL(hex) {
   const r = parseInt(hex.slice(1, 3), 16) / 255
   const g = parseInt(hex.slice(3, 5), 16) / 255
@@ -51,7 +49,6 @@ function HSLToHex(h, s, l) {
   return `#${f(0)}${f(8)}${f(4)}`
 }
 
-// Calculate relative luminance for contrast checking
 function getRelativeLuminance(hex) {
   const r = parseInt(hex.slice(1, 3), 16) / 255
   const g = parseInt(hex.slice(3, 5), 16) / 255
@@ -64,10 +61,8 @@ function getRelativeLuminance(hex) {
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 }
 
-// Get contrasting text color (white or black) for the given background
 function getContrastColor(bgHex) {
   const luminance = getRelativeLuminance(bgHex)
-  // Use white text for dark backgrounds, black for light backgrounds
   return luminance > 0.5 ? '#000000' : '#ffffff'
 }
 
@@ -99,9 +94,7 @@ export function AccentProvider({ children }) {
 
   const auth = useAuth()
 
-  // Prefer server-side saved accent when user is signed in
   useEffect(() => {
-    // Run when auth user preferences change so we immediately apply server-side prefs
     const prefsStr = auth && auth.user ? JSON.stringify(auth.user.preferences || {}) : null
     if (!auth || !auth.user) return
     const serverAccent = auth.user.accent
@@ -113,7 +106,6 @@ export function AccentProvider({ children }) {
     }
   }, [auth && auth.user && (auth.user.preferences ? JSON.stringify(auth.user.preferences) : '')])
 
-  // Re-apply preferences when a force-refresh or auth refresh writes server prefs to localStorage
   useEffect(() => {
     const handler = (e) => {
       try {
@@ -122,14 +114,13 @@ export function AccentProvider({ children }) {
           setAccentIdState(prefs.accent)
           if (prefs.customAccent) setCustomColorState(prefs.customAccent)
         }
-      } catch (err) { logger.ebug('AccentContext: preferences-updated handler error', err) }
+      } catch (err) { logger.debug('AccentContext: preferences-updated handler error', err) }
     }
     window.addEventListener('ghassicloud:preferences-updated', handler)
     return () => window.removeEventListener('ghassicloud:preferences-updated', handler)
   }, [])
 
   useEffect(() => {
-    // Only persist if not in preview mode
     if (!isPreview) {
       localStorage.setItem('ghassicloud-accent', accentId)
       if (accentId === 'custom') {
@@ -137,7 +128,6 @@ export function AccentProvider({ children }) {
       }
     }
     
-    // Apply accent color to CSS variables
     const root = document.documentElement
     const hsl = hexToHSL(currentAccent.color)
     const contrastText = getContrastColor(currentAccent.color)
@@ -149,7 +139,6 @@ export function AccentProvider({ children }) {
     root.style.setProperty('--accent-glow', `${currentAccent.color}15`)
     root.style.setProperty('--gradient-1', `linear-gradient(135deg, ${currentAccent.color} 0%, ${HSLToHex(hsl.h + 30, hsl.s, hsl.l)} 100%)`)
     
-    // Skip logging on initial load or preview
     if (isInitialLoad) {
       setIsInitialLoad(false)
       return
@@ -157,7 +146,6 @@ export function AccentProvider({ children }) {
     
     // Only log if not in preview mode
     if (!isPreview) {
-      // Decide whether we should sync this change to server
       const localSyncPref = (() => { try { const s = localStorage.getItem('ghassicloud-sync-preferences'); if (s !== null) return s === 'true'; return false } catch (e) { return false } })()
       const serverSyncPref = (() => { try { return !(auth && auth.user && auth.user.preferences && auth.user.preferences.syncPreferences === false) } catch (e) { return true } })()
       const authReady = Boolean(auth && auth.user)
@@ -166,9 +154,8 @@ export function AccentProvider({ children }) {
       const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
 
       // Debug: log sync decision and token presence
-      try { logger.bug('Accent update:', { accentId, customColor, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
+      try { logger.debug('Accent update:', { accentId, customColor, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
 
-      // Log accent change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
       if (token && shouldSync) {
         logger.debug('Posting accent update to /api/auth/appearance', { accent: accentId, customAccent: accentId === 'custom' ? customColor : undefined })

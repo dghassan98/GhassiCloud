@@ -2,7 +2,6 @@ const LEVELS = { error: 0, warn: 1, info: 2, debug: 3 }
 let levelName = import.meta.env?.VITE_LOG_LEVEL || (typeof window !== 'undefined' && window.LOG_LEVEL) || 'info'
 let current = LEVELS[levelName] ?? LEVELS.info
 
-// Preserve original browser console functions to avoid recursion if we override global console later
 const origConsole = {
   error: console.error.bind(console),
   warn: console.warn.bind(console),
