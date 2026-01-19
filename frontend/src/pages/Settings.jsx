@@ -184,9 +184,9 @@ export default function Settings() {
   const [firstName, setFirstName] = useState(user?.firstName || '')
   const [lastName, setLastName] = useState(user?.lastName || '')
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || null)
-  const [setAvatarFile] = useState(null)
+  const [avatarFile, setAvatarFile] = useState(null)
   const [avatarError, setAvatarError] = useState(false)
-  const [setAvatarRetryCount] = useState(0)
+  const [avatarRetryCount, setAvatarRetryCount] = useState(0)
 
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [hexInput, setHexInput] = useState('')
