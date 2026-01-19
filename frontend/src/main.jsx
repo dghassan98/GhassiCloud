@@ -11,6 +11,10 @@ import './styles/globals.css'
 import { isPWA } from './hooks/useCapacitor'
 import logger from './logger'
 
+// Expose logger on the global object as a safe fallback for any legacy code
+// that references `logger` as a global rather than importing it.
+try { if (typeof globalThis !== 'undefined') globalThis.logger = logger } catch (e) {}
+
 // Optionally route global console to logger so existing console.* calls respect VITE_LOG_LEVEL
 if (typeof window !== 'undefined' && window.console) {
   const originalConsole = { ...window.console }
@@ -25,9 +29,21 @@ if (typeof window !== 'undefined' && window.console) {
 }
 
 // Fetch global log level from server and apply to frontend logger (so all users get consistent level)
+const getAuthToken = () => {
+  try {
+    const t = localStorage.getItem('ghassicloud-token')
+    if (!t) return null
+    return t.startsWith('Bearer ') ? t : `Bearer ${t}`
+  } catch (e) { return null }
+}
+
 ;(async () => {
   try {
-    const res = await fetch('/api/auth/admin/settings/logLevel')
+    const token = getAuthToken()
+    // Avoid anonymous requests which cause 401s in the console.
+    if (!token) return
+
+    const res = await fetch('/api/auth/admin/settings/logLevel', { headers: { Authorization: token } })
     if (res.ok) {
       const data = await res.json()
       if (data && data.value) {

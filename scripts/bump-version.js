@@ -36,10 +36,10 @@ function incrementVersion(version, type) {
   }
 }
 
-// Create readline interface
+// Create readline interface (use stderr for prompts so logs don't interfere)
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout,
+  output: process.stderr,
 });
 
 function question(query) {
@@ -47,7 +47,8 @@ function question(query) {
 }
 
 async function main() {
-  logger.info(`\n🚀 Current version: ${currentVersion}\n`);
+  // Print current version to stderr so it doesn't interfere with prompts
+  console.error(`\n🚀 Current version: ${currentVersion}\n`);
 
   // Ask for version bump type
   const bumpType = await question(
@@ -56,7 +57,8 @@ async function main() {
   const type = bumpType.trim() || 'patch';
   const newVersion = incrementVersion(currentVersion, type);
 
-  logger.info(`\n📦 New version will be: ${newVersion}\n`);
+  // Show new version on stderr
+  console.error(`\n📦 New version will be: ${newVersion}\n`);
 
   // Get release date
   const dateInput = await question(
@@ -74,8 +76,8 @@ async function main() {
         day: 'numeric',
       });
 
-  // Get changelog entries
-  logger.info('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
+  // Get changelog entries (write prompt text to stderr)
+  console.error('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
   const changes = [];
   while (true) {
     const change = await question(`  - `);
@@ -84,22 +86,22 @@ async function main() {
   }
 
   if (changes.length === 0) {
-    logger.info('\n❌ No changelog entries provided. Aborting.');
+    console.error('\n❌ No changelog entries provided. Aborting.');
     rl.close();
     return;
   }
 
-  // Confirm
-  logger.info('\n📋 Summary:');
-  logger.info(`   Version: ${currentVersion} → ${newVersion}`);
-  logger.info(`   Date: ${releaseDate}`);
-  logger.info(`   Changes:`);
-  changes.forEach((c) => logger.info(`     • ${c}`));
-  logger.info('');
+  // Confirm (print summary to stderr)
+  console.error('\n📋 Summary:');
+  console.error(`   Version: ${currentVersion} → ${newVersion}`);
+  console.error(`   Date: ${releaseDate}`);
+  console.error(`   Changes:`);
+  changes.forEach((c) => console.error(`     • ${c}`));
+  console.error('');
 
   const confirm = await question('Proceed? (y/N): ');
   if (confirm.toLowerCase() !== 'y') {
-    logger.info('\n❌ Aborted.');
+    console.error('\n❌ Aborted.');
     rl.close();
     return;
   }
