@@ -3,6 +3,18 @@ import { X, Sparkles } from 'lucide-react';
 
 // 🎯 Update this changelog whenever you release a new version
 const CHANGELOG = {
+  '1.5.11': {
+    date: 'January 19, 2026',
+    changes: [
+      'integrate logging system across scripts and backend',
+      'Added a logger utility using pino for structured logging in the backend',
+      'Updated various scripts to replace console.log with logger methods for consistent logging.',
+      'Enhanced the bump-version script to log version changes and errors using the new logger.',
+      'Modified avatar URL check and user role check scripts to utilize the logger for output.',
+      'Introduced logging in user column checks and admin role assignment scripts for better traceability.',
+      'Ensured all logging is colorized and formatted for improved readability in the console.',
+    ],
+  },
   '1.5.10': {
     date: 'January 18, 2026',
     changes: [
@@ -299,7 +311,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.10';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.11';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import logger from '../logger'
 
 // Default English strings - translations passed via props from parent
 const defaultStrings = {
@@ -72,10 +73,10 @@ export default function SessionExpirationWarning({
         onDismiss && onDismiss()
       } else {
         setError('Failed to extend session. Please try again or logout.')
-        console.warn('Silent refresh returned false, leaving warning open')
+        logger.warn('Silent refresh returned false, leaving warning open')
       }
     } catch (err) {
-      console.error('Failed to extend session:', err)
+      logger.error('Failed to extend session:', err)
       setError('Failed to extend session. Please try again or logout.')
     } finally {
       setExtending(false)

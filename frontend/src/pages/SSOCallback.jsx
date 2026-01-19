@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
+import logger from '../logger'
 
 export default function SSOCallback() {
   const { t } = useLanguage()
@@ -21,7 +22,7 @@ export default function SSOCallback() {
       const usedRedirectFlow = localStorage.getItem('sso_redirect_flow') === 'true'
       
       // Debug: log callback params for investigation
-      console.debug('SSOCallback loaded', { 
+      logger.debug('SSOCallback loaded', { 
         code: !!code, 
         state, 
         error, 
@@ -55,7 +56,7 @@ export default function SSOCallback() {
           }, 1000)
           return
         } catch (e) {
-          console.error('Failed to communicate with opener:', e)
+          logger.error('Failed to communicate with opener:', e)
           // Fall through to direct handling
         }
       }
@@ -69,7 +70,7 @@ export default function SSOCallback() {
         
         // Handle errors
         if (error) {
-          console.error('SSO error:', errorDescription || error)
+          logger.error('SSO error:', errorDescription || error)
           localStorage.setItem('sso_error', errorDescription || error)
           cleanupSSOData()
           // Use full page reload to ensure clean state
@@ -83,7 +84,7 @@ export default function SSOCallback() {
         
         // Verify state
         if (!savedState) {
-          console.error('No saved state found - session may have expired')
+          logger.error('No saved state found - session may have expired')
           localStorage.setItem('sso_error', 'Session expired. Please try logging in again.')
           cleanupSSOData()
           isNavigating = true
@@ -92,7 +93,7 @@ export default function SSOCallback() {
         }
         
         if (state !== savedState) {
-          console.error('Invalid state parameter', { received: state, expected: savedState })
+          logger.error('Invalid state parameter', { received: state, expected: savedState })
           localStorage.setItem('sso_error', 'Security validation failed. Please try again.')
           cleanupSSOData()
           isNavigating = true
@@ -113,7 +114,7 @@ export default function SSOCallback() {
               throw new Error('Missing authentication data. Please try logging in again.')
             }
 
-            console.debug('Exchanging code for token...')
+            logger.debug('Exchanging code for token...')
             
             const res = await fetch('/api/auth/sso/callback', {
               method: 'POST',
@@ -132,7 +133,7 @@ export default function SSOCallback() {
             try {
               data = responseText ? JSON.parse(responseText) : {}
             } catch (parseError) {
-              console.error('Failed to parse response:', responseText)
+              logger.error('Failed to parse response:', responseText)
               throw new Error('Invalid response from server')
             }
 
@@ -152,7 +153,7 @@ export default function SSOCallback() {
               try {
                 window.parent.postMessage({ type: 'SSO_CALLBACK', success: true }, window.location.origin)
               } catch (e) {
-                console.debug('Failed to post message to parent after SSO', e)
+                logger.debug('Failed to post message to parent after SSO', e)
               }
             }
 
@@ -168,11 +169,11 @@ export default function SSOCallback() {
           } catch (err) {
             // Ignore abort errors - they're expected when component unmounts
             if (err.name === 'AbortError') {
-              console.debug('SSO callback request was cancelled (component unmounting)')
+              logger.debug('SSO callback request was cancelled (component unmounting)')
               return
             }
             
-            console.error('SSO token exchange failed:', err)
+            logger.error('SSO token exchange failed:', err)
             localStorage.setItem('sso_error', err.message || 'Authentication failed')
             cleanupSSOData()
             isNavigating = true

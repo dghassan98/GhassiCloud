@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { getDb } from '../db/index.js'
 import { authenticateToken, generateToken } from '../middleware/auth.js'
 import { logAuditEvent, getClientIp, AUDIT_ACTIONS, AUDIT_CATEGORIES } from './audit.js'
+import logger from '../logger.js'
 
 const router = Router()
 
@@ -40,7 +41,7 @@ async function writeSSOConfig(cfg) {
     await fs.writeFile(SSO_CONFIG_FILE, JSON.stringify(cfg, null, 2), 'utf8')
     return true
   } catch (e) {
-    console.error('Failed to write SSO config file:', e)
+    logger.error('Failed to write SSO config file:', e)
     return false
   }
 }
@@ -51,7 +52,7 @@ router.get('/sso/config', async (req, res) => {
     const cfg = await readSSOConfig()
     res.json(cfg)
   } catch (err) {
-    console.error('Error reading SSO config:', err)
+    logger.error('Error reading SSO config:', err)
     res.status(500).json({ message: 'Failed to read SSO configuration' })
   }
 })
@@ -87,7 +88,7 @@ router.put('/sso/config', authenticateToken, async (req, res) => {
 
     res.json(newCfg)
   } catch (err) {
-    console.error('Update SSO config error:', err)
+    logger.error('Update SSO config error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -119,7 +120,7 @@ router.delete('/sso/config', authenticateToken, async (req, res) => {
     const cfg = await readSSOConfig()
     res.json(cfg)
   } catch (err) {
-    console.error('Reset SSO config error:', err)
+    logger.error('Reset SSO config error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -166,11 +167,7 @@ router.post('/sso/callback', async (req, res) => {
   try {
     const { code, redirectUri, codeVerifier } = req.body
 
-    console.log('SSO callback received:', { 
-      hasCode: !!code, 
-      redirectUri, 
-      codeVerifierLength: codeVerifier?.length 
-    })
+    logger.info({ hasCode: !!code, redirectUri, codeVerifierLength: codeVerifier?.length }, 'SSO callback received')
 
     if (!code) {
       return res.status(400).json({ message: 'Authorization code required' })
@@ -189,7 +186,7 @@ router.post('/sso/callback', async (req, res) => {
       code_verifier: codeVerifier
     })
 
-    console.log('Requesting token from:', `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`)
+    logger.info({ tokenEndpoint: `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token` }, 'Requesting token from')
 
     const tokenResponse = await fetch(
       `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
@@ -201,10 +198,10 @@ router.post('/sso/callback', async (req, res) => {
     )
 
     const tokenResponseText = await tokenResponse.text()
-    console.log('Token response status:', tokenResponse.status)
+    logger.info({ status: tokenResponse.status }, 'Token response status')
     
     if (!tokenResponse.ok) {
-      console.error('Token exchange failed:', tokenResponseText)
+      logger.error('Token exchange failed:', tokenResponseText)
       return res.status(401).json({ message: 'Failed to exchange authorization code', details: tokenResponseText })
     }
 
@@ -212,7 +209,7 @@ router.post('/sso/callback', async (req, res) => {
     try {
       tokens = JSON.parse(tokenResponseText)
     } catch (e) {
-      console.error('Failed to parse token response:', tokenResponseText)
+      logger.error('Failed to parse token response:', tokenResponseText)
       return res.status(500).json({ message: 'Invalid token response from auth server' })
     }
 
@@ -251,7 +248,7 @@ router.post('/sso/callback', async (req, res) => {
             .run(sessionId, user && user.id ? user.id : 'unknown', KEYCLOAK_CLIENT_ID, ip, userAgent)
         } catch (e) {
           // ignore failures to avoid breaking SSO login flow
-          console.warn('Failed to persist SSO session metadata:', e)
+          logger.warn('Failed to persist SSO session metadata:', e)
         }
       }
 
@@ -342,7 +339,7 @@ router.post('/sso/callback', async (req, res) => {
       }
     })
   } catch (err) {
-    console.error('SSO callback error:', err)
+    logger.error('SSO callback error:', err)
     res.status(500).json({ message: 'SSO authentication failed' })
   }
 })
@@ -372,7 +369,7 @@ router.post('/login', async (req, res) => {
     }
 
     const keycloakConfigured = !!(KEYCLOAK_URL && KEYCLOAK_CLIENT_ID && KEYCLOAK_REALM)
-    console.log('[AUTH] Keycloak configured?', keycloakConfigured, 'KEYCLOAK_URL=', !!KEYCLOAK_URL, 'KEYCLOAK_CLIENT_ID=', !!KEYCLOAK_CLIENT_ID)
+    logger.info({ keycloakConfigured: keycloakConfigured, keycloakUrlPresent: !!KEYCLOAK_URL, keycloakClientIdPresent: !!KEYCLOAK_CLIENT_ID }, '[AUTH] Keycloak configured')
 
     if (keycloakConfigured) {
       // Attempt password grant directly against Keycloak
@@ -387,7 +384,7 @@ router.post('/login', async (req, res) => {
         if (process.env.KEYCLOAK_CLIENT_SECRET) tokenParams.set('client_secret', process.env.KEYCLOAK_CLIENT_SECRET)
         tokenParams.set('scope', 'openid profile email')
 
-        console.log('[AUTH] Attempting Keycloak password grant for user', username, 'token endpoint=', `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`)
+        logger.info({ username, tokenEndpoint: `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token` }, '[AUTH] Attempting Keycloak password grant')
 
         const tokenRes = await fetch(
           `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
@@ -399,17 +396,17 @@ router.post('/login', async (req, res) => {
         )
 
         const tokenText = await tokenRes.text()
-        console.log('[AUTH] Keycloak token response status:', tokenRes.status, 'bodyPreview:', tokenText && tokenText.substring ? tokenText.substring(0, 200) : tokenText)
+        logger.info({ status: tokenRes.status, bodyPreview: tokenText && tokenText.substring ? tokenText.substring(0, 200) : tokenText }, '[AUTH] Keycloak token response')
 
         if (tokenRes.ok) {
           try {
             keycloakTokens = JSON.parse(tokenText)
           } catch (e) {
-            console.error('Failed to parse Keycloak token response (password grant):', tokenText)
+            logger.error('Failed to parse Keycloak token response (password grant):', tokenText)
           }
         } else {
           // Keycloak rejected credentials — return 401 immediately (no fallback to local auth when Keycloak is present)
-          console.log('[AUTH] Keycloak password grant rejected credentials for user', username)
+          logger.info({ username }, '[AUTH] Keycloak password grant rejected credentials for user')
           const debugEnabled = parseBool(process.env.DEBUG_KEYCLOAK)
           if (debugEnabled) return res.status(401).json({ message: 'Invalid credentials', debug: { keycloakStatus: tokenRes.status, keycloakBody: tokenText } })
           return res.status(401).json({ message: 'Invalid credentials' })
@@ -428,14 +425,14 @@ router.post('/login', async (req, res) => {
             try {
               keycloakUserInfo = JSON.parse(uiText)
             } catch (e) {
-              console.error('Failed to parse Keycloak userinfo response:', uiText)
+              logger.error('Failed to parse Keycloak userinfo response:', uiText)
             }
           } else {
-            console.warn('Failed to fetch userinfo from Keycloak after password grant, status:', uiRes.status, 'bodyPreview:', uiText.substring ? uiText.substring(0,200) : uiText)
+            logger.warn('Failed to fetch userinfo from Keycloak after password grant, status:', uiRes.status, 'bodyPreview:', uiText.substring ? uiText.substring(0,200) : uiText)
           }
         }
       } catch (e) {
-        console.error('Keycloak direct auth attempt failed:', e)
+        logger.error('Keycloak direct auth attempt failed:', e)
       }
 
       // If Keycloak authenticated, find or create local user and mark as SSO
@@ -494,7 +491,7 @@ router.post('/login', async (req, res) => {
       } else {
         // Keycloak was configured but we didn't get userinfo — treat as failed
         if (!keycloakUserInfo) {
-          console.log('[AUTH] Keycloak configured but authentication did not return userinfo for', username)
+          logger.info({ username }, '[AUTH] Keycloak configured but authentication did not return userinfo')
           const debugEnabled = parseBool(process.env.DEBUG_KEYCLOAK)
           if (debugEnabled) return res.status(401).json({ message: 'Invalid credentials', debug: { keycloakTokens: keycloakTokens, keycloakUserInfo: keycloakUserInfo } })
           return res.status(401).json({ message: 'Invalid credentials' })
@@ -591,7 +588,7 @@ router.post('/login', async (req, res) => {
       }
     })
   } catch (err) {
-    console.error('Login error:', err)
+    logger.error('Login error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -630,7 +627,7 @@ router.get('/me', authenticateToken, (req, res) => {
       }
     })
   } catch (err) {
-    console.error('Get user error:', err)
+    logger.error('Get user error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -680,7 +677,7 @@ router.get('/export', authenticateToken, (req, res) => {
 
     res.json({ json: jsonData, csv })
   } catch (err) {
-    console.error('Export user data error:', err)
+    logger.error('Export user data error:', err)
     res.status(500).json({ message: 'Failed to export data' })
   }
 })
@@ -751,7 +748,7 @@ router.post('/import', authenticateToken, async (req, res) => {
 
     res.json({ message: 'Import complete' })
   } catch (err) {
-    console.error('Import error:', err)
+    logger.error('Import error:', err)
     res.status(500).json({ message: 'Failed to import data' })
   }
 })
@@ -812,7 +809,7 @@ router.put('/password', authenticateToken, (req, res) => {
 
     res.json({ message: 'Password updated successfully' })
   } catch (err) {
-    console.error('Update password error:', err)
+    logger.error('Update password error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -887,7 +884,7 @@ router.put('/profile', authenticateToken, (req, res) => {
       }
     })
   } catch (err) {
-    console.error('Update profile error:', err)
+    logger.error('Update profile error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -896,7 +893,7 @@ router.put('/profile', authenticateToken, (req, res) => {
 router.post('/appearance', authenticateToken, (req, res) => {
   try {
     // Debug: log incoming appearance requests to help trace sync issues
-    console.log('POST /api/auth/appearance', { userId: req.user?.id, body: req.body })
+    logger.info('POST /api/auth/appearance', { userId: req.user?.id, body: req.body })
     const { theme, accent, customAccent, logo, syncPreferences, clearPreferences } = req.body
     const db = getDb()
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
@@ -965,7 +962,7 @@ router.post('/appearance', authenticateToken, (req, res) => {
 
     res.json({ message: 'Appearance preferences updated', changes, preferences: prefs })
   } catch (err) {
-    console.error('Update appearance error:', err)
+    logger.error('Update appearance error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -1085,7 +1082,7 @@ router.get('/sessions', authenticateToken, async (req, res) => {
       const r = await callKeycloakAdmin(`/users/${encodeURIComponent(user.sso_id)}/sessions`, { method: 'GET' })
       if (!r.ok) {
         const text = await r.text()
-        console.error('Keycloak sessions fetch failed:', r.status, text)
+        logger.error('Keycloak sessions fetch failed:', r.status, text)
         return res.status(502).json({ message: 'Failed to fetch sessions from SSO provider' })
       }
       const kcSessions = await r.json()
@@ -1173,9 +1170,9 @@ router.get('/sessions', authenticateToken, async (req, res) => {
         try {
           const staleIds = staleSessions.map(s => s.session_id)
           db.prepare(`DELETE FROM user_sessions WHERE session_id IN (${staleIds.map(() => '?').join(',')})`).run(...staleIds)
-          console.log(`Cleaned up ${staleSessions.length} stale session(s) for user ${user.id}`)
+          logger.info(`Cleaned up ${staleSessions.length} stale session(s) for user ${user.id}`)
         } catch (cleanupErr) {
-          console.warn('Failed to cleanup stale sessions:', cleanupErr)
+          logger.warn('Failed to cleanup stale sessions:', cleanupErr)
         }
       }
 
@@ -1184,11 +1181,11 @@ router.get('/sessions', authenticateToken, async (req, res) => {
 
       return res.json({ sessions: validMerged })
     } catch (err) {
-      console.error('Sessions endpoint error:', err)
+      logger.error('Sessions endpoint error:', err)
       return res.status(500).json({ message: 'Failed to fetch sessions' })
     }
   } catch (err) {
-    console.error('Get sessions error:', err)
+    logger.error('Get sessions error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -1209,20 +1206,20 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
         const r = await callKeycloakAdmin(`/users/${encodeURIComponent(user.sso_id)}/logout`, { method: 'POST' })
         if (!r.ok) {
           const text = await r.text()
-          console.error('Keycloak logout-all failed:', r.status, text)
+          logger.error('Keycloak logout-all failed:', r.status, text)
           return res.status(502).json({ message: 'Failed to logout user sessions via SSO provider' })
         }
         // Mark tokens invalid before now so existing JWTs cannot be used
         try {
           db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(user.id)
         } catch (e) {
-          console.warn('Failed to set tokens_invalid_before for user:', e)
+          logger.warn('Failed to set tokens_invalid_before for user:', e)
         }
         // Remove local metadata for this user
         try { db.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(user.id) } catch (e) { /* ignore */ }
         return res.json({ message: 'All sessions revoked' })
       } catch (err) {
-        console.error('Logout all sessions error:', err)
+        logger.error('Logout all sessions error:', err)
         return res.status(500).json({ message: 'Failed to revoke sessions' })
       }
     }
@@ -1242,17 +1239,17 @@ router.post('/sessions/revoke', authenticateToken, async (req, res) => {
           return res.status(501).json({ message: 'Single-session revocation not supported by this SSO server version' })
         }
         const text = await r.text()
-        console.error('Keycloak revoke session failed:', r.status, text)
+        logger.error('Keycloak revoke session failed:', r.status, text)
         return res.status(502).json({ message: 'Failed to revoke session via SSO provider' })
       } catch (err) {
-        console.error('Revoke session error:', err)
+        logger.error('Revoke session error:', err)
         return res.status(500).json({ message: 'Failed to revoke session' })
       }
     }
 
     return res.status(400).json({ message: 'Invalid request: provide { all: true } or { sessionId }' })
   } catch (err) {
-    console.error('Revoke sessions error:', err)
+    logger.error('Revoke sessions error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -1280,7 +1277,7 @@ router.get('/users', authenticateToken, async (req, res) => {
 
     res.json({ users: usersWithFixedTimestamps })
   } catch (err) {
-    console.error('Fetch users error:', err)
+    logger.error('Fetch users error:', err)
     res.status(500).json({ message: 'Failed to fetch users' })
   }
 })
@@ -1293,7 +1290,7 @@ if (process.env.NODE_ENV !== 'production') {
       const rows = db.prepare('SELECT id, username, preferences FROM users ORDER BY created_at DESC').all()
       res.json({ users: rows })
     } catch (err) {
-      console.error('Debug users error:', err)
+      logger.error('Debug users error:', err)
       res.status(500).json({ message: 'Failed to fetch debug users' })
     }
   })
@@ -1344,7 +1341,7 @@ router.patch('/users/:userId/role', authenticateToken, async (req, res) => {
 
     res.json({ message: 'User role updated successfully' })
   } catch (err) {
-    console.error('Update user role error:', err)
+    logger.error('Update user role error:', err)
     res.status(500).json({ message: 'Failed to update user role' })
   }
 })
@@ -1387,7 +1384,7 @@ router.delete('/users/:userId', authenticateToken, async (req, res) => {
 
     res.json({ message: 'User deleted' })
   } catch (err) {
-    console.error('Delete user error:', err)
+    logger.error('Delete user error:', err)
     res.status(500).json({ message: 'Failed to delete user' })
   }
 })
@@ -1403,7 +1400,7 @@ router.get('/admin/settings', authenticateToken, async (req, res) => {
     rows.forEach(r => { obj[r.key] = r.value })
     res.json({ settings: obj })
   } catch (err) {
-    console.error('Get settings error:', err)
+    logger.error('Get settings error:', err)
     res.status(500).json({ message: 'Failed to fetch settings' })
   }
 })
@@ -1418,7 +1415,7 @@ router.get('/admin/settings/:key', authenticateToken, async (req, res) => {
     if (!row) return res.status(404).json({ message: 'Setting not found' })
     res.json({ key, value: row.value })
   } catch (err) {
-    console.error('Get setting error:', err)
+    logger.error('Get setting error:', err)
     res.status(500).json({ message: 'Failed to fetch setting' })
   }
 })
@@ -1427,15 +1424,35 @@ router.get('/admin/settings/:key', authenticateToken, async (req, res) => {
 router.post('/admin/settings', authenticateToken, async (req, res) => {
   try {
     const { key, value } = req.body
-    console.log('POST /api/admin/settings', { userId: req.user?.id, username: req.user?.username, key, value })
+    logger.info('POST /api/admin/settings', { userId: req.user?.id, username: req.user?.username, key, value })
     if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' })
     if (!key) return res.status(400).json({ message: 'Missing key' })
+    // Validate special keys before persisting
+    if (key === 'logLevel') {
+      const allowed = ['error', 'warn', 'info', 'debug']
+      if (!allowed.includes(String(value))) {
+        return res.status(400).json({ message: 'Invalid log level' })
+      }
+    }
+
     const db = getDb()
     const existing = db.prepare('SELECT value FROM settings WHERE key = ?').get(key)
     if (existing) {
       db.prepare('UPDATE settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?').run(value, key)
     } else {
       db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run(key, value)
+    }
+
+    // If admin changed the global log level, apply it immediately
+    if (key === 'logLevel') {
+      try {
+        const { setLevel } = await import('../logger.js')
+        setLevel(String(value))
+        process.env.LOG_LEVEL = String(value)
+        logger.info({ newLevel: String(value) }, 'Global log level updated')
+      } catch (e) {
+        logger.error('Failed to apply log level at runtime:', e)
+      }
     }
 
     logAuditEvent({
@@ -1454,7 +1471,7 @@ router.post('/admin/settings', authenticateToken, async (req, res) => {
 
     res.json({ message: 'Setting saved', key, value })
   } catch (err) {
-    console.error('Save setting error:', err)
+    logger.error('Save setting error:', err)
     res.status(500).json({ message: 'Failed to save setting' })
   }
 })
@@ -1474,7 +1491,7 @@ router.get('/sso/frontchannel-logout', async (req, res) => {
     const row = db.prepare('SELECT user_id FROM user_sessions WHERE session_id = ?').get(sessionId)
     if (!row || !row.user_id) {
       // Unknown session — respond success to avoid revealing info
-      console.warn('Frontchannel logout received unknown session:', sessionId)
+      logger.warn('Frontchannel logout received unknown session:', sessionId)
       return res.status(200).send('Ok')
     }
 
@@ -1484,20 +1501,20 @@ router.get('/sso/frontchannel-logout', async (req, res) => {
     try {
       db.prepare('DELETE FROM user_sessions WHERE session_id = ?').run(sessionId)
     } catch (e) {
-      console.warn('Failed to delete user_session for frontchannel logout:', e)
+      logger.warn('Failed to delete user_session for frontchannel logout:', e)
     }
 
     // Mark tokens invalid before now so existing JWTs are rejected
     try {
       db.prepare('UPDATE users SET tokens_invalid_before = CURRENT_TIMESTAMP WHERE id = ?').run(userId)
     } catch (e) {
-      console.warn('Failed to set tokens_invalid_before during frontchannel logout:', e)
+      logger.warn('Failed to set tokens_invalid_before during frontchannel logout:', e)
     }
 
-    console.info('Frontchannel logout processed for session:', sessionId)
+    logger.info({ sessionId }, 'Frontchannel logout processed for session')
     return res.status(200).send('Ok')
   } catch (err) {
-    console.error('Frontchannel logout handler error:', err)
+    logger.error('Frontchannel logout handler error:', err)
     return res.status(500).send('Server error')
   }
 })
@@ -1533,7 +1550,7 @@ router.get('/sso/validate', authenticateToken, async (req, res) => {
       
       if (!sessionsRes.ok) {
         // If we can't reach Keycloak, assume session is valid to avoid false logouts
-        console.warn('SSO validate: Could not reach Keycloak, assuming valid')
+        logger.arn('SSO validate: Could not reach Keycloak, assuming valid')
         return res.json({ valid: true, ssoUser: true, checkFailed: true })
       }
       
@@ -1563,12 +1580,12 @@ router.get('/sso/validate', authenticateToken, async (req, res) => {
         lastAccess: currentSession.lastAccess || null
       })
     } catch (kcErr) {
-      console.error('SSO validate Keycloak error:', kcErr)
+      logger.error('SSO validate Keycloak error:', kcErr)
       // Don't fail the user if Keycloak is temporarily unreachable
       return res.json({ valid: true, ssoUser: true, checkFailed: true })
     }
   } catch (err) {
-    console.error('SSO validate error:', err)
+    logger.error('SSO validate error:', err)
     res.status(500).json({ valid: false, message: 'Validation failed' })
   }
 })
@@ -1595,7 +1612,7 @@ router.get('/sso/refresh-config', authenticateToken, async (req, res) => {
       silentCheckSsoRedirectUri: `${req.protocol}://${req.get('host')}/sso-callback`
     })
   } catch (err) {
-    console.error('SSO refresh config error:', err)
+    logger.error('SSO refresh config error:', err)
     res.status(500).json({ message: 'Failed to get refresh config' })
   }
 })
@@ -1643,7 +1660,7 @@ router.get('/avatar-proxy', async (req, res) => {
     const buffer = await response.arrayBuffer()
     res.send(Buffer.from(buffer))
   } catch (err) {
-    console.error('Avatar proxy error:', err)
+    logger.error('Avatar proxy error:', err)
     res.status(500).json({ message: 'Failed to proxy avatar' })
   }
 })
@@ -1720,7 +1737,7 @@ async function getIpGeolocation(ip) {
     
     return result
   } catch (err) {
-    console.error('IP geolocation fetch error:', err)
+    logger.error('IP geolocation fetch error:', err)
     return { error: 'Failed to fetch geolocation' }
   }
 }
@@ -1746,7 +1763,7 @@ router.get('/ip-geo', authenticateToken, async (req, res) => {
     
     res.json(result)
   } catch (err) {
-    console.error('IP geolocation error:', err)
+    logger.error('IP geolocation error:', err)
     res.status(500).json({ message: 'Failed to fetch geolocation' })
   }
 })
@@ -1773,7 +1790,7 @@ router.get('/ip-geo/:ip', authenticateToken, async (req, res) => {
     
     res.json(result)
   } catch (err) {
-    console.error('IP geolocation error:', err)
+    logger.error('IP geolocation error:', err)
     res.status(500).json({ message: 'Failed to fetch geolocation' })
   }
 })
@@ -1831,7 +1848,7 @@ router.get('/static-map', async (req, res) => {
     clearTimeout(timeout)
     
     if (!response.ok) {
-      console.error('OSM tile fetch failed:', response.status)
+      logger.error('OSM tile fetch failed:', response.status)
       return res.status(502).json({ message: 'Map service unavailable' })
     }
     
@@ -1844,7 +1861,7 @@ router.get('/static-map', async (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=604800')
     res.send(buffer)
   } catch (err) {
-    console.error('Static map error:', err)
+    logger.error('Static map error:', err)
     res.status(500).json({ message: 'Failed to generate map' })
   }
 })

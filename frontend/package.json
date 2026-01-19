@@ -1,7 +1,7 @@
 {
   "name": "ghassicloud-frontend",
   "private": true,
-  "version": "1.5.10",
+  "version": "1.5.11",
   "type": "module",
   "engines": {
     "node": ">=22",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",
-    "@capacitor/cli": "^8.0.0",
+    "@capacitor/cli": "^8.0.1",
     "@capacitor/core": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
@@ -31,13 +31,14 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0",
-    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@1.4.9",
-    "source-map": "0.7.4"
+    "source-map": "0.7.4",
+    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@1.4.9"
   },
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "pino-pretty": "^10.0.0",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",

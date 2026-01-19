@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import initSqlJs from 'sql.js'
+import logger from '../backend/src/logger.js'
 
 const dbPath = process.env.DATABASE_PATH || 'backend/data/ghassicloud.db'
 
@@ -11,8 +12,8 @@ async function makeAdmin(username) {
   try {
     // Check if database exists
     if (!existsSync(dbPath)) {
-      console.error(`❌ Database not found at: ${dbPath}`)
-      console.error('Please start the backend server first to initialize the database.')
+      logger.error(`❌ Database not found at: ${dbPath}`)
+      logger.error('Please start the backend server first to initialize the database.')
       process.exit(1)
     }
 
@@ -32,12 +33,12 @@ async function makeAdmin(username) {
     userStmt.free()
 
     if (!user) {
-      console.error(`❌ User "${username}" not found in the database.`)
-      console.log('\nAvailable users:')
+      logger.error(`❌ User "${username}" not found in the database.`)
+      logger.info('\nAvailable users:')
       const allUsersStmt = db.prepare('SELECT username, email, role FROM users')
       while (allUsersStmt.step()) {
         const u = allUsersStmt.getAsObject()
-        console.log(`  - ${u.username} (${u.email || 'no email'}) - Role: ${u.role}`)
+        logger.info(`  - ${u.username} (${u.email || 'no email'}) - Role: ${u.role}`)
       }
       allUsersStmt.free()
       db.close()
@@ -45,7 +46,7 @@ async function makeAdmin(username) {
     }
 
     if (user.role === 'admin') {
-      console.log(`✅ User "${username}" is already an admin.`)
+      logger.info(`✅ User "${username}" is already an admin.`)
       db.close()
       process.exit(0)
     }
@@ -61,24 +62,24 @@ async function makeAdmin(username) {
     const buffer = Buffer.from(data)
     writeFileSync(dbPath, buffer)
 
-    console.log(`✅ Successfully updated "${username}" to admin role!`)
+    logger.info(`✅ Successfully updated "${username}" to admin role!`)
     
     // Verify the change
     const verifyStmt = db.prepare('SELECT username, email, role FROM users WHERE username = ?')
     verifyStmt.bind([username])
     if (verifyStmt.step()) {
       const updatedUser = verifyStmt.getAsObject()
-      console.log(`\nUser details:`)
-      console.log(`  Username: ${updatedUser.username}`)
-      console.log(`  Email: ${updatedUser.email || 'N/A'}`)
-      console.log(`  Role: ${updatedUser.role}`)
+      logger.info(`\nUser details:`)
+      logger.info(`  Username: ${updatedUser.username}`)
+      logger.info(`  Email: ${updatedUser.email || 'N/A'}`)
+      logger.info(`  Role: ${updatedUser.role}`)
     }
     verifyStmt.free()
 
     db.close()
   } catch (error) {
-    console.error('❌ Error:', error.message)
-    console.error(error.stack)
+    logger.error('❌ Error:', error.message)
+    logger.error(error.stack)
     process.exit(1)
   }
 }
@@ -87,8 +88,8 @@ async function makeAdmin(username) {
 const username = process.argv[2]
 
 if (!username) {
-  console.error('Usage: node scripts/make-admin.js <username>')
-  console.error('Example: node scripts/make-admin.js "Ghassan Darwish"')
+  logger.error('Usage: node scripts/make-admin.js <username>')
+  logger.error('Example: node scripts/make-admin.js "Ghassan Darwish"')
   process.exit(1)
 }
 

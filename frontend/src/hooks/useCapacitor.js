@@ -6,6 +6,7 @@ import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { Keyboard } from '@capacitor/keyboard';
 import { App } from '@capacitor/app';
 import { Network } from '@capacitor/network';
+import logger from '../logger'
 
 // Check if running on native platform
 export const isNative = Capacitor.isNativePlatform();
@@ -65,7 +66,7 @@ export function useStatusBar() {
         style: isDark ? Style.Dark : Style.Light 
       });
     } catch (error) {
-      console.warn('StatusBar not available:', error);
+      logger.warn('StatusBar not available:', error);
     }
   }, []);
 
@@ -75,7 +76,7 @@ export function useStatusBar() {
     try {
       await StatusBar.setBackgroundColor({ color });
     } catch (error) {
-      console.warn('StatusBar color not available:', error);
+      logger.warn('StatusBar color not available:', error);
     }
   }, []);
 
@@ -85,7 +86,7 @@ export function useStatusBar() {
     try {
       await StatusBar.hide();
     } catch (error) {
-      console.warn('StatusBar hide not available:', error);
+      logger.warn('StatusBar hide not available:', error);
     }
   }, []);
 
@@ -95,7 +96,7 @@ export function useStatusBar() {
     try {
       await StatusBar.show();
     } catch (error) {
-      console.warn('StatusBar show not available:', error);
+      logger.warn('StatusBar show not available:', error);
     }
   }, []);
 
@@ -112,7 +113,7 @@ export function useSplashScreen() {
     try {
       await SplashScreen.hide();
     } catch (error) {
-      console.warn('SplashScreen not available:', error);
+      logger.warn('SplashScreen not available:', error);
     }
   }, []);
 
@@ -124,7 +125,7 @@ export function useSplashScreen() {
         autoHide: false
       });
     } catch (error) {
-      console.warn('SplashScreen not available:', error);
+      logger.warn('SplashScreen not available:', error);
     }
   }, []);
 
@@ -146,7 +147,7 @@ export function useHaptics() {
       };
       await Haptics.impact({ style: styleMap[style] || ImpactStyle.Medium });
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -161,7 +162,7 @@ export function useHaptics() {
       };
       await Haptics.notification({ type: typeMap[type] || NotificationType.Success });
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -171,7 +172,7 @@ export function useHaptics() {
     try {
       await Haptics.vibrate({ duration });
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -180,7 +181,7 @@ export function useHaptics() {
     try {
       await Haptics.selectionStart();
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -189,7 +190,7 @@ export function useHaptics() {
     try {
       await Haptics.selectionChanged();
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -198,7 +199,7 @@ export function useHaptics() {
     try {
       await Haptics.selectionEnd();
     } catch (error) {
-      console.warn('Haptics not available:', error);
+      logger.warn('Haptics not available:', error);
     }
   }, []);
 
@@ -236,7 +237,7 @@ export function useNativeKeyboard() {
     try {
       await Keyboard.hide();
     } catch (error) {
-      console.warn('Keyboard hide not available:', error);
+      logger.warn('Keyboard hide not available:', error);
     }
   }, []);
 
@@ -363,7 +364,7 @@ export async function initializeNativeFeatures(options = {}) {
     }, hideSplashDelay);
 
   } catch (error) {
-    console.warn('Error initializing native features:', error);
+    logger.warn('Error initializing native features:', error);
   }
 }
 

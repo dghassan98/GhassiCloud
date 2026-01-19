@@ -1012,6 +1012,40 @@
 .sso-card .btn-primary { padding: 0.5rem 0.9rem; }
 .sso-card .btn-secondary { padding: 0.5rem 0.9rem; }
 
+/* Accent-colored range slider inside sso cards (global log level) */
+.sso-card .sso-card-body input[type="range"] {
+  accent-color: var(--accent);
+}
+.sso-card .sso-card-body input[type="range"]::-webkit-slider-thumb {
+  background: var(--accent);
+  border: 2px solid var(--accent);
+}
+.sso-card .sso-card-body input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(0,0,0,0.08), rgba(0,0,0,0.08));
+}
+
+/* Improve visibility of toggle inside sso-card-actions */
+.sso-card-actions .toggle {
+  width: 56px;
+  height: 30px;
+}
+.sso-card-actions .toggle-slider {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+.sso-card-actions .toggle-slider:before {
+  background: var(--text-primary);
+}
+.sso-card-actions .toggle input:checked + .toggle-slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.sso-card-actions .toggle input:checked + .toggle-slider:before {
+  background: var(--accent-text);
+}
+
 /* Hide the legacy two-factor block inside the security section (admin can re-enable later) */
 .section-security .settings-section .security-info:nth-of-type(1) {
   display: none;
@@ -1483,7 +1517,7 @@
     grid-template-columns: repeat(6, 1fr);
   }
   
-  /* User management table on mobile */
+  /* User management responsive tweaks */
   .users-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1498,18 +1532,20 @@
   .users-table th,
   .users-table td {
     padding: 0.75rem 0.5rem;
-  }
-  
-  /* Stack user info vertically on very small screens */
-  .user-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
+    vertical-align: middle; /* ensure rows align correctly */
   }
 
-  .user-avatar-small {
-    width: 32px;
-    height: 32px;
+  /* Avatar wrapper to keep image and placeholder together */
+  .avatar-wrapper { display: inline-flex; align-items: center; }
+
+  /* Make placeholder more visible inside the users table */
+  .users-table .user-avatar-small.placeholder {
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Ensure names and usernames truncate cleanly to avoid overlapping in tight layouts */
@@ -1528,6 +1564,26 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* Mobile-only layout changes should be scoped */
+  @media (max-width: 720px) {
+    /* Stack user info vertically on very small screens */
+    .user-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+    }
+
+    .user-avatar-small {
+      width: 32px;
+      height: 32px;
+    }
+
+    /* Make role select full width on mobile table */
+    .role-select {
+      min-width: 100px;
+    }
   }
   /* Make role select full width on mobile table */
   .role-select {
@@ -1554,6 +1610,10 @@
     .users-table tr { padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); }
     .users-table td { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; width: 100%; }
     .users-table td[data-label]::before { content: attr(data-label); font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.75rem; flex-shrink: 0; }
+
+    /* Hide the first column's label (prevents spurious text appearing above avatar) */
+    .users-table tr td:first-child::before { display: none; }
+
     /* Keep user info compact and horizontal inside the users table on narrow screens */
     .users-table .user-info { flex-direction: row; align-items: center; flex: 1; justify-content: flex-start; gap: 0.5rem; }
     .users-table .user-info > div { min-width: 0; overflow: hidden; }
@@ -1562,6 +1622,9 @@
     .users-table .user-username { display: none; }
     .users-table td:last-child { justify-content: flex-end; }
     .users-table td[data-label='Email'] { text-align: right; }
+
+    /* Make the placeholder initial clearer on tiny screens */
+    .users-table .user-avatar-small.placeholder { width: 40px; height: 40px; font-size: 0.95rem; }
   }
 }
 

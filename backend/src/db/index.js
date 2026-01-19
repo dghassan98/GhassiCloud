@@ -3,13 +3,13 @@ import bcrypt from 'bcryptjs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { mkdirSync, existsSync } from 'fs'
+import logger from '../logger.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const dbPath = process.env.DATABASE_PATH || join(__dirname, '../../data/ghassicloud.db')
 
-// Ensure data directory exists
 const dataDir = dirname(dbPath)
 if (!existsSync(dataDir)) {
   mkdirSync(dataDir, { recursive: true })
@@ -19,8 +19,6 @@ let db = null
 
 export async function initDatabase() {
   db = new Database(dbPath)
-  
-  // Create users table
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -35,94 +33,48 @@ export async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
-  
-  // Add SSO columns if they don't exist (migration for existing DBs)
+
   try {
     db.exec(`ALTER TABLE users ADD COLUMN sso_provider TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('sso_provider column already exists, skipping')
   }
   try {
     db.exec(`ALTER TABLE users ADD COLUMN sso_id TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('sso_id column already exists, skipping')
   }
-  // Add first_name, last_name and avatar for richer profiles
   try {
     db.exec(`ALTER TABLE users ADD COLUMN first_name TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('first_name column already exists, skipping')
   }
   try {
     db.exec(`ALTER TABLE users ADD COLUMN last_name TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('last_name column already exists, skipping')
   }
   try {
     db.exec(`ALTER TABLE users ADD COLUMN avatar TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('avatar column already exists, skipping')
   }
-  // Add language column for user preference
   try {
     db.exec(`ALTER TABLE users ADD COLUMN language TEXT`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('language column already exists, skipping')
   }
-  // Add preferences column to persist per-user personalization (JSON blob: theme, accent, logo, etc.)
-  try {
-    db.exec(`ALTER TABLE users ADD COLUMN preferences TEXT`)
-    // Initialize preferences to empty object for existing users
-    db.exec(`UPDATE users SET preferences = '{}' WHERE preferences IS NULL`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
-  // Add tokens_invalid_before to allow invalidating tokens issued before a time
+
   try {
     db.exec(`ALTER TABLE users ADD COLUMN tokens_invalid_before DATETIME`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('tokens_invalid_before column already exists, skipping')
   }
 
-  // Remove legacy logout_preference column if present (we no longer support this setting)
-  try {
-    const cols = db.prepare(`PRAGMA table_info(users)`).all()
-    const hasLogout = cols && Array.isArray(cols) && cols.some(c => c.name === 'logout_preference')
-    if (hasLogout) {
-      // Recreate users table without logout_preference column
-      db.exec(`BEGIN;
-        CREATE TABLE IF NOT EXISTS users_new (
-          id TEXT PRIMARY KEY,
-          username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          email TEXT,
-          display_name TEXT,
-          role TEXT DEFAULT 'user',
-          sso_provider TEXT,
-          sso_id TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          first_name TEXT,
-          last_name TEXT,
-          avatar TEXT,
-          language TEXT,
-          tokens_invalid_before DATETIME
-        );
-        INSERT INTO users_new (id, username, password, email, display_name, role, sso_provider, sso_id, created_at, updated_at, first_name, last_name, avatar, language, tokens_invalid_before)
-          SELECT id, username, password, email, display_name, role, sso_provider, sso_id, created_at, updated_at, first_name, last_name, avatar, language, tokens_invalid_before FROM users;
-        DROP TABLE users;
-        ALTER TABLE users_new RENAME TO users;
-        COMMIT;`)
-    }
-  } catch (e) {
-    console.warn('Failed to remove logout_preference during migration:', e)
-  }
-  
-  // Add pinned column to services if it doesn't exist
   try {
     db.exec(`ALTER TABLE services ADD COLUMN pinned INTEGER DEFAULT 0`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('pinned column already exists in services, skipping')
   }
 
   // Create services table
@@ -142,12 +94,11 @@ export async function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
-  
-  // Add use_favicon column if it doesn't exist (migration for existing DBs)
+
   try {
     db.exec(`ALTER TABLE services ADD COLUMN use_favicon INTEGER DEFAULT 1`)
   } catch (e) {
-    // Column already exists, ignore
+    logger.debug('use_favicon column already exists in services, skipping')
   }
 
   // Create settings table
@@ -159,28 +110,27 @@ export async function initDatabase() {
     )
   `)
 
-  // Ensure default admin-controlled settings are present
   try {
     db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('pwaDevtoolsEnabled', 'false')
   } catch (e) {
-    console.warn('Failed to initialize default settings:', e)
+    logger.warn('Failed to initialize default settings:', e)
   }
 
-  // Create navidrome credentials table (single credential storage for Now Playing)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS navidrome_credentials (
-      id TEXT PRIMARY KEY,
-      username TEXT NOT NULL,
-      password_hashed TEXT,
-      password_encrypted TEXT,
-      auth_method TEXT DEFAULT 'token',
-      password_type TEXT,
-      token TEXT,
-      salt TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
+  // deprecated: navidrome_credentials table
+  // db.exec(`
+  //   CREATE TABLE IF NOT EXISTS navidrome_credentials (
+  //     id TEXT PRIMARY KEY,
+  //     username TEXT NOT NULL,
+  //     password_hashed TEXT,
+  //     password_encrypted TEXT,
+  //     auth_method TEXT DEFAULT 'token',
+  //     password_type TEXT,
+  //     token TEXT,
+  //     salt TEXT,
+  //     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  //     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  //   )
+  // `)
 
   // Create table to persist user session metadata captured during SSO login
   db.exec(`
@@ -213,51 +163,25 @@ export async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
-
-  // Create index for faster queries on audit_logs
   try {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`)
-  } catch (e) { /* Index may already exist */ }
+  } catch (e) {
+    logger.error(e)
+  }
   try {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`)
-  } catch (e) { /* Index may already exist */ }
+  } catch (e) {
+    logger.error(e)
+  }
   try {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_category ON audit_logs(category)`)
-  } catch (e) { /* Index may already exist */ }
+  } catch (e) {
+    logger.error(e)
+  }
   try {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`)
-  } catch (e) { /* Index may already exist */ }
-
-  // Add new columns if migrating from older DB (safe to run on existing DB)
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_hashed TEXT`)
   } catch (e) {
-    // Column already exists, ignore
-  }
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_encrypted TEXT`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN auth_method TEXT DEFAULT 'token'`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN password_type TEXT`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN token TEXT`)
-  } catch (e) {
-    // Column already exists, ignore
-  }
-  try {
-    db.exec(`ALTER TABLE navidrome_credentials ADD COLUMN salt TEXT`)
-  } catch (e) {
-    // Column already exists, ignore
+    logger.error(e)
   }
 
   // Create default admin user if not exists
@@ -278,11 +202,11 @@ export async function initDatabase() {
       process.env.DEFAULT_ADMIN_USER || 'admin',
       hashedPassword
     )
-    console.log('✅ Default admin user created')
+    logger.info('✅ Default admin user created')
   }
 
-  console.log('✅ Database initialized')
-  
+  logger.info('✅ Database initialized')
+
   return db
 }
 

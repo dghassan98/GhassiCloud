@@ -114,7 +114,7 @@ export function logAuditEvent({
     
     return id
   } catch (err) {
-    console.error('Failed to log audit event:', err)
+    logger.error('Failed to log audit event:', err)
     return null
   }
 }
@@ -237,7 +237,7 @@ router.get('/', authenticateToken, (req, res) => {
       }
     })
   } catch (err) {
-    console.error('Get audit logs error:', err)
+    logger.error('Get audit logs error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -343,7 +343,7 @@ router.get('/stats', authenticateToken, (req, res) => {
       loginStats: loginStats || { successful_logins: 0, failed_logins: 0, sso_logins: 0 }
     })
   } catch (err) {
-    console.error('Get audit stats error:', err)
+    logger.error('Get audit stats error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -431,7 +431,7 @@ router.get('/export/csv', authenticateToken, (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="audit-logs-${new Date().toISOString().split('T')[0]}.csv"`)
     res.send(csvContent)
   } catch (err) {
-    console.error('Export CSV error:', err)
+    logger.error('Export CSV error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -505,7 +505,7 @@ router.get('/export/json', authenticateToken, (req, res) => {
       logs: parsedLogs
     })
   } catch (err) {
-    console.error('Export JSON error:', err)
+    logger.error('Export JSON error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -539,7 +539,7 @@ router.get('/filters', authenticateToken, (req, res) => {
       users
     })
   } catch (err) {
-    console.error('Get filters error:', err)
+    logger.error('Get filters error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })

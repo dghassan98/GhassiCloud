@@ -200,10 +200,18 @@
       "title": "Autoriser les outils de développement (F12) dans la PWA",
       "desc": "Lorsque activé par un administrateur, appuyer sur F12 dans la PWA installée ouvrira l'application (ou une webview intégrée) dans une nouvelle fenêtre afin d'utiliser DevTools.",
       "toggleLabel": "Activer F12 / outils pour PWA",
+      "allow": "Autoriser les outils de développement",
       "saved": "Paramètre enregistré",
       "saveFailed": "Échec de l'enregistrement du paramètre",
       "disabledToast": "Les outils de développement sont désactivés par un administrateur",
       "adminHint": "Administrateurs seulement — seuls les administrateurs peuvent activer ce paramètre"
+    },
+    "logLevel": {
+      "title": "Niveau de journalisation global",
+      "desc": "Les administrateurs peuvent définir le niveau global des journaux. Cela affecte la journalisation côté client et côté serveur pour tous les utilisateurs.",
+      "scope": "S'applique au frontend et au backend",
+      "saved": "Niveau de journalisation enregistré",
+      "saveFailed": "Échec de l'enregistrement du niveau de journalisation"
     },
     "activeSessionsTitle": "Sessions actives",
     "activeSessionsDesc": "Voir les appareils et navigateurs connectés. Révoquer toute session inconnue.",

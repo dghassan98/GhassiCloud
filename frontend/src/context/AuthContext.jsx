@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import logger from '../logger'
 
 const AuthContext = createContext()
 
@@ -15,7 +16,7 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('ghassicloud-token')
-      console.debug('checkAuth: token present?', !!token)
+      logger.debug('checkAuth: token present?', !!token)
       if (!token) {
         // Ensure any stale local markers are cleaned if there's no token
         try {
@@ -46,10 +47,10 @@ export function AuthProvider({ children }) {
               if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
               if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
               localStorage.setItem('ghassicloud-sync-preferences', 'true')
-              console.debug('checkAuth: Applied server appearance preferences to localStorage', prefs)
+              logger.debug('checkAuth: Applied server appearance preferences to localStorage', prefs)
               try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {}              try { setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {} }, 150) } catch (e) {}              try { window.__ghassicloud_server_prefs_applied = true } catch (e) {}
             }
-          } catch (e) { console.debug('checkAuth: failed to apply server prefs', e) }
+          } catch (e) { logger.debug('checkAuth: failed to apply server prefs', e) }
 
           // Synchronize any local, unauthenticated preferences (theme/logo/accent) to server.
           // If the user changed preferences while auth wasn't ready, we should overwrite
@@ -70,12 +71,12 @@ export function AuthProvider({ children }) {
             const serverSyncPref = data.user?.preferences?.syncPreferences === true
 
             if (Object.keys(toPersist).length > 0 && localSyncPref && serverSyncPref) {
-              console.debug('checkAuth: pushing local preferences to server to overwrite differences', toPersist)
+              logger.debug('checkAuth: pushing local preferences to server to overwrite differences', toPersist)
               fetch('/api/auth/appearance', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ghassicloud-token')}` }, body: JSON.stringify(toPersist) })
                 .then(() => { try { refreshUser() } catch (e) {} })
-                .catch((err) => { console.debug('checkAuth: failed to push local prefs', err) })
+                .catch((err) => { logger.debug('checkAuth: failed to push local prefs', err) })
             }
-          } catch (e) { console.debug('checkAuth: sync local->server error', e) }
+          } catch (e) { logger.debug('checkAuth: sync local->server error', e) }
 
           // Keep a local marker for SSO login so UI can detect SSO users even if backend lacks the flag.
           try {
@@ -88,7 +89,7 @@ export function AuthProvider({ children }) {
           } catch (e) {}
         } else if (res.status === 304) {
           // Not modified — fall back to any stored user from localStorage so contexts can pick up preferences
-          console.debug('checkAuth: /me returned 304 Not Modified; falling back to stored user')
+          logger.debug('checkAuth: /me returned 304 Not Modified; falling back to stored user')
           try {
             const stored = JSON.parse(localStorage.getItem('ghassicloud-user') || '{}')
             if (stored && stored.user) {
@@ -103,16 +104,16 @@ export function AuthProvider({ children }) {
                   if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
                   if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
                   localStorage.setItem('ghassicloud-sync-preferences', 'true')
-                  console.debug('Applied stored user preferences to localStorage (304 fallback)', prefs)
+                  logger.debug('Applied stored user preferences to localStorage (304 fallback)', prefs)
                 } else {
                   localStorage.setItem('ghassicloud-sync-preferences', 'false')
                 }
-              } catch (e) { console.debug('checkAuth: failed to apply stored prefs', e) }
+              } catch (e) { logger.debug('checkAuth: failed to apply stored prefs', e) }
             }
-          } catch (e) { console.debug('checkAuth: failed to parse stored user', e) }
+          } catch (e) { logger.debug('checkAuth: failed to parse stored user', e) }
         } else {
           // Token invalid or expired — clear local auth state
-          console.debug('checkAuth: /me returned non-ok, clearing token and stored user')
+          logger.debug('checkAuth: /me returned non-ok, clearing token and stored user')
           localStorage.removeItem('ghassicloud-token')
           try { localStorage.removeItem('ghassicloud-user') } catch (e) {}
           try { localStorage.removeItem('ghassicloud-sso') } catch (e) {}
@@ -120,7 +121,7 @@ export function AuthProvider({ children }) {
         }
       }
     } catch (err) {
-      console.error('Auth check failed:', err)
+      logger.error('Auth check failed:', err)
     } finally {
       setLoading(false)
     }
@@ -158,7 +159,7 @@ export function AuthProvider({ children }) {
         // Ensure local marker reflects server preference
         localStorage.setItem('ghassicloud-sync-preferences', 'false')
       }
-    } catch (e) { console.debug('login: failed to apply server prefs', e) }
+    } catch (e) { logger.debug('login: failed to apply server prefs', e) }
 
     // After login, if there are local preferences that the user set while unauthenticated, sync them to the account
     try {
@@ -223,7 +224,7 @@ export function AuthProvider({ children }) {
     // Firefox on Android has issues with popups in PWA context
     const isFirefoxAndroid = /Android.*Firefox/i.test(navigator.userAgent)
 
-    console.debug('SSO flow detection:', { pwa, isMobile, isTouchDevice, isSmallScreen, isFirefoxAndroid })
+    logger.debug('SSO flow detection:', { pwa, isMobile, isTouchDevice, isSmallScreen, isFirefoxAndroid })
 
     return pwa || isMobile || isFirefoxAndroid || (isTouchDevice && isSmallScreen)
   }
@@ -276,7 +277,7 @@ export function AuthProvider({ children }) {
 
         // Use redirect flow for mobile/PWA
         if (useRedirect) {
-          console.debug('Using redirect flow for SSO (mobile/PWA detected)')
+          logger.debug('Using redirect flow for SSO (mobile/PWA detected)')
           // Navigate directly to the SSO provider - this replaces the current page
           window.location.href = authUrl.toString()
           // Promise won't resolve here - the page navigates away
@@ -285,7 +286,7 @@ export function AuthProvider({ children }) {
         }
 
         // Desktop: use popup flow
-        console.debug('Using popup flow for SSO (desktop detected)')
+        logger.debug('Using popup flow for SSO (desktop detected)')
         
         // Calculate popup position (centered)
         const width = 500
@@ -302,7 +303,7 @@ export function AuthProvider({ children }) {
 
         if (!popup) {
           // Popup blocked - fall back to redirect flow
-          console.debug('Popup blocked, falling back to redirect flow')
+          logger.debug('Popup blocked, falling back to redirect flow')
           localStorage.setItem('sso_redirect_flow', 'true')
           window.location.href = authUrl.toString()
           return
@@ -334,8 +335,8 @@ export function AuthProvider({ children }) {
               const savedRedirectUri = sessionStorage.getItem('sso_redirect_uri')
               const savedCodeVerifier = sessionStorage.getItem('sso_code_verifier')
               
-              console.log('Exchanging code for token...')
-              console.log('Code verifier length:', savedCodeVerifier?.length)
+              logger.info('Exchanging code for token...')
+              logger.debug('Code verifier length:', savedCodeVerifier?.length)
               
               const res = await fetch('/api/auth/sso/callback', {
                 method: 'POST',
@@ -353,7 +354,7 @@ export function AuthProvider({ children }) {
               try {
                 data = responseText ? JSON.parse(responseText) : {}
               } catch (parseError) {
-                console.error('Failed to parse response:', responseText)
+                logger.error('Failed to parse response:', responseText)
                 throw new Error('Invalid response from server')
               }
 
@@ -428,10 +429,10 @@ export function AuthProvider({ children }) {
         if (data && data.user) setUser(data.user)
       } else {
         const text = await res.text()
-        console.error('Profile update failed:', text)
+        logger.error('Profile update failed:', text)
       }
     } catch (err) {
-      console.error('Failed to update user on server:', err)
+      logger.error('Failed to update user on server:', err)
     }
   }
 
@@ -446,7 +447,7 @@ export function AuthProvider({ children }) {
       })
       if (res.ok) {
         const data = await res.json()
-        console.debug('refreshUser: /api/auth/me returned', data && data.user && data.user.preferences)
+        logger.debug('refreshUser: /api/auth/me returned', data && data.user && data.user.preferences)
         if (data && data.user) {
           setUser(data.user)
           try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) {}
@@ -463,7 +464,7 @@ export function AuthProvider({ children }) {
               if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
               if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
               localStorage.setItem('ghassicloud-sync-preferences', 'true')
-              console.debug('Applied server appearance preferences to localStorage', prefs)
+              logger.debug('Applied server appearance preferences to localStorage', prefs)
 
               // Notify other contexts that preferences were updated (useful after force-refresh)
               try { window.dispatchEvent(new CustomEvent('ghassicloud:preferences-updated', { detail: { prefs } })) } catch (e) {}
@@ -472,10 +473,10 @@ export function AuthProvider({ children }) {
               // Ensure local marker reflects server preference
               localStorage.setItem('ghassicloud-sync-preferences', 'false')
             }
-          } catch (e) { console.debug('Failed to apply server prefs to localStorage', e) }
+          } catch (e) { logger.debug('Failed to apply server prefs to localStorage', e) }
         }
       } else if (res.status === 304) {
-        console.debug('refreshUser: /api/auth/me returned 304 Not Modified; falling back to stored user')
+        logger.debug('refreshUser: /api/auth/me returned 304 Not Modified; falling back to stored user')
         try {
           const stored = JSON.parse(localStorage.getItem('ghassicloud-user') || '{}')
           if (stored && stored.user) {
@@ -489,21 +490,21 @@ export function AuthProvider({ children }) {
                 if (prefs.customAccent) localStorage.setItem('ghassicloud-custom-accent', prefs.customAccent)
                 if (prefs.logo) localStorage.setItem('ghassicloud-logo', prefs.logo)
                 localStorage.setItem('ghassicloud-sync-preferences', 'true')
-                console.debug('Applied stored user preferences to localStorage (304 fallback)', prefs)
+                logger.debug('Applied stored user preferences to localStorage (304 fallback)', prefs)
               } else {
                 localStorage.setItem('ghassicloud-sync-preferences', 'false')
               }
-            } catch (e) { console.debug('refreshUser: failed to apply stored prefs', e) }
+            } catch (e) { logger.debug('refreshUser: failed to apply stored prefs', e) }
           }
-        } catch (e) { console.debug('refreshUser: failed to parse stored user', e) }
+        } catch (e) { logger.debug('refreshUser: failed to parse stored user', e) }
       }
     } catch (err) {
-      console.error('Failed to refresh user from server:', err)
+      logger.error('Failed to refresh user from server:', err)
     }
   }
 
   const logout = () => {
-    console.debug('logout: clearing local auth state')
+    logger.debug('logout: clearing local auth state')
     // Grab token and sessionId for best-effort remote revocation
     const token = (() => { try { return localStorage.getItem('ghassicloud-token') } catch (e) { return null } })()
 
@@ -527,12 +528,12 @@ export function AuthProvider({ children }) {
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
               body: JSON.stringify({ sessionId })
             }).then(r => {
-              if (!r.ok) console.warn('Session revoke request failed', r.status)
-            }).catch(e => console.warn('Session revoke request error', e))
+              if (!r.ok) logger.warn('Session revoke request failed', r.status)
+            }).catch(e => logger.warn('Session revoke request error', e))
           }
         }
       }
-    } catch (e) { console.warn('logout: failed to send session revoke', e) }
+    } catch (e) { logger.warn('logout: failed to send session revoke', e) }
   }
 
   // Persist user in localStorage and preload avatar image whenever user changes

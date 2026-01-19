@@ -14,6 +14,7 @@ import { useToast } from '../context/ToastContext'
 import { usePWAUpdate } from '../hooks/usePWAUpdate'
 import { isPWA } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import logger from '../logger'
 import '../styles/settings.css'
 import ErrorBoundary from '../components/ErrorBoundary'
 
@@ -88,7 +89,7 @@ export default function Settings() {
           showToast({ message: t('settings.syncPreferences.toggleFailed') || 'Failed to update sync preference', type: 'error' })
         }
       } catch (e) {
-        console.error('Failed to update sync preference:', e)
+        logger.error('Failed to update sync preference:', e)
         showToast({ message: t('settings.syncToggleFailed') || 'Failed to update sync preference', type: 'error' })
       }
     } else {
@@ -125,6 +126,11 @@ export default function Settings() {
   const [pwaDevToolsEnabled, setPwaDevToolsEnabled] = useState(false)
   const [savingPwaSetting, setSavingPwaSetting] = useState(false)
   const [pwaSaveError, setPwaSaveError] = useState(null)
+
+  // Admin-only: Global log level (affects frontend & backend)
+  const [logLevel, setLogLevel] = useState('info')
+  const [savingLogLevel, setSavingLogLevel] = useState(false)
+  const [logLevelError, setLogLevelError] = useState(null)
 
   // Reset defaults state
   const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
@@ -163,7 +169,7 @@ export default function Settings() {
           showToast({ message: t('settings.resetDefaults.serverResetFailed') || 'Failed to clear server preferences', type: 'error' })
         }
       } catch (e) {
-        console.error('Failed to clear server prefs', e)
+        logger.error('Failed to clear server prefs', e)
         showToast({ message: t('settings.resetDefaults.serverResetFailed') || 'Failed to clear server preferences', type: 'error' })
       }
     }
@@ -349,7 +355,7 @@ export default function Settings() {
         showToast({ message: 'Failed to load SSO configuration', type: 'error' })
       }
     } catch (err) {
-      console.error('Load SSO config error:', err)
+      logger.error('Load SSO config error:', err)
       showToast({ message: 'Failed to load SSO configuration', type: 'error' })
     } finally {
       setSsoLoading(false)
@@ -373,7 +379,7 @@ export default function Settings() {
         showToast({ message: data.message || 'Failed to save SSO configuration', type: 'error' })
       }
     } catch (err) {
-      console.error('Save SSO config error:', err)
+      logger.error('Save SSO config error:', err)
       showToast({ message: 'Failed to save SSO configuration', type: 'error' })
     }
   }
@@ -396,7 +402,7 @@ export default function Settings() {
         showToast({ message: data.message || 'Failed to reset SSO configuration', type: 'error' })
       }
     } catch (err) {
-      console.error('Reset SSO config error:', err)
+      logger.error('Reset SSO config error:', err)
       showToast({ message: 'Failed to reset SSO configuration', type: 'error' })
     }
   }
@@ -414,7 +420,7 @@ export default function Settings() {
       if (!token) return setSessions([])
       const r = await fetch('/api/auth/sessions', { headers: { 'Authorization': token } })
       if (!r.ok) {
-        console.warn('Failed to load sessions')
+        logger.warn('Failed to load sessions')
         setSessions([])
         return
       }
@@ -433,7 +439,7 @@ export default function Settings() {
             return { ip, geo }
           }
         } catch (e) {
-          console.warn('Failed to fetch geo for IP:', ip, e)
+          logger.warn('Failed to fetch geo for IP:', ip, e)
         }
         return { ip, geo: null }
       })
@@ -445,7 +451,7 @@ export default function Settings() {
       })
       setSessionGeoData(geoMap)
     } catch (err) {
-      console.error('Load sessions error:', err)
+      logger.error('Load sessions error:', err)
       setSessions([])
     } finally {
       setSessionsLoading(false)
@@ -467,15 +473,55 @@ export default function Settings() {
       try {
         const token = getAuthToken()
         const headers = token ? { Authorization: token } : {}
+        // Fetch pwa devtools
         const res = await fetch('/api/auth/admin/settings/pwaDevtoolsEnabled', { headers })
-        if (!res.ok) return
-        const data = await res.json()
-        if (cancelled) return
-        setPwaDevToolsEnabled(data && data.value === 'true')
-      } catch (e) { console.warn('Failed to load admin settings', e) }
+        if (res.ok) {
+          const data = await res.json()
+          if (!cancelled) setPwaDevToolsEnabled(data && data.value === 'true')
+        }
+        // Fetch global log level
+        const lvlRes = await fetch('/api/auth/admin/settings/logLevel', { headers })
+        if (lvlRes.ok) {
+          const lvlData = await lvlRes.json()
+          if (!cancelled && lvlData && lvlData.value) setLogLevel(lvlData.value)
+        }
+      } catch (e) { logger.warn('Failed to load admin settings', e) }
     })()
     return () => { cancelled = true }
   }, [activeSection, isAdmin])
+
+  // Admin-only: handle changing the global log level
+  const handleLogLevelChange = async (e) => {
+    const idx = parseInt(e.target.value)
+    const next = ['error','warn','info','debug'][idx]
+    try {
+      setLogLevel(next)
+      setSavingLogLevel(true)
+      setLogLevelError(null)
+      const token = getAuthToken()
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = token
+      const res = await fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'logLevel', value: next }) })
+      if (res.ok) {
+        showToast({ message: t('settings.logLevel.saved') || 'Log level saved', type: 'success' })
+        try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'logLevel', value: next } })) } catch (e) {}
+        try { logger.setLevel(next); window.LOG_LEVEL = next } catch (e) {}
+      } else {
+        let msg = t('settings.logLevel.saveFailed') || 'Failed to save log level'
+        if (res.status === 403) msg = t('settings.adminRequired') || 'Admin access required'
+        if (res.status === 401) msg = t('settings.notAuthenticated') || 'Not authenticated — please sign in'
+        try { const data = await res.json(); if (data && data.message) msg = data.message } catch (e) { try { const txt = await res.text(); if (txt) msg = txt } catch (ee) {} }
+        setLogLevelError(msg)
+        try { const r = await fetch('/api/auth/admin/settings/logLevel'); if (r.ok) { const d = await r.json(); if (d && d.value) setLogLevel(d.value) } } catch (e) {}
+        showToast({ message: msg, type: 'error' })
+      }
+    } catch (e) {
+      setLogLevelError(t('settings.logLevel.saveFailed') || 'Failed to save log level')
+      showToast({ message: t('settings.logLevel.saveFailed') || 'Failed to save log level', type: 'error' })
+    } finally {
+      setSavingLogLevel(false)
+    }
+  }
 
 
   // Focus the SSO modal, trap Escape to close, and prevent background scrolling
@@ -519,6 +565,27 @@ export default function Settings() {
     return () => document.removeEventListener('click', handler)
   }, [t, isAdmin])
 
+  // Listen for settings updates so UI and logger reflect changes (useful in admin sessions)
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const d = e && e.detail
+        if (!d || !d.key) return
+        if (d.key === 'logLevel') {
+          if (d.value) {
+            setLogLevel(d.value)
+            try { logger.setLevel(d.value); window.LOG_LEVEL = d.value } catch (e) {}
+          }
+        }
+        if (d.key === 'pwaDevtoolsEnabled') {
+          setPwaDevToolsEnabled(d.value === 'true')
+        }
+      } catch (err) { /* ignore */ }
+    }
+    window.addEventListener('ghassicloud:settings-updated', handler)
+    return () => window.removeEventListener('ghassicloud:settings-updated', handler)
+  }, [])
+
   // Export user data as JSON + CSV files
   const handleExportData = async () => {
     setExporting(true)
@@ -561,7 +628,7 @@ export default function Settings() {
 
       showToast({ message: t('settings.exportSuccess') || 'Exported data', type: 'success' })
     } catch (err) {
-      console.error('Export failed:', err)
+      logger.error('Export failed:', err)
       showToast({ message: t('settings.exportFailed') || 'Export failed', type: 'error' })
     } finally {
       setExporting(false)
@@ -595,7 +662,7 @@ export default function Settings() {
         showToast({ message: msg, type: 'error' })
       }
     } catch (err) {
-      console.error('Import failed:', err)
+      logger.error('Import failed:', err)
       showToast({ message: t('settings.importFailed') || 'Import failed', type: 'error' })
     } finally {
       setImporting(false)
@@ -625,7 +692,7 @@ export default function Settings() {
         showToast({ message: data.message || t('settings.resetFailed') || 'Failed to reset services', type: 'error' })
       }
     } catch (err) {
-      console.error('Reset services error:', err)
+      logger.error('Reset services error:', err)
       showToast({ message: t('settings.resetFailed') || 'Failed to reset services', type: 'error' })
     } finally {
       setResetting(false)
@@ -648,7 +715,7 @@ export default function Settings() {
         showToast({ message: t('settings.userManagement.loadFailed') || 'Failed to load users', type: 'error' })
       }
     } catch (err) {
-      console.error('Fetch users error:', err)
+      logger.error('Fetch users error:', err)
       showToast({ message: t('settings.userManagement.loadFailed') || 'Failed to load users', type: 'error' })
     } finally {
       setUsersLoading(false)
@@ -674,7 +741,7 @@ export default function Settings() {
         showToast({ message: data.message || t('settings.userManagement.roleUpdateFailed') || 'Failed to update role', type: 'error' })
       }
     } catch (err) {
-      console.error('Update role error:', err)
+      logger.error('Update role error:', err)
       showToast({ message: t('settings.userManagement.roleUpdateFailed') || 'Failed to update role', type: 'error' })
     }
   }
@@ -695,7 +762,7 @@ export default function Settings() {
         showToast({ message: data.message || t('settings.userManagement.userDeleteFailed') || 'Failed to delete user', type: 'error' })
       }
     } catch (err) {
-      console.error('Delete user error:', err)
+      logger.error('Delete user error:', err)
       showToast({ message: t('settings.userManagement.userDeleteFailed') || 'Failed to delete user', type: 'error' })
     }
   }
@@ -770,7 +837,7 @@ export default function Settings() {
       await updateUser(updates)
       showToast({ message: t('settings.profileSaved') || 'Profile saved', type: 'success' })
     } catch (err) {
-      console.error('Save profile error:', err)
+      logger.error('Save profile error:', err)
       showToast({ message: t('settings.saveFailed') || 'Failed to save profile', type: 'error' })
     } finally {
       setSaving(false)
@@ -779,7 +846,7 @@ export default function Settings() {
 
   const handleSectionClick = (id) => {
     // lightweight debug logging to help reproduce tab-switching issues
-    console.debug('Settings: switch to', id)
+    logger.debug('Settings: switch to', id)
     setActiveSection(id)
   }
 
@@ -882,7 +949,7 @@ export default function Settings() {
                     showToast({ message: data.message || 'Failed to revoke sessions', type: 'error' })
                   }
                 } catch (err) {
-                  console.error('Sign out everywhere error:', err)
+                  logger.error('Sign out everywhere error:', err)
                   showToast({ message: t('settings.signOutEverywhereFailed') || 'Failed to sign out everywhere', type: 'error' })
                 } finally {
                   setConfirmSignOutAllLoading(false)
@@ -921,7 +988,7 @@ export default function Settings() {
                     showToast({ message: data.message || 'Failed to revoke session', type: 'error' })
                   }
                 } catch (err) {
-                  console.error('Revoke session error:', err)
+                  logger.error('Revoke session error:', err)
                   showToast({ message: t('settings.signOutSessionFailed') || 'Failed to revoke session', type: 'error' })
                 } finally {
                   setConfirmSessionLoading(false)
@@ -1035,6 +1102,7 @@ export default function Settings() {
 
               {/* Admin-only: PWA Developer tools card (single area with action) */}
               {isAdmin && (
+                <>
                 <div className="sso-card">
                   <div className="sso-card-left"><Monitor size={22} /></div>
                   <div className="sso-card-body">
@@ -1078,13 +1146,10 @@ const res = await fetch('/api/auth/admin/settings', {
                                 }
                                 setPwaDevToolsEnabled(!next)
                                 setPwaSaveError(msg)
-                                showToast({ message: msg, type: 'error' })
                               }
-                            } catch (err) {
-                              console.error('Save PWA devtools setting error:', err)
+                            } catch (e) {
                               setPwaDevToolsEnabled(!next)
                               setPwaSaveError(t('settings.pwaDevTools.saveFailed') || 'Failed to save setting')
-                              showToast({ message: t('settings.pwaDevTools.saveFailed') || 'Failed to save setting', type: 'error' })
                             } finally {
                               setSavingPwaSetting(false)
                             }
@@ -1092,14 +1157,44 @@ const res = await fetch('/api/auth/admin/settings', {
                         />
                         <span className="toggle-slider" />
                       </label>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        {/* Toggle only (label moved into the card description). Keep aria-label for accessibility. */}
-                        {pwaSaveError && <span className="muted" style={{ color: 'var(--danger)', marginTop: '6px' }}>{pwaSaveError}</span>}
+                      {pwaSaveError && <div className="muted small" style={{ color: 'var(--danger)', marginLeft: 12 }}>{pwaSaveError}</div>}
                       </div>
                     </div>
                   </div>
+
+                  {/* Admin-only: Global Log Level control */}
+                  <div className="sso-card">
+                    <div className="sso-card-left"><Terminal size={22} /></div>
+                  <div className="sso-card-body">
+                    <h4>{t('settings.logLevel.title') || 'Global Log Level'}</h4>
+                    <p className="form-hint">{t('settings.logLevel.desc') || 'Administrators can set the global log level. This affects both frontend and backend logging for all users.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can change this setting'}</span></p>
+
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span className="muted small">error</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={3}
+                          step={1}
+                          value={['error','warn','info','debug'].indexOf(logLevel)}
+                          disabled={savingLogLevel}
+                          onChange={handleLogLevelChange}
+                        />
+                        <span className="muted small">debug</span>
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <strong>{logLevel}</strong>
+                          <span className="muted small">{t('settings.logLevel.scope') || 'Applies to frontend and backend'}</span>
+                        </div>
+                      </div>
+
+                      {logLevelError && (
+                        <div className="muted small" style={{ color: 'var(--danger)' }}>{logLevelError}</div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+              </>)}
 
 
               {/* Danger Zone (moved below Active sessions) */}
@@ -1210,7 +1305,7 @@ const res = await fetch('/api/auth/admin/settings', {
                         alt="Avatar"
                         loading="eager"
                         onError={() => {
-                          console.warn('Avatar failed to load')
+                          logger.warn('Avatar failed to load')
                           setAvatarError(true)
                         }}
                         onLoad={() => {
@@ -1595,7 +1690,7 @@ const res = await fetch('/api/auth/admin/settings', {
                         showToast({ message: t('settings.updates.upToDate'), type: 'info' })
                       }
                     } catch (err) {
-                      console.error('Update check failed:', err)
+                      logger.error('Update check failed:', err)
                       showToast({ message: t('settings.updates.checkFailed'), type: 'error' })
                     } finally {
                       setCheckingUpdate(false)
@@ -1611,7 +1706,7 @@ const res = await fetch('/api/auth/admin/settings', {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.10'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.5.11'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -1627,7 +1722,7 @@ const res = await fetch('/api/auth/admin/settings', {
                       try {
                         await forceRefresh()
                       } catch (err) {
-                        console.error('Force refresh failed:', err)
+                        logger.error('Force refresh failed:', err)
                         setForceRefreshing(false)
                         showToast({ message: t('settings.updates.forceRefreshFailed') || 'Force refresh failed', type: 'error' })
                       }
@@ -1792,13 +1887,22 @@ const res = await fetch('/api/auth/admin/settings', {
                         <tr key={u.id}>
                           <td data-label={t('settings.userManagement.tableUser') || 'User'}>
                             <div className="user-info">
-                              {u.avatar ? (
-                                <img src={u.avatar} alt={u.username} className="user-avatar-small" />
-                              ) : (
-                                <div className="user-avatar-small placeholder">
-                                  <User size={16} />
+                              <div className="avatar-wrapper">
+                                <img
+                                  src={u.avatar ? getProxiedAvatarUrl(u.avatar) : undefined}
+                                  alt={u.username}
+                                  className="user-avatar-small"
+                                  onError={(e) => {
+                                    // hide broken image and reveal placeholder
+                                    e.currentTarget.style.display = 'none'
+                                    const ph = e.currentTarget.nextElementSibling
+                                    if (ph) ph.style.display = 'flex'
+                                  }}
+                                />
+                                <div className="user-avatar-small placeholder" style={{ display: u.avatar ? 'none' : 'flex' }} aria-hidden="true">
+                                  {(u.display_name || u.username || '?')[0]?.toUpperCase()}
                                 </div>
-                              )}
+                              </div>
                               <div>
                                 <div className="user-name">{u.display_name || u.username}</div>
                                 <div className="user-username">@{u.username}</div>

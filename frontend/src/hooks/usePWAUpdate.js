@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import logger from '../logger'
 
 // Helper to detect if running as PWA
 const isPWA = () => {
@@ -18,31 +19,31 @@ export function usePWAUpdate() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      console.log('SW Registered:', r);
+      logger.info('SW Registered:', r);
       swRegistrationRef.current = r;
       // Check for updates immediately on load
       if (r) {
         r.update();
         // Then check for updates every hour
         setInterval(() => {
-          console.log('Checking for SW updates...');
+          logger.info('Checking for SW updates...');
           r.update();
         }, 3600000); // 1 hour
       }
     },
     onRegisterError(error) {
-      console.log('SW registration error', error);
+      logger.error('SW registration error', error);
     },
   });
 
   // Check if this is a new version on app load (for changelog)
   useEffect(() => {
-    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.10';
+    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.5.11';
     const lastSeenVersion = localStorage.getItem('lastSeenVersion');
     const changelogShownThisSession = sessionStorage.getItem('changelogShown');
     const runningAsPWA = isPWA();
     
-    console.log('📦 Version check:', { 
+    logger.info('📦 Version check:', { 
       currentVersion, 
       lastSeenVersion, 
       changelogShownThisSession,
@@ -56,16 +57,16 @@ export function usePWAUpdate() {
     setTimeout(() => {
       if (lastSeenVersion && lastSeenVersion !== currentVersion && !changelogShownThisSession) {
         // New version detected, show changelog
-        console.log('🎉 New version detected! Showing changelog...');
+        logger.info('🎉 New version detected! Showing changelog...');
         setShowChangelog(true);
         localStorage.setItem('lastSeenVersion', currentVersion);
         sessionStorage.setItem('changelogShown', 'true');
       } else if (!lastSeenVersion) {
         // First time user
-        console.log('👋 First time user, saving version');
+        logger.info('👋 First time user, saving version');
         localStorage.setItem('lastSeenVersion', currentVersion);
       } else {
-        console.log('✅ Version unchanged or changelog already shown this session');
+        logger.info('✅ Version unchanged or changelog already shown this session');
       }
     }, checkDelay);
   }, []);
@@ -73,7 +74,7 @@ export function usePWAUpdate() {
   // Show update modal when SW has new content
   useEffect(() => {
     if (needRefresh) {
-      console.log('🔄 Service worker has new content, showing update modal');
+      logger.info('🔄 Service worker has new content, showing update modal');
       setShowUpdateModal(true);
     }
   }, [needRefresh]);
@@ -96,7 +97,7 @@ export function usePWAUpdate() {
   const checkForUpdate = async () => {
     return new Promise((resolve) => {
       if (swRegistrationRef.current) {
-        console.log('🔍 Manual update check triggered');
+        logger.info('🔍 Manual update check triggered');
         swRegistrationRef.current.update();
         
         // Wait a bit to see if update is found
@@ -104,7 +105,7 @@ export function usePWAUpdate() {
           resolve(needRefresh);
         }, 2000);
       } else {
-        console.log('⚠️ No service worker registration found');
+        logger.warn('⚠️ No service worker registration found');
         resolve(false);
       }
     });
@@ -112,7 +113,7 @@ export function usePWAUpdate() {
 
   // Force refresh - clear cache but preserve authentication
   const forceRefresh = async () => {
-    console.log('🔄 Force refresh triggered');
+    logger.info('🔄 Force refresh triggered');
     
     // Preserve authentication data
     const token = localStorage.getItem('ghassicloud-token');
@@ -123,7 +124,7 @@ export function usePWAUpdate() {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const registration of registrations) {
         await registration.unregister();
-        console.log('✅ Service worker unregistered');
+        logger.info('✅ Service worker unregistered');
       }
     }
     
@@ -131,7 +132,7 @@ export function usePWAUpdate() {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map(name => caches.delete(name)));
-      console.log('✅ All caches cleared');
+      logger.info('✅ All caches cleared');
     }
     
     // Clear localStorage except auth and lastSeenVersion

@@ -199,10 +199,18 @@
       "title": "Entwicklertools (F12) in PWA erlauben",
       "desc": "Wenn von einem Administrator aktiviert, öffnet das Drücken von F12 in der installierten PWA die App (oder eine eingebettete Webansicht) in einem neuen Fenster, sodass DevTools verwendet werden können.",
       "toggleLabel": "F12 / Entwicklertools für PWA aktivieren",
+      "allow": "Entwicklertools erlauben",
       "saved": "Einstellung gespeichert",
       "saveFailed": "Fehler beim Speichern der Einstellung",
       "disabledToast": "Entwicklertools sind durch einen Administrator deaktiviert",
       "adminHint": "Nur Administratoren — nur Administratoren können diese Einstellung aktivieren"
+    },
+    "logLevel": {
+      "title": "Globales Protokollniveau",
+      "desc": "Administratoren können das globale Protokollniveau festlegen. Dies wirkt sich auf Frontend- und Backend-Protokollierung für alle Benutzer aus.",
+      "scope": "Gilt für Frontend und Backend",
+      "saved": "Protokollstufe gespeichert",
+      "saveFailed": "Fehler beim Speichern der Protokollstufe"
     },    "activeSessionsTitle": "Aktive Sitzungen",
     "activeSessionsDesc": "Geräte und Browser anzeigen, die derzeit angemeldet sind. Widerrufe alle Sitzungen, die du nicht erkennst.",
     "signOutEverywhere": "Auf allen Geräten abmelden",

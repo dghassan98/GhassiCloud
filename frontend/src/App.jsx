@@ -13,6 +13,7 @@ import SSOSessionManager from './components/SSOSessionManager'
 import UpdateNotification from './components/UpdateNotification'
 import ChangelogModal from './components/ChangelogModal'
 import { usePWAUpdate } from './hooks/usePWAUpdate'
+import logger from './logger'
 import { 
   initializeNativeFeatures, 
   useAppLifecycle, 
@@ -73,9 +74,9 @@ function App() {
       if (!isTablet && screen.orientation && screen.orientation.lock) {
         try {
           await screen.orientation.lock('portrait')
-          console.log('Orientation locked to portrait')
+          logger.info('Orientation locked to portrait')
         } catch (err) {
-          console.log('Orientation lock not supported:', err)
+          logger.info('Orientation lock not supported:', err)
         }
       }
     }
@@ -86,17 +87,17 @@ function App() {
   // Handle app lifecycle events
   useAppLifecycle({
     onResume: () => {
-      console.log('App resumed')
+      logger.info('App resumed')
       // You can refresh data here when app comes back to foreground
     },
     onPause: () => {
-      console.log('App paused')
+      logger.info('App paused')
       // Save any pending state here
     },
     onBackButton: ({ canGoBack }) => {
       if (!canGoBack) {
         // At root of app - could show exit confirmation
-        console.log('At root, cannot go back')
+        logger.info('At root, cannot go back')
       }
     }
   })

@@ -25,7 +25,7 @@ router.get('/status/ping', async (req, res) => {
     }))
     res.json({ status: 'ok', checkedAt: new Date().toISOString(), services: results })
   } catch (err) {
-    console.error('Ping services error:', err)
+    logger.error('Ping services error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -47,7 +47,7 @@ router.post('/status/check', async (req, res) => {
     }))
     res.json({ status: 'ok', checkedAt: new Date().toISOString(), services: results })
   } catch (err) {
-    console.error('Check services error:', err)
+    logger.error('Check services error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -71,7 +71,7 @@ router.get('/', (req, res) => {
       pinned: s.pinned === 1
     })))
   } catch (err) {
-    console.error('Get services error:', err)
+    logger.error('Get services error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -97,7 +97,7 @@ router.get('/:id', (req, res) => {
       category: service.category
     })
   } catch (err) {
-    console.error('Get service error:', err)
+    logger.error('Get service error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -160,7 +160,7 @@ router.post('/', authenticateToken, (req, res) => {
       pinned: service.pinned === 1
     })
   } catch (err) {
-    console.error('Create service error:', err)
+    logger.error('Create service error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -231,7 +231,7 @@ router.put('/:id', authenticateToken, (req, res) => {
       pinned: service.pinned === 1
     })
   } catch (err) {
-    console.error('Update service error:', err)
+    logger.error('Update service error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -265,7 +265,7 @@ router.delete('/:id', authenticateToken, (req, res) => {
     
     res.json({ message: 'Service deleted successfully' })
   } catch (err) {
-    console.error('Delete service error:', err)
+    logger.error('Delete service error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -287,7 +287,7 @@ router.put('/order/bulk', (req, res) => {
     
     res.json({ message: 'Order updated successfully' })
   } catch (err) {
-    console.error('Bulk update error:', err)
+    logger.error('Bulk update error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })
@@ -318,7 +318,7 @@ router.delete('/reset/all', authenticateToken, (req, res) => {
     
     res.json({ message: 'All services have been reset' })
   } catch (err) {
-    console.error('Reset services error:', err)
+    logger.error('Reset services error:', err)
     res.status(500).json({ message: 'Server error' })
   }
 })

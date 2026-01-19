@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useLogo } from '../context/LogoContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useNetwork } from '../hooks/useCapacitor'
+import logger from '../logger'
 import '../styles/login.css'
 
 export default function Login() {
@@ -143,7 +144,7 @@ export default function Login() {
       window.location.href = authUrl.toString()
 
     } catch (err) {
-      console.error('Registration flow failed:', err)
+      logger.error('Registration flow failed:', err)
       setError(err.message || 'Registration failed')
       setRegistering(false)
     }

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useTheme } from './ThemeContext'
 import { useAuth } from './AuthContext'
+import logger from '../logger'
 
 const LogoContext = createContext()
 
@@ -103,7 +104,7 @@ export function LogoProvider({ children }) {
     if (!auth || !auth.user) return
     const prefsStr = auth.user.preferences ? JSON.stringify(auth.user.preferences) : ''
     const serverLogo = auth.user.logo
-    try { console.debug('LogoContext: auth.user changed', { serverLogo, currentLogoId: logoId, authPrefs: auth.user.preferences }) } catch (e) {}
+    try { logger.debug('LogoContext: auth.user changed', { serverLogo, currentLogoId: logoId, authPrefs: auth.user.preferences }) } catch (e) {}
     if (serverLogo && serverLogo !== logoId) {
       setLogoIdState(serverLogo)
     }
@@ -117,7 +118,7 @@ export function LogoProvider({ children }) {
         if (prefs.logo) {
           setLogoIdState(prefs.logo)
         }
-      } catch (err) { console.debug('LogoContext: preferences-updated handler error', err) }
+      } catch (err) { logger.debug('LogoContext: preferences-updated handler error', err) }
     }
     window.addEventListener('ghassicloud:preferences-updated', handler)
     return () => window.removeEventListener('ghassicloud:preferences-updated', handler)
@@ -146,12 +147,12 @@ export function LogoProvider({ children }) {
       const shouldSync = Boolean(localSyncPref && serverSyncPref && (authReady || serverPrefsApplied || tokenPresent))
 
       // Debug: log sync decision and token presence
-      try { console.debug('Logo update:', { logoId, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
+      try { logger.debug('Logo update:', { logoId, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!localStorage.getItem('ghassicloud-token'), authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
 
       // Log logo change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
       if (token && shouldSync) {
-        console.debug('Posting logo update to /api/auth/appearance', { logo: logoId })
+        logger.debug('Posting logo update to /api/auth/appearance', { logo: logoId })
         fetch('/api/auth/appearance', {
           method: 'POST',
           headers: {
@@ -159,9 +160,9 @@ export function LogoProvider({ children }) {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ logo: logoId })
-        }).then(() => { try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {} }).catch(err => console.debug('Failed to log logo change:', err))
+        }).then(() => { try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {} }).catch(err => logger.debug('Failed to log logo change:', err))
       } else {
-        console.debug('Skipping logo POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
+        logger.debug('Skipping logo POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
       }
     }
   }, [logoId, isPreview])
@@ -176,7 +177,7 @@ export function LogoProvider({ children }) {
       const href = logoId === 'ghassi-music' ? ghassiIcon : defaultIcon
       if (!document.querySelector("link[rel='icon']")) document.head.appendChild(link)
       link.setAttribute('href', href)
-    } catch (err) { console.debug('Favicon update failed', err) }
+    } catch (err) { logger.debug('Favicon update failed', err) }
   }, [logoId, theme])
 
   return (

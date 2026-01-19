@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pngToIco from 'png-to-ico';
+import logger from './src/logger'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,10 +31,10 @@ const logos = [
 const sizes = [16, 32, 48];
 
 async function generateFavicons() {
-  console.log('🎨 Generating favicons...\n');
+  logger.info('🎨 Generating favicons...\n');
 
   // Clean up old PNG favicon files
-  console.log('🧹 Cleaning up old favicon files...');
+  logger.info('🧹 Cleaning up old favicon files...');
   const files = fs.readdirSync(outputDir);
   let cleanedCount = 0;
   
@@ -42,14 +43,14 @@ async function generateFavicons() {
       const filePath = path.join(outputDir, file);
       fs.unlinkSync(filePath);
       cleanedCount++;
-      console.log(`   ✓ Removed ${file}`);
+      logger.info(`   ✓ Removed ${file}`);
     }
   }
   
   if (cleanedCount > 0) {
-    console.log(`   Removed ${cleanedCount} old favicon file(s)\n`);
+    logger.info(`   Removed ${cleanedCount} old favicon file(s)\n`);
   } else {
-    console.log('   No old favicon files to remove\n');
+    logger.info('   No old favicon files to remove\n');
   }
 
   for (const logo of logos) {
@@ -57,11 +58,11 @@ async function generateFavicons() {
     
     // Check if input file exists
     if (!fs.existsSync(inputPath)) {
-      console.log(`⚠️  Skipping ${logo.input} - file not found`);
+      logger.info(`⚠️  Skipping ${logo.input} - file not found`);
       continue;
     }
 
-    console.log(`📸 Processing ${logo.input}...`);
+    logger.info(`📸 Processing ${logo.input}...`);
 
     try {
       // Generate temporary PNG files at different sizes
@@ -77,14 +78,14 @@ async function generateFavicons() {
           .png()
           .toFile(tempPath);
         tempPngs.push(tempPath);
-        console.log(`   ✓ Generated ${size}x${size} temp PNG`);
+        logger.info(`   ✓ Generated ${size}x${size} temp PNG`);
       }
 
       // Convert PNGs to a single .ico file with multiple sizes
       const icoPath = path.join(outputDir, `${logo.output}.ico`);
       const icoBuffer = await pngToIco(tempPngs);
       fs.writeFileSync(icoPath, icoBuffer);
-      console.log(`   ✓ Generated ICO file → ${path.basename(icoPath)}`);
+      logger.info(`   ✓ Generated ICO file → ${path.basename(icoPath)}`);
 
       // Clean up temporary PNG files
       tempPngs.forEach(tempPath => {
@@ -92,34 +93,34 @@ async function generateFavicons() {
           fs.unlinkSync(tempPath);
         }
       });
-      console.log(`   ✓ Cleaned up temp files`);
+      logger.info(`   ✓ Cleaned up temp files`);
 
     } catch (error) {
-      console.error(`   ✗ Error processing ${logo.input}:`, error.message);
+      logger.error(`   ✗ Error processing ${logo.input}:`, error.message);
     }
 
-    console.log('');
+    logger.info('');
   }
 
-  console.log('✅ Favicon generation complete!\n');
-  console.log('Generated .ico files in the public/ directory.');
-  console.log('\nGenerated files:');
-  console.log('  - favicon-square-dark.ico');
-  console.log('  - favicon-circle-dark.ico');
-  console.log('  - favicon-circle-cyan.ico');
-  console.log('  - favicon-circle-yellow.ico');
+  logger.info('✅ Favicon generation complete!\n');
+  logger.info('Generated .ico files in the public/ directory.');
+  logger.info('\nGenerated files:');
+  logger.info('  - favicon-square-dark.ico');
+  logger.info('  - favicon-circle-dark.ico');
+  logger.info('  - favicon-circle-cyan.ico');
+  logger.info('  - favicon-circle-yellow.ico');
 }
 
 // Run the favicon generation
 generateFavicons().catch((error) => {
   if (error.code === 'ERR_MODULE_NOT_FOUND') {
-    console.error('❌ Error: sharp package is not installed.');
-    console.error('Please run: npm install sharp');
-    console.error('\nOr install it as a dev dependency:');
-    console.error('npm install --save-dev sharp');
+    logger.error('❌ Error: sharp package is not installed.');
+    logger.error('Please run: npm install sharp');
+    logger.error('\nOr install it as a dev dependency:');
+    logger.error('npm install --save-dev sharp');
     process.exit(1);
   } else {
-    console.error('❌ Error:', error.message);
+    logger.error('❌ Error:', error.message);
     process.exit(1);
   }
 });

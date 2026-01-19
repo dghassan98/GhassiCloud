@@ -199,10 +199,18 @@
       "title": "Permitir herramientas de desarrollo (F12) en PWA",
       "desc": "Cuando lo habilita un administrador, presionar F12 en la PWA instalada abrirá la aplicación (o una webview integrada) en una nueva ventana para que se puedan usar las DevTools.",
       "toggleLabel": "Habilitar F12 / herramientas para PWA",
+      "allow": "Permitir herramientas de desarrollador",
       "saved": "Ajuste guardado",
       "saveFailed": "Error al guardar el ajuste",
       "disabledToast": "Las herramientas de desarrollo están deshabilitadas por un administrador",
       "adminHint": "Solo administradores — solo los administradores pueden habilitar esta opción"
+    },
+    "logLevel": {
+      "title": "Nivel de registro global",
+      "desc": "Los administradores pueden establecer el nivel de registro global. Esto afecta el registro del frontend y backend para todos los usuarios.",
+      "scope": "Se aplica a frontend y backend",
+      "saved": "Nivel de registro guardado",
+      "saveFailed": "Error al guardar el nivel de registro"
     },    "activeSessionsTitle": "Sesiones activas",
     "activeSessionsDesc": "Ver dispositivos y navegadores actualmente conectados. Revoca sesiones que no reconozcas.",
     "signOutEverywhere": "Cerrar sesión en todos los dispositivos",

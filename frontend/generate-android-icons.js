@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from './src/logger'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,27 +33,27 @@ const SPLASH_SIZES = {
 };
 
 async function generateIcons() {
-  console.log('🎨 Generating Android icons from your branding...\n');
+  logger.info('🎨 Generating Android icons from your branding...\n');
 
   // Check if source files exist
   if (!fs.existsSync(SOURCE_SQUARE)) {
-    console.error(`❌ Source file not found: ${SOURCE_SQUARE}`);
+    logger.error(`❌ Source file not found: ${SOURCE_SQUARE}`);
     process.exit(1);
   }
 
   // Generate launcher icons (square)
-  console.log('📱 Generating launcher icons...');
+  logger.info('📱 Generating launcher icons...');
   for (const [folder, size] of Object.entries(ICON_SIZES)) {
     const outputPath = path.join(ANDROID_RES, folder, 'ic_launcher.png');
     await sharp(SOURCE_SQUARE)
       .resize(size, size)
       .png()
       .toFile(outputPath);
-    console.log(`   ✓ ${folder}/ic_launcher.png (${size}x${size})`);
+    logger.info(`   ✓ ${folder}/ic_launcher.png (${size}x${size})`);
   }
 
   // Generate round launcher icons
-  console.log('\n🔵 Generating round launcher icons...');
+  logger.info('\n🔵 Generating round launcher icons...');
   const roundSource = fs.existsSync(SOURCE_ROUND) ? SOURCE_ROUND : SOURCE_SQUARE;
   for (const [folder, size] of Object.entries(ICON_SIZES)) {
     const outputPath = path.join(ANDROID_RES, folder, 'ic_launcher_round.png');
@@ -70,11 +71,11 @@ async function generateIcons() {
       }])
       .png()
       .toFile(outputPath);
-    console.log(`   ✓ ${folder}/ic_launcher_round.png (${size}x${size})`);
+    logger.info(`   ✓ ${folder}/ic_launcher_round.png (${size}x${size})`);
   }
 
   // Generate adaptive icon foregrounds
-  console.log('\n🖼️  Generating adaptive icon foregrounds...');
+  logger.info('\n🖼️  Generating adaptive icon foregrounds...');
   for (const [folder, size] of Object.entries(FOREGROUND_SIZES)) {
     const outputPath = path.join(ANDROID_RES, folder, 'ic_launcher_foreground.png');
     
@@ -93,11 +94,11 @@ async function generateIcons() {
       })
       .png()
       .toFile(outputPath);
-    console.log(`   ✓ ${folder}/ic_launcher_foreground.png (${size}x${size})`);
+    logger.info(`   ✓ ${folder}/ic_launcher_foreground.png (${size}x${size})`);
   }
 
   // Generate splash screens
-  console.log('\n💦 Generating splash screens...');
+  logger.info('\n💦 Generating splash screens...');
   for (const [folder, dimensions] of Object.entries(SPLASH_SIZES)) {
     const outputPath = path.join(ANDROID_RES, folder, 'splash.png');
     const logoSize = Math.min(dimensions.width, dimensions.height) * 0.3;
@@ -127,14 +128,14 @@ async function generateIcons() {
       }])
       .png()
       .toFile(outputPath);
-    console.log(`   ✓ ${folder}/splash.png (${dimensions.width}x${dimensions.height})`);
+    logger.info(`   ✓ ${folder}/splash.png (${dimensions.width}x${dimensions.height})`);
   }
 
-  console.log('\n✅ All Android icons generated successfully!');
-  console.log('\n📋 Next steps:');
-  console.log('   1. Run: npm run build');
-  console.log('   2. Run: npx cap sync android');
-  console.log('   3. Open Android Studio: npm run cap:android');
+  logger.info('\n✅ All Android icons generated successfully!');
+  logger.info('\n📋 Next steps:');
+  logger.info('   1. Run: npm run build');
+  logger.info('   2. Run: npx cap sync android');
+  logger.info('   3. Open Android Studio: npm run cap:android');
 }
 
-generateIcons().catch(console.error);
+generateIcons().catch(logger.error);

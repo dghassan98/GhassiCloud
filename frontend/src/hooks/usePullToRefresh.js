@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Haptics, ImpactStyle } from '@capacitor/haptics'
 import { isNative } from './useCapacitor'
+import logger from '../logger'
 
 /**
  * Hook for pull-to-refresh gesture
@@ -94,7 +95,7 @@ export function usePullToRefresh(onRefresh, options = {}) {
       try {
         await onRefresh()
       } catch (error) {
-        console.error('Refresh failed:', error)
+        logger.error('Refresh failed:', error)
       } finally {
         setIsRefreshing(false)
         setPullDistance(0)

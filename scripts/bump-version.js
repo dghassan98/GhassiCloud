@@ -8,6 +8,8 @@ import readline from 'readline';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
+import logger from '../backend/src/logger.js'
+
 // Read frontend package.json
 const frontendPackagePath = join(rootDir, 'frontend', 'package.json');
 const frontendPackageJson = JSON.parse(readFileSync(frontendPackagePath, 'utf8'));
@@ -45,7 +47,7 @@ function question(query) {
 }
 
 async function main() {
-  console.log(`\n🚀 Current version: ${currentVersion}\n`);
+  logger.info(`\n🚀 Current version: ${currentVersion}\n`);
 
   // Ask for version bump type
   const bumpType = await question(
@@ -54,7 +56,7 @@ async function main() {
   const type = bumpType.trim() || 'patch';
   const newVersion = incrementVersion(currentVersion, type);
 
-  console.log(`\n📦 New version will be: ${newVersion}\n`);
+  logger.info(`\n📦 New version will be: ${newVersion}\n`);
 
   // Get release date
   const dateInput = await question(
@@ -73,7 +75,7 @@ async function main() {
       });
 
   // Get changelog entries
-  console.log('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
+  logger.info('\n📝 Enter changelog entries (one per line, empty line to finish):\n');
   const changes = [];
   while (true) {
     const change = await question(`  - `);
@@ -82,22 +84,22 @@ async function main() {
   }
 
   if (changes.length === 0) {
-    console.log('\n❌ No changelog entries provided. Aborting.');
+    logger.info('\n❌ No changelog entries provided. Aborting.');
     rl.close();
     return;
   }
 
   // Confirm
-  console.log('\n📋 Summary:');
-  console.log(`   Version: ${currentVersion} → ${newVersion}`);
-  console.log(`   Date: ${releaseDate}`);
-  console.log(`   Changes:`);
-  changes.forEach((c) => console.log(`     • ${c}`));
-  console.log('');
+  logger.info('\n📋 Summary:');
+  logger.info(`   Version: ${currentVersion} → ${newVersion}`);
+  logger.info(`   Date: ${releaseDate}`);
+  logger.info(`   Changes:`);
+  changes.forEach((c) => logger.info(`     • ${c}`));
+  logger.info('');
 
   const confirm = await question('Proceed? (y/N): ');
   if (confirm.toLowerCase() !== 'y') {
-    console.log('\n❌ Aborted.');
+    logger.info('\n❌ Aborted.');
     rl.close();
     return;
   }
@@ -105,7 +107,7 @@ async function main() {
   // Update frontend/package.json
   frontendPackageJson.version = newVersion;
   writeFileSync(frontendPackagePath, JSON.stringify(frontendPackageJson, null, 2) + '\n');
-  console.log('\n✅ Updated frontend/package.json');
+  logger.info('\n✅ Updated frontend/package.json');
 
   // Update root package.json
   const rootPackagePath = join(rootDir, 'package.json');
@@ -113,9 +115,9 @@ async function main() {
     const rootPackageJson = JSON.parse(readFileSync(rootPackagePath, 'utf8'));
     rootPackageJson.version = newVersion;
     writeFileSync(rootPackagePath, JSON.stringify(rootPackageJson, null, 2) + '\n');
-    console.log('✅ Updated root package.json');
+    logger.info('✅ Updated root package.json');
   } catch (err) {
-    console.log('⚠️  Warning: Could not update root package.json:', err.message);
+    logger.warn('⚠️  Warning: Could not update root package.json:', err.message);
   }
 
   // Update backend/package.json
@@ -124,9 +126,9 @@ async function main() {
     const backendPackageJson = JSON.parse(readFileSync(backendPackagePath, 'utf8'));
     backendPackageJson.version = newVersion;
     writeFileSync(backendPackagePath, JSON.stringify(backendPackageJson, null, 2) + '\n');
-    console.log('✅ Updated backend/package.json');
+    logger.info('✅ Updated backend/package.json');
   } catch (err) {
-    console.log('⚠️  Warning: Could not update backend/package.json:', err.message);
+    logger.warn('⚠️  Warning: Could not update backend/package.json:', err.message);
   }
 
   // Update root package-lock.json (update root/frontend/backend package entries if present)
@@ -144,9 +146,9 @@ async function main() {
       if (backKey) lockJson.packages[backKey].version = newVersion;
     }
     writeFileSync(lockPath, JSON.stringify(lockJson, null, 2) + '\n');
-    console.log('✅ Updated root package-lock.json (root/frontend/backend entries)');
+    logger.info('✅ Updated root package-lock.json (root/frontend/backend entries)');
   } catch (err) {
-    console.log('⚠️  Warning: Could not update root package-lock.json:', err.message);
+    logger.warn('⚠️  Warning: Could not update root package-lock.json:', err.message);
   }
 
   // Update ChangelogModal.jsx
@@ -170,10 +172,10 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
       `$1$2${newEntry}\n`
     );
     writeFileSync(changelogPath, changelogContent);
-    console.log('✅ Updated ChangelogModal.jsx');
+    logger.info('✅ Updated ChangelogModal.jsx');
   } else {
-    console.log('⚠️  Warning: Could not find CHANGELOG object in ChangelogModal.jsx');
-    console.log('   You may need to manually add the changelog entry.');
+    logger.warn('⚠️  Warning: Could not find CHANGELOG object in ChangelogModal.jsx');
+    logger.warn('   You may need to manually add the changelog entry.');
   }
 
   // Update VITE_APP_VERSION fallback defaults in frontend source files
@@ -189,28 +191,28 @@ ${changes.map((c) => `      '${c.replace(/'/g, "\\'")}',`).join('\n')}
       if (viteFallbackRegex.test(c)) {
         c = c.replace(viteFallbackRegex, `import.meta.env.VITE_APP_VERSION || '${newVersion}'`);
         writeFileSync(p, c);
-        console.log(`✅ Updated VITE_APP_VERSION fallback in ${p}`);
+        logger.info(`✅ Updated VITE_APP_VERSION fallback in ${p}`);
       } else {
-        console.log(`ℹ️  No VITE_APP_VERSION fallback found in ${p}`);
+        logger.info(`ℹ️  No VITE_APP_VERSION fallback found in ${p}`);
       }
     } catch (err) {
-      console.log(`⚠️  Could not update ${p}:`, err.message);
+      logger.warn(`⚠️  Could not update ${p}:`, err.message);
     }
   });
 
-  console.log(`\n🎉 Version bumped to ${newVersion}!`);
-  console.log('\n📌 Next steps:');
-  console.log('   1. Review the changes');
-  console.log('   2. Restart Vite dev server if running (vite auto-loads version from package.json)');
-  console.log('   3. Commit: git add -A && git commit -m "Release v' + newVersion + '"');
-  console.log('   4. Tag: git tag v' + newVersion);
-  console.log('   5. Deploy: npm run build\n');
+  logger.info(`\n🎉 Version bumped to ${newVersion}!`);
+  logger.info('\n📌 Next steps:');
+  logger.info('   1. Review the changes');
+  logger.info('   2. Restart Vite dev server if running (vite auto-loads version from package.json)');
+  logger.info('   3. Commit: git add -A && git commit -m "Release v' + newVersion + '"');
+  logger.info('   4. Tag: git tag v' + newVersion);
+  logger.info('   5. Deploy: npm run build\n');
 
   rl.close();
 }
 
 main().catch((err) => {
-  console.error('\n❌ Error:', err.message);
+  logger.error('\n❌ Error:', err.message);
   rl.close();
   process.exit(1);
 });

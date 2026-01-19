@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import logger from '../logger'
 
 const ThemeContext = createContext()
 
@@ -42,7 +43,7 @@ export function ThemeProvider({ children }) {
 
   const setTheme = (newTheme, preview = false) => {
     // Debug: log explicit calls to the theme setter so we can trace user actions
-    try { console.debug('setTheme called', { newTheme, preview }) } catch (e) {}
+    try { logger.debug('setTheme called', { newTheme, preview }) } catch (e) {}
     setThemeState(newTheme)
     setIsPreview(preview)
   }
@@ -85,9 +86,9 @@ export function ThemeProvider({ children }) {
       // Log theme change to backend (if user is authenticated and syncing allowed)
       const token = localStorage.getItem('ghassicloud-token')
       // Debug: log sync decision and token presence + server prefs
-      try { console.debug('Theme update:', { theme, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!token, authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
+      try { logger.debug('Theme update:', { theme, isPreview, isInitialLoad, localSyncPref, serverSyncPref, authReady, serverPrefsApplied, shouldSync, tokenPresent: !!token, authPrefs: auth && auth.user && auth.user.preferences }) } catch (e) {}
       if (token && shouldSync) {
-        console.debug('Posting theme update to /api/auth/appearance', { theme })
+        logger.debug('Posting theme update to /api/auth/appearance', { theme })
         fetch('/api/auth/appearance', {
           method: 'POST',
           headers: {
@@ -98,9 +99,9 @@ export function ThemeProvider({ children }) {
         }).then(() => {
           // Refresh user state from server so other contexts/components pick up new preferences
           try { auth && auth.refreshUser && auth.refreshUser() } catch (e) {}
-        }).catch(err => console.debug('Failed to log theme change:', err))
+        }).catch(err => logger.debug('Failed to log theme change:', err))
       } else {
-        console.debug('Skipping theme POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
+        logger.debug('Skipping theme POST: token or shouldSync missing', { token: !!token, shouldSync, authPrefs: auth && auth.user && auth.user.preferences })
       }
     }
   }, [theme, isPreview, isInitialLoad])
@@ -132,7 +133,7 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (!auth || !auth.user) return
     const serverTheme = auth.user.theme
-    try { console.debug('ThemeContext: auth.user changed, serverTheme:', serverTheme, 'currentTheme:', theme, 'authPrefs:', auth.user.preferences) } catch (e) {}
+    try { logger.debug('ThemeContext: auth.user changed, serverTheme:', serverTheme, 'currentTheme:', theme, 'authPrefs:', auth.user.preferences) } catch (e) {}
     if (serverTheme && serverTheme !== theme) {
       setThemeState(serverTheme)
     }
@@ -146,7 +147,7 @@ export function ThemeProvider({ children }) {
         if (prefs.theme) {
           setThemeState(prefs.theme)
         }
-      } catch (err) { console.debug('ThemeContext: preferences-updated handler error', err) }
+      } catch (err) { logger.debug('ThemeContext: preferences-updated handler error', err) }
     }
     window.addEventListener('ghassicloud:preferences-updated', handler)
     return () => window.removeEventListener('ghassicloud:preferences-updated', handler)

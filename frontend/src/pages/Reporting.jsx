@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
+import logger from '../logger'
 import '../styles/reporting.css'
 
 // Action icons mapping
@@ -103,7 +104,7 @@ export default function Reporting() {
       setTotalPages(data.pagination?.totalPages || 1)
       setTotal(data.pagination?.total || 0)
     } catch (err) {
-      console.error('Fetch logs error:', err)
+      logger.error('Fetch logs error:', err)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -128,7 +129,7 @@ export default function Reporting() {
       const data = await res.json()
       setStats(data)
     } catch (err) {
-      console.error('Fetch stats error:', err)
+      logger.error('Fetch stats error:', err)
     } finally {
       setStatsLoading(false)
     }
@@ -148,7 +149,7 @@ export default function Reporting() {
         setFilters(data)
       }
     } catch (err) {
-      console.error('Fetch filters error:', err)
+      logger.error('Fetch filters error:', err)
     }
   }, [token])
   
@@ -179,7 +180,7 @@ export default function Reporting() {
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ message: 'Export failed' }))
-        console.error('Export error:', res.status, errorData)
+        logger.error('Export error:', res.status, errorData)
         throw new Error(errorData.message || `Export failed with status ${res.status}`)
       }
       
@@ -194,7 +195,7 @@ export default function Reporting() {
       a.remove()
       setError(null) // Clear any previous errors on success
     } catch (err) {
-      console.error('Export error:', err)
+      logger.error('Export error:', err)
       setError(err.message || 'Export failed. Please try again.')
     } finally {
       setExporting(false)

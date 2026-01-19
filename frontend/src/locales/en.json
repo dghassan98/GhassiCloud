@@ -186,10 +186,18 @@
       "title": "Allow Developer Tools (F12) in PWA",
       "desc": "When enabled by an administrator, pressing F12 in the installed PWA will open the app (or an embedded webview) in a new window so DevTools can be used.",
       "toggleLabel": "Enable F12 / developer tools for PWA",
+      "allow": "Allow developer tools",
       "saved": "Setting saved",
       "saveFailed": "Failed to save setting",
       "disabledToast": "Developer tools are disabled by an administrator",
       "adminHint": "Admins only — only administrators can enable this setting"
+    },
+    "logLevel": {
+      "title": "Global Log Level",
+      "desc": "Administrators can set the global log level. This affects both frontend and backend logging for all users.",
+      "scope": "Applies to frontend and backend",
+      "saved": "Log level saved",
+      "saveFailed": "Failed to save log level"
     },
     "adminRequired": "Admin access required",
     "notAuthenticated": "Not authenticated — please sign in",

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import logger from '../logger'
 import en from '../locales/en.json'
 import de from '../locales/de.json'
 import fr from '../locales/fr.json'
@@ -44,7 +45,7 @@ export function LanguageProvider({ children }) {
       try {
         updateUser({ language: lang })
       } catch (e) {
-        console.error('Failed to persist language', e)
+        logger.error('Failed to persist language', e)
       }
     }
   }

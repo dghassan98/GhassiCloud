@@ -19,6 +19,7 @@ import EditServiceModal from '../components/EditServiceModal'
 import { isNative, isPWA } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import '../styles/dashboard.css'
+import logger from '../logger' 
 
 // Icon mapping for services
 const iconMap = {
@@ -179,7 +180,7 @@ export default function Dashboard() {
     setServicesOnlineLoading(true);
     try {
       const payloadServices = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : defaultServices
-      console.debug('[DEBUG] fetchServicesOnline payloadServices count:', payloadServices.length, payloadServices.map(p => p.id))
+      logger.debug('[DEBUG] fetchServicesOnline payloadServices count:', payloadServices.length, payloadServices.map(p => p.id))
       // send minimal fields
       const toCheck = payloadServices.map(s => ({ id: s.id, name: s.name, url: s.url }))
       const res = await fetch('/api/services/status/check', {
@@ -189,7 +190,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        console.debug('[DEBUG] fetchServicesOnline result count:', data.services.length, data.services.map(s => ({ id: s.id, online: s.online })))
+        logger.debug('[DEBUG] fetchServicesOnline result count:', data.services.length, data.services.map(s => ({ id: s.id, online: s.online })))
         const total = data.services.length;
         const online = data.services.filter(s => s.online).length;
         const offline = total - online;
@@ -215,7 +216,7 @@ export default function Dashboard() {
         // Merge returned online status into the services list so each card updates
         try {
           const current = (servicesRef.current && servicesRef.current.length > 0) ? servicesRef.current : payloadServices
-          console.debug('[DEBUG] fetchServicesOnline current before merge:', current.length, current.map(s => s.id))
+          logger.debug('[DEBUG] fetchServicesOnline current before merge:', current.length, current.map(s => s.id))
           const merged = current.map(s => {
             const found = data.services.find(ds => ds.id === s.id)
             if (found) {
@@ -223,23 +224,23 @@ export default function Dashboard() {
             }
             return s
           })
-          console.debug('[DEBUG] fetchServicesOnline merged:', merged.length, merged.map(s => ({ id: s.id, status: s.status })))
+          logger.debug('[DEBUG] fetchServicesOnline merged:', merged.length, merged.map(s => ({ id: s.id, status: s.status })))
           // only update if merge produced a list (defensive)
           if (Array.isArray(merged) && merged.length > 0) {
             setServicesAndRef(merged)
           } else {
-            console.warn('Status check returned no merge results, keeping existing services')
+            logger.warn('Status check returned no merge results, keeping existing services')
           }
         } catch (e) {
           // if merge fails, ignore — indicator will fall back to stored status
-          console.error('Merge services status error', e)
+          logger.error('Merge services status error', e)
         }
       } else {
         setServicesOnline({ value: 'N/A', trend: 'neutral', change: '' });
         setServicesStatus({ total: 0, online: 0, offline: 0 });
       }
     } catch (err) {
-      console.error('fetchServicesOnline error', err)
+      logger.error('fetchServicesOnline error', err)
       setServicesOnline({ value: 'N/A', trend: 'neutral', change: '' });
     } finally {
       setServicesOnlineLoading(false);
@@ -263,7 +264,7 @@ export default function Dashboard() {
         fetchServicesOnline()
       }
     } catch (err) {
-      console.error('checkSingleService error', err)
+      logger.error('checkSingleService error', err)
     }
   }
 
@@ -361,7 +362,7 @@ export default function Dashboard() {
       })
       if (res.ok) {
         const data = await res.json()
-        console.debug('[DEBUG] fetchServices fetched:', data.length, data.map(s => s.id))
+        logger.debug('[DEBUG] fetchServices fetched:', data.length, data.map(s => s.id))
         // expose for quick console inspection during debugging
         window.__FETCHED_SERVICES = data
         // If backend returned very few services (e.g. only demo), merge with default placeholders
@@ -370,7 +371,7 @@ export default function Dashboard() {
           const existingIds = new Set(data.map(s => s.id))
           const missingDefaults = defaultServices.filter(d => !existingIds.has(d.id))
           finalList = [...data, ...missingDefaults]
-          console.debug('[DEBUG] fetchServices merged with defaults:', finalList.map(s => s.id))
+          logger.debug('[DEBUG] fetchServices merged with defaults:', finalList.map(s => s.id))
         }
         setServicesAndRef(finalList.length > 0 ? finalList : defaultServices)
         // trigger an immediate status refresh now that we have the canonical list
@@ -379,7 +380,7 @@ export default function Dashboard() {
         setServicesAndRef(defaultServices)
       }
     } catch (err) {
-      console.error('Failed to fetch services:', err)
+      logger.error('Failed to fetch services:', err)
       setServicesAndRef(defaultServices)
     } finally {
       setLoading(false)
@@ -406,10 +407,10 @@ export default function Dashboard() {
         const service = await res.json()
         setServicesAndRef(prev => [...prev, service])
         // refresh services-online after adding
-        try { fetchServicesOnline() } catch (e) { console.debug('post-add refresh failed', e) }
+        try { fetchServicesOnline() } catch (e) { logger.debug('post-add refresh failed', e) }
       }
     } catch (err) {
-      console.error('Failed to add service:', err)
+      logger.error('Failed to add service:', err)
     }
     setShowAddModal(false)
   }
@@ -423,9 +424,9 @@ export default function Dashboard() {
       })
       setServicesAndRef(prev => prev.filter(s => s.id !== id))
       // refresh services-online after delete
-      try { fetchServicesOnline() } catch (e) { console.debug('post-delete refresh failed', e) }
+      try { fetchServicesOnline() } catch (e) { logger.debug('post-delete refresh failed', e) }
     } catch (err) {
-      console.error('Failed to delete service:', err)
+      logger.error('Failed to delete service:', err)
     }
   }
 
@@ -463,7 +464,7 @@ export default function Dashboard() {
         setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
       }
     } catch (err) {
-      console.error('Failed to pin service:', err)
+      logger.error('Failed to pin service:', err)
       setServicesAndRef(prev => sortServices(prev.map(s => s.id === id ? { ...s, pinned } : s)))
     }
   }
@@ -483,10 +484,10 @@ export default function Dashboard() {
         const service = await res.json()
         setServicesAndRef(prev => prev.map(s => s.id === service.id ? service : s))
         // refresh services-online after update
-        try { fetchServicesOnline() } catch (e) { console.debug('post-update refresh failed', e) }
+        try { fetchServicesOnline() } catch (e) { logger.debug('post-update refresh failed', e) }
       }
     } catch (err) {
-      console.error('Failed to update service:', err)
+      logger.error('Failed to update service:', err)
     }
     setShowEditModal(false)
     setEditingService(null)

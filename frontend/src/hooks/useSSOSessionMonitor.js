@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
+import logger from '../logger'
 
 /**
  * SSO Session Monitor Hook
@@ -69,7 +70,7 @@ export function useSSOSessionMonitor({
 
       if (!res.ok) {
         // Server error - don't logout on temporary failures
-        console.warn('SSO validation request failed:', res.status)
+        logger.warn('SSO validation request failed:', res.status)
         return { valid: true, checkFailed: true }
       }
 
@@ -86,7 +87,7 @@ export function useSSOSessionMonitor({
 
       return data
     } catch (err) {
-      console.error('SSO session validation error:', err)
+      logger.error('SSO session validation error:', err)
       // Network error - don't logout
       setSessionStatus(prev => ({ ...prev, checking: false }))
       return { valid: true, checkFailed: true }
@@ -105,14 +106,14 @@ export function useSSOSessionMonitor({
 
     // Prevent multiple simultaneous refresh attempts
     if (refreshInProgressRef.current) {
-      console.log('Refresh already in progress, skipping...')
+      logger.debug('Refresh already in progress, skipping...')
       return false
     }
 
     // Cooldown period - don't attempt refresh more than once within the cooldown window
     const timeSinceLastAttempt = Date.now() - lastRefreshAttemptRef.current
     if (timeSinceLastAttempt < refreshCooldownMs) {
-      console.log('Refresh cooldown active, skipping...')
+      logger.debug('Refresh cooldown active, skipping...')
       return false
     }
 
@@ -205,7 +206,7 @@ export function useSSOSessionMonitor({
             const { code, state: returnedState, error } = event.data
 
             if (error || !code) {
-              console.log('Silent refresh failed:', error || 'no code')
+              logger.warn('Silent refresh failed:', error || 'no code')
               refreshInProgressRef.current = false
               resolve(false)
               return
@@ -237,7 +238,7 @@ export function useSSOSessionMonitor({
               if (res.ok) {
                 const data = await res.json()
                 localStorage.setItem('ghassicloud-token', data.token)
-                console.log('Silent token refresh successful')
+                logger.info('Silent token refresh successful')
                 refreshInProgressRef.current = false
                 resolve(true)
               } else {
@@ -245,7 +246,7 @@ export function useSSOSessionMonitor({
                 resolve(false)
               }
             } catch (err) {
-              console.error('Silent refresh token exchange failed:', err)
+              logger.error('Silent refresh token exchange failed:', err)
               refreshInProgressRef.current = false
               resolve(false)
             } finally {
@@ -261,7 +262,7 @@ export function useSSOSessionMonitor({
         })
       })
     } catch (err) {
-      console.error('Silent refresh error:', err)
+      logger.error('Silent refresh error:', err)
       refreshInProgressRef.current = false
       return false
     }
@@ -277,7 +278,7 @@ export function useSSOSessionMonitor({
 
     if (!result.valid && !result.checkFailed) {
       // Session is no longer valid
-      console.log('SSO session expired, attempting silent refresh...')
+      logger.info('SSO session expired, attempting silent refresh...')
       
       // Try silent refresh first
       const refreshed = await attemptSilentRefresh()
@@ -288,7 +289,7 @@ export function useSSOSessionMonitor({
         setSessionStatus(prev => ({ ...prev, valid: true, warning: false }))
       } else {
         // Refresh failed, trigger logout
-        console.log('Silent refresh failed, logging out')
+        logger.warn('Silent refresh failed, logging out')
         if (onSessionExpired) {
           onSessionExpired()
         } else {

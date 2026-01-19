@@ -18,14 +18,14 @@ export default function SSOSessionManager() {
 
   // Handle session warning callback
   const handleSessionWarning = useCallback((seconds) => {
-    console.log('SSO session warning: expires in', seconds, 'seconds')
+    logger.info('SSO session warning: expires in', seconds, 'seconds')
     setExpiresIn(seconds)
     setShowWarning(true)
   }, [])
 
   // Handle session expired callback  
   const handleSessionExpired = useCallback(() => {
-    console.log('SSO session expired, logging out')
+    logger.info('SSO session expired, logging out')
     setShowWarning(false)
     // Set flag so login page can show "session expired" message
     try {
@@ -49,16 +49,16 @@ export default function SSOSessionManager() {
 
   // Handle extend session from warning modal
   const handleExtendSession = useCallback(async () => {
-    console.log('User clicked "Stay Logged In", attempting silent refresh...')
+    logger.info('User clicked "Stay Logged In", attempting silent refresh...')
     const success = await attemptSilentRefresh()
     if (success) {
-      console.log('Session extended successfully')
+      logger.info('Session extended successfully')
       setShowWarning(false)
       return true
     }
     // If silent refresh fails, just log it but don't logout immediately
     // Let the warning stay open so user can try again or choose to logout
-    console.warn('Failed to extend session - user may need to re-authenticate')
+    logger.warn('Failed to extend session - user may need to re-authenticate')
     return false
   }, [attemptSilentRefresh])
 
