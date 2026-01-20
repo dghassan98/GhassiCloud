@@ -1,6 +1,6 @@
 {
   "name": "ghassicloud",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Self-hosted cloud dashboard PWA",
   "private": true,
   "type": "module",

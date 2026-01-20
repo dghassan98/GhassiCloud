@@ -1202,6 +1202,20 @@
   object-fit: cover;
 }
 
+/* Prevent browsers from showing alt/fallback text inside the avatar box when an image is used (we use our own placeholder for generated avatars) */
+.users-table img.user-avatar-small { font-size: 0; line-height: 0; }
+
+/* Hide avatar images (only <img>) that are generated placeholders or come from social providers when we want to use our local initial placeholder instead. This prevents the tiny broken-image icon (and its alt text) from appearing above the generated placeholder. */
+img.user-avatar-small[src=""],
+img.user-avatar-small:not([src]),
+img.user-avatar-small[src*="ui-avatars.com"],
+img.user-avatar-small[src*="avatars.dicebear.org"],
+img.user-avatar-small[src*="identicon"],
+img.user-avatar-small[src*="initials"] {
+  display: none !important;
+}
+
+
 .user-avatar-small.placeholder {
   display: flex;
   align-items: center;
@@ -1537,6 +1551,9 @@
 
   /* Avatar wrapper to keep image and placeholder together */
   .avatar-wrapper { display: inline-flex; align-items: center; }
+
+  /* If the avatar-wrapper is in placeholder state, hide the secondary username to reduce visual clutter */
+  .avatar-wrapper.placeholder-active + div .user-username { display: none !important; }
 
   /* Make placeholder more visible inside the users table */
   .users-table .user-avatar-small.placeholder {

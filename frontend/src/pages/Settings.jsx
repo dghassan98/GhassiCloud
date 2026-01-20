@@ -1663,7 +1663,7 @@ export default function Settings() {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.6.0'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.6.1'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -1840,23 +1840,31 @@ export default function Settings() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allUsers.map(u => (
+                      {allUsers.map(u => { const isGeneratedAvatar = (url) => { if (!url) return false; return /(ui-avatars\.com|avatars\.dicebear\.org|identicon|initials|avatar=)/i.test(url); }; const generated = isGeneratedAvatar(u.avatar); return (
                         <tr key={u.id}>
                           <td data-label={t('settings.userManagement.tableUser') || 'User'}>
                             <div className="user-info">
-                              <div className="avatar-wrapper">
+                              <div className={`avatar-wrapper ${u.avatar && !generated ? '' : 'placeholder-active'}`}>
                                 <img
-                                  src={u.avatar ? getProxiedAvatarUrl(u.avatar) : undefined}
-                                  alt={u.username}
+                                  src={!generated && u.avatar ? getProxiedAvatarUrl(u.avatar) : undefined}
+                                  alt={generated ? '' : u.username}
                                   className="user-avatar-small"
+                                  onLoad={(e) => {
+                                    const wrapper = e.currentTarget.parentElement
+                                    if (wrapper) wrapper.classList.remove('placeholder-active')
+                                    const ph = e.currentTarget.nextElementSibling
+                                    if (ph) ph.style.display = 'none'
+                                    e.currentTarget.style.display = 'block'
+                                  }}
                                   onError={(e) => {
-                                    // hide broken image and reveal placeholder
                                     e.currentTarget.style.display = 'none'
+                                    const wrapper = e.currentTarget.parentElement
+                                    if (wrapper) wrapper.classList.add('placeholder-active')
                                     const ph = e.currentTarget.nextElementSibling
                                     if (ph) ph.style.display = 'flex'
                                   }}
                                 />
-                                <div className="user-avatar-small placeholder" style={{ display: u.avatar ? 'none' : 'flex' }} aria-hidden="true">
+                                <div className="user-avatar-small placeholder" style={{ display: u.avatar && !generated ? 'none' : 'flex' }} aria-hidden="true">
                                   {(u.display_name || u.username || '?')[0]?.toUpperCase()}
                                 </div>
                               </div>
@@ -1900,7 +1908,7 @@ export default function Settings() {
                             )}
                           </td>
                         </tr>
-                      ))}
+                      )})}
                     </tbody>
                   </table>
 
