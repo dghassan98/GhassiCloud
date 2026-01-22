@@ -54,13 +54,13 @@
   },
   "auth": {
     "completingSignIn": "Anmeldung wird abgeschlossen...",
-    "ssoSignIn": "Mit GhassiAuth anmelden",
+    "ssoSignIn": "Mit GhassiAuth anmelden oder registrieren",
     "redirecting": "Weiterleitung…",
     "redirectingA11y": "Weiterleitung zu GhassiAuth Single Sign-On",
-    "signInWithGhassiAuth": "Mit GhassiAuth anmelden",
+    "signInWithGhassiAuth": "Mit GhassiAuth anmelden oder registrieren",
     "socialsNotePrefix": "Hinweis:",
-    "socialsNote": "Das Anmelden mit Socials findest du unter <strong>Mit GhassiAuth anmelden</strong>.",
-    "registerPrompt": "Neu hier? Registrieren",
+    "socialsNote": "Melde dich an oder erstelle ein Konto mit Google, Discord und mehr.",
+    "registerPrompt": "Stattdessen per E-Mail registrieren",
     "registering": "Registrieren…",
     "registerAria": "Ein neues Konto registrieren"
   },

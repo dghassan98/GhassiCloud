@@ -54,13 +54,13 @@
   },
   "auth": {
     "completingSignIn": "Connexion en cours...",
-    "ssoSignIn": "Se connecter avec GhassiAuth",
+    "ssoSignIn": "Se connecter ou s'inscrire avec GhassiAuth",
     "redirecting": "Redirection…",
     "redirectingA11y": "Redirection vers la connexion unique GhassiAuth",
-    "signInWithGhassiAuth": "Se connecter avec GhassiAuth",
+    "signInWithGhassiAuth": "Se connecter ou s'inscrire avec GhassiAuth",
     "socialsNotePrefix": "Remarque :",
-    "socialsNote": "La connexion via les réseaux sociaux est disponible sous <strong>Se connecter avec GhassiAuth</strong>.",
-    "registerPrompt": "Nouveau ici ? S'inscrire",
+    "socialsNote": "Connectez-vous ou créez un compte avec Google, Discord et plus.",
+    "registerPrompt": "S'inscrire par e-mail à la place",
     "registering": "Inscription…",
     "registerAria": "Créer un nouveau compte"
   },

@@ -64,13 +64,13 @@
   },
   "auth": {
     "completingSignIn": "Completing sign in...",
-    "ssoSignIn": "Sign in with GhassiAuth",
+    "ssoSignIn": "Sign in or register with GhassiAuth",
     "redirecting": "Redirecting…",
     "redirectingA11y": "Redirecting to GhassiAuth single sign-on",
-    "signInWithGhassiAuth": "Sign in with GhassiAuth",
+    "signInWithGhassiAuth": "Sign in or register with GhassiAuth",
     "socialsNotePrefix": "Note:",
-    "socialsNote": "Sign in with Socials is available under <strong>Sign in with GhassiAuth</strong>.",
-    "registerPrompt": "New here? Register",
+    "socialsNote": "Sign in or create an account with Google, Discord, and more.",
+    "registerPrompt": "Register with email instead",
     "registering": "Registering…",
     "registerAria": "Register a new account"
   },

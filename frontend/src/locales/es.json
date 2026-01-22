@@ -54,13 +54,13 @@
   },
   "auth": {
     "completingSignIn": "Completando el inicio de sesión...",
-    "ssoSignIn": "Iniciar sesión con GhassiAuth",
+    "ssoSignIn": "Iniciar sesión o registrarse con GhassiAuth",
     "redirecting": "Redirigiendo…",
     "redirectingA11y": "Redirigiendo al inicio de sesión único de GhassiAuth",
-    "signInWithGhassiAuth": "Iniciar sesión con GhassiAuth",
+    "signInWithGhassiAuth": "Iniciar sesión o registrarse con GhassiAuth",
     "socialsNotePrefix": "Nota:",
-    "socialsNote": "Iniciar sesión con redes sociales está disponible en <strong>Iniciar sesión con GhassiAuth</strong>.",
-    "registerPrompt": "¿Nuevo aquí? Regístrate",
+    "socialsNote": "Inicia sesión o crea una cuenta con Google, Discord y más.",
+    "registerPrompt": "Registrarse con correo electrónico en su lugar",
     "registering": "Registrando…",
     "registerAria": "Registrar una nueva cuenta"
   },

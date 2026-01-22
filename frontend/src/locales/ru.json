@@ -54,13 +54,13 @@
   },
   "auth": {
     "completingSignIn": "Завершение входа...",
-    "ssoSignIn": "Войти через GhassiAuth",
+    "ssoSignIn": "Войти или зарегистрироваться через GhassiAuth",
     "redirecting": "Перенаправление…",
     "redirectingA11y": "Перенаправление на единый вход GhassiAuth",
-    "signInWithGhassiAuth": "Войти через GhassiAuth",
+    "signInWithGhassiAuth": "Войти или зарегистрироваться через GhassiAuth",
     "socialsNotePrefix": "Примечание:",
-    "socialsNote": "Вход через социальные сети доступен в разделе <strong>Войти через GhassiAuth</strong>.",
-    "registerPrompt": "Впервые здесь? Зарегистрироваться",
+    "socialsNote": "Войдите или создайте аккаунт через Google, Discord и другие.",
+    "registerPrompt": "Зарегистрироваться по электронной почте",
     "registering": "Регистрация…",
     "registerAria": "Зарегистрировать новую учетную запись"
   },
