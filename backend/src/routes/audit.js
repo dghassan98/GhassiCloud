@@ -293,8 +293,11 @@ router.get('/stats', authenticateToken, (req, res) => {
     
     const loginStats = db.prepare(`
       SELECT 
-        SUM(CASE WHEN action = 'login' AND status = 'success' THEN 1 ELSE 0 END) as successful_logins,
-        SUM(CASE WHEN action = 'login_failed' OR (action = 'login' AND status = 'failure') THEN 1 ELSE 0 END) as failed_logins,
+        -- Count only SSO successful attempts (sso_login or legacy login with keycloak in details)
+        SUM(CASE WHEN (action = 'sso_login' OR (action = 'login' AND details LIKE '%keycloak%')) AND status = 'success' THEN 1 ELSE 0 END) as successful_logins,
+        -- Count only SSO-related failures (login_failed, sso_login failures, or legacy login failures that reference keycloak)
+        SUM(CASE WHEN (action = 'login_failed' OR (action = 'sso_login' AND status = 'failure') OR (action = 'login' AND status = 'failure' AND details LIKE '%keycloak%')) THEN 1 ELSE 0 END) as failed_logins,
+        -- Total sso_login events (regardless of status)
         SUM(CASE WHEN action = 'sso_login' THEN 1 ELSE 0 END) as sso_logins
       FROM audit_logs 
       WHERE created_at >= ?

@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.6.3': {
+    date: 'January 23, 2026',
+    changes: [
+      'Enhance login statistics to include SSO and keycloak-related attempts',
+    ],
+  },
   '1.6.2': {
     date: 'January 22, 2026',
     changes: [
@@ -345,7 +351,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.6.2';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.6.3';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
