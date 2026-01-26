@@ -15,9 +15,6 @@ A self-hosted cloud services dashboard and mobile-capable frontend that manages 
   - [Common tasks](#common-tasks)
 - [Docker / Production](#docker--production)
 - [Scripts & utilities](#scripts--utilities)
-- [Contributing](#contributing)
-- [License](#license)
-
 ---
 
 ## Project
