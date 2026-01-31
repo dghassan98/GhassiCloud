@@ -1,0 +1,375 @@
+{
+  "nav": {
+    "dashboard": "Übersicht",
+    "reporting": "Berichte",
+    "settings": "Einstellungen",
+    "pressBackAgain": "Drücken Sie erneut Zurück, um zu beenden"
+  },
+  "general": {
+    "welcome": "Willkommen bei GhassiCloud. Digitale Souveränität beginnt hier.",
+    "scanMe": "Scanne mich",
+    "userFallback": "Benutzer",
+    "memberFallback": "Mitglied"
+  },
+  "sessionWarning": {
+    "title": "Sitzung läuft bald ab",
+    "description": "Ihre Anmeldesitzung läuft aufgrund von Inaktivität bald ab. Möchten Sie angemeldet bleiben?",
+    "logout": "Abmelden",
+    "stayLoggedIn": "Angemeldet bleiben",
+    "helperText": "Klicken Sie auf 'Angemeldet bleiben', um Ihre Sitzung fortzusetzen"
+  },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Teilweise bewölkt",
+    "openProfile": "Öffne Profileinstellungen",
+    "notifications": "Benachrichtigungen",
+    "signOutLocal": "Abmelden (nur App)",
+    "signOutProvider": "Überall abmelden (inkl. Identitätsanbieter)",
+    "signedOut": "Abgemeldet"
+  },
+  "offline": {
+    "title": "Keine Verbindung",
+    "message": "Sie sind derzeit offline. Bitte überprüfen Sie Ihre Internetverbindung, um sich anzumelden.",
+    "serverUnreachable": "Server nicht erreichbar",
+    "serverMessage": "Der Server kann nicht erreicht werden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+  },
+  "dashboard": {
+    "servicesOnline": "Dienste online",
+    "addService": "Dienst hinzufügen",
+    "searchPlaceholder": "Dienste suchen...",
+    "noServices": "Keine Dienste gefunden",
+    "loadingServices": "Dienste werden geladen...",
+    "getStarted": "Füge deinen ersten Dienst hinzu, um zu beginnen",
+    "noServicesPopover": "Keine Dienste",
+    "lastChecked": "Zuletzt geprüft",
+    "checking": "Prüfe...",
+    "never": "Nie",
+    "yourServices": "Deine Dienste",
+    "greetings": {
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Tag",
+      "evening": "Guten Abend",
+      "night": "Gute Nacht"
+    }
+  },
+  "auth": {
+    "completingSignIn": "Anmeldung wird abgeschlossen...",
+    "ssoSignIn": "Mit GhassiAuth anmelden oder registrieren",
+    "redirecting": "Weiterleitung…",
+    "redirectingA11y": "Weiterleitung zu GhassiAuth Single Sign-On",
+    "signInWithGhassiAuth": "Mit GhassiAuth anmelden oder registrieren",
+    "socialsNotePrefix": "Hinweis:",
+    "socialsNote": "Melde dich an oder erstelle ein Konto mit Google, Discord und mehr.",
+    "registerPrompt": "Stattdessen per E-Mail registrieren",
+    "registering": "Registrieren…",
+    "registerAria": "Ein neues Konto registrieren"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Verwalte dein Konto und deine Einstellungen",
+    "profile": "Profileinstellungen",
+    "appearance": "Darstellung",
+    "theme": "Thema",
+    "themeOptions": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    },
+    "accentColor": "Akzentfarbe",
+    "customAccentColor": "Benutzerdefinierte Akzentfarbe",
+    "customAccentHint": "Wähle deine eigene Akzentfarbe",
+    "hexCode": "Hex-Code",
+    "logoStyle": "Logo-Stil",
+    "logoHint": "Wähle deinen bevorzugten Logo-Stil für das Dashboard",
+    "avatarHint": "Empfohlen: PNG/JPG bis 2MB.",
+    "security": "Sicherheit",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPasswordPlaceholder": "Aktuelles Passwort eingeben",
+    "newPassword": "Neues Passwort",
+    "newPasswordPlaceholder": "Neues Passwort eingeben",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+    "twoFactor": {
+      "title": "",
+      "desc": ""
+    },
+    "enable2FA": "",
+    "ssoConfig": {
+      "title": "SSO-Konfiguration",
+      "desc": "Mit deinem Identitätsanbieter verbinden",
+      "button": "SSO bearbeiten"
+    },
+    "notifications": {
+      "serviceAlerts": {
+        "title": "Dienststatus-Benachrichtigungen",
+        "desc": "Erhalte eine Benachrichtigung, wenn ein Dienst offline geht"
+      },
+      "systemUpdates": {
+        "title": "System-Updates",
+        "desc": "Benachrichtigungen über Systemupdates"
+      },
+      "weeklyReports": {
+        "title": "Wöchentliche Berichte",
+        "desc": "Erhalte wöchentliche Nutzungsberichte"
+      }
+    },
+    "data": "Daten & Backup",
+    "exportData": "Daten exportieren",
+    "exportDataDesc": "Lade alle deine Dienstkonfigurationen herunter",
+    "exportJSON": "Als JSON exportieren",
+    "importData": "Daten importieren",
+    "importDataDesc": "Aus einer Sicherung wiederherstellen",
+    "import": "Importieren",
+    "dangerZone": "Gefahrenbereich",
+    "resetAllTitle": "Alle Dienste zurücksetzen",
+    "resetAllDesc": "Entfernt alle Dienstkonfigurationen",
+    "reset": "Zurücksetzen",
+    "confirmTitle": "Bist du sicher?",
+    "confirmDesc": "Dies wird alle deine Dienste dauerhaft löschen. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "cancel": "Abbrechen",
+    "resetting": "Wird zurückgesetzt...",
+    "resetConfirmYes": "Ja, alle zurücksetzen",
+    "deleteAccountTitle": "Konto löschen",
+    "deleteAccountDesc": "Lösche dauerhaft dein Konto und alle Daten",
+    "delete": "Löschen",
+    "saveChanges": "Änderungen speichern",
+    "signOut": "Abmelden",
+    "uploadAvatar": "Avatar hochladen",
+    "removeAvatar": "Entfernen",
+    "language": "Sprache",
+    "languageSystem": "System",
+    "languageHint": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
+    "tabs": {
+      "profile": "Profil",
+      "appearance": "Darstellung",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "data": "Daten & Backup",
+      "updates": "Updates"
+    },
+    "syncPreferences": {
+      "title": "Einstellungen über Geräte synchronisieren",
+      "desc": "Speichere Anzeigeeinstellungen in deinem Konto und synchronisiere sie über Geräte. Deaktiviere, um Einstellungen lokal in diesem Browser zu behalten.",
+      "enabled": "Einstellungen werden synchronisiert",
+      "disabled": "Einstellungen werden lokal gespeichert",
+      "toggleFailed": "Fehler beim Aktualisieren der Synchronisationseinstellung"
+    },
+    "resetDefaults": {
+      "title": "Design auf Standard zurücksetzen",
+      "desc": "Stellt Theme, Akzentfarbe und Logo auf die Standardeinstellungen zurück. Optional gespeicherte Servereinstellungen vergessen.",
+      "forgetServer": "Serverpräferenzen vergessen",
+      "button": "Auf Standard zurücksetzen",
+      "confirm": "Dadurch werden die Anzeigeeinstellungen auf die Standardeinstellungen zurückgesetzt. Fortfahren?",
+      "localReset": "Design lokal zurückgesetzt",
+      "serverReset": "Servereinstellungen wurden gelöscht",
+      "serverResetFailed": "Serverpräferenzen konnten nicht gelöscht werden",
+      "failed": "Design konnte nicht lokal zurückgesetzt werden",
+      "mustBeSignedIn": "Melde dich an, um Serverpräferenzen zu löschen"
+    },
+    "updates": {
+      "title": "App-Updates",
+      "description": "Nach der neuesten Version der App suchen",
+      "checkLabel": "Manuell nach Updates suchen",
+      "check": "Nach Updates suchen",
+      "checking": "Wird geprüft...",
+      "available": "Update verfügbar! Bitte aktualisieren Sie die Seite.",
+      "upToDate": "Sie verwenden die neueste Version!",
+      "checkFailed": "Update-Prüfung fehlgeschlagen",
+      "versionInfo": "Versionsinformationen",
+      "currentVersion": "Aktuelle Version",
+      "forceRefresh": "Aktualisierung erzwingen",
+      "forceRefreshDesc": "Wenn die App auf einer alten Version hängen bleibt, löscht die erzwungene Aktualisierung alle Caches und lädt neu. Ihre Anmeldung bleibt erhalten.",
+      "forceRefreshConfirm": "Alle zwischengespeicherten Daten werden gelöscht und die App wird neu geladen. Ihre Anmeldung bleibt erhalten. Fortfahren?",
+      "forceRefreshBtn": "Aktualisierung erzwingen",
+      "forceRefreshing": "Wird aktualisiert...",
+      "forceRefreshFailed": "Erzwungene Aktualisierung fehlgeschlagen"
+    },
+    "avatarTooLarge": "Avatar darf nicht größer als 2 MB sein",
+    "profileSaved": "Profil gespeichert",
+    "saveFailed": "Fehler beim Speichern des Profils",
+    "languageConfirmTitle": "Sprache ändern?",
+    "languageConfirmMsg": "Die ausgewählte Sprache auf die Benutzeroberfläche anwenden? Wenn Sie nicht anwenden, wird sie auf die vorherige Sprache zurückgesetzt.",
+    "languageConfirmApply": "Anwenden",
+    "unsavedChanges": {
+      "title": "Nicht gespeicherte Änderungen",
+      "message": "Sie haben nicht gespeicherte Darstellungs-Änderungen. Möchten Sie diese verwerfen oder weiter bearbeiten?",
+      "discard": "Änderungen verwerfen",
+      "keepEditing": "Weiter bearbeiten"
+    },
+    "usernameSSOHint": "Der Benutzername wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
+    "emailSSOHint": "Die E-Mail wird von deinem SSO-Anbieter bereitgestellt und kann hier nicht geändert werden.",
+    "passwordManagedBySSOTitle": "Passwort wird vom Identitätsanbieter verwaltet",
+    "passwordManagedBySSO": "Dein Konto verwendet Single Sign-On. Um dein Passwort zu ändern, besuche bitte deinen Authentifizierungsanbieter.",
+    "changeOnAuthPlatform": "Passwort auf der Authentifizierungsplattform ändern",
+    "resetSuccess": "Alle Dienste wurden erfolgreich zurückgesetzt!",
+    "resetFailed": "Fehler beim Zurücksetzen der Dienste",    "pwaDevTools": {
+      "title": "Entwicklertools (F12) in PWA erlauben",
+      "desc": "Wenn von einem Administrator aktiviert, öffnet das Drücken von F12 in der installierten PWA die App (oder eine eingebettete Webansicht) in einem neuen Fenster, sodass DevTools verwendet werden können.",
+      "toggleLabel": "F12 / Entwicklertools für PWA aktivieren",
+      "allow": "Entwicklertools erlauben",
+      "saved": "Einstellung gespeichert",
+      "saveFailed": "Fehler beim Speichern der Einstellung",
+      "disabledToast": "Entwicklertools sind durch einen Administrator deaktiviert",
+      "adminHint": "Nur Administratoren — nur Administratoren können diese Einstellung aktivieren"
+    },
+    "logLevel": {
+      "title": "Globales Protokollniveau",
+      "desc": "Administratoren können das globale Protokollniveau festlegen. Dies wirkt sich auf Frontend- und Backend-Protokollierung für alle Benutzer aus.",
+      "scope": "Gilt für Frontend und Backend",
+      "saved": "Protokollstufe gespeichert",
+      "saveFailed": "Fehler beim Speichern der Protokollstufe"
+    },    "activeSessionsTitle": "Aktive Sitzungen",
+    "activeSessionsDesc": "Geräte und Browser anzeigen, die derzeit angemeldet sind. Widerrufe alle Sitzungen, die du nicht erkennst.",
+    "signOutEverywhere": "Auf allen Geräten abmelden",
+    "signOutEverywhereConfirm": "Von allen Geräten abmelden?",
+    "signOutEverywhereDesc": "Sie werden von allen aktiven Sitzungen abgemeldet.",
+    "signOutEverywhereSuccess": "Erfolgreich auf allen Geräten abgemeldet",
+    "signOutEverywhereFailed": "Fehler beim Abmelden auf allen Geräten",
+    "signOutSessionConfirm": "Diese Sitzung abmelden?",
+    "signOutSessionDesc": "Sie werden von dieser Sitzung abgemeldet.",
+    "signOutSessionSuccess": "Sitzung widerrufen",
+    "signOutSessionFailed": "Fehler beim Widerrufen der Sitzung",
+    "noActiveSessions": "Keine aktiven Sitzungen",
+    "localNetwork": "Lokales Netzwerk",
+    "started": "Gestartet",
+    "lastActive": "Zuletzt aktiv",
+    "currentSession": "Aktuelle Sitzung",
+    "risk": {
+      "differentDevice": "Anderes Gerät/Browser",
+      "staleSession": "Lange nicht verwendete Sitzung",
+      "unknownClient": "Unbekannter Client"
+    },
+    "userManagement": {
+      "title": "Benutzerverwaltung",
+      "description": "Benutzerkonten und Berechtigungen verwalten",
+      "loadingUsers": "Benutzer werden geladen...",
+      "noUsers": "Keine Benutzer gefunden",
+      "tableUser": "Benutzer",
+      "tableEmail": "E-Mail",
+      "tableRole": "Rolle",
+      "tableSSO": "SSO",
+      "tableActions": "Aktionen",
+      "roleUser": "Benutzer",
+      "roleAdmin": "Administrator",
+      "ssoEnabled": "SSO",
+      "localAccount": "Lokal",
+      "deleteUser": "Benutzer löschen",
+      "deleteConfirmTitle": "Benutzer löschen",
+      "deleteConfirmMessage": "Möchten Sie diesen Benutzer wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "roleUpdated": "Benutzerrolle erfolgreich aktualisiert",
+      "roleUpdateFailed": "Fehler beim Aktualisieren der Rolle",
+      "userDeleted": "Benutzer erfolgreich gelöscht",
+      "userDeleteFailed": "Fehler beim Löschen des Benutzers",
+      "loadFailed": "Fehler beim Laden der Benutzer"
+    }
+  },
+  "profile": {
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "displayName": "Anzeigename",
+    "username": "Benutzername",
+    "email": "E-Mail"
+  },
+  "reporting": {
+    "title": "Berichte",
+    "description": "Analysen und Einblicke für deine Dienste",
+    "comingSoon": "Demnächst",
+    "plannedFeatures": "Geplante Funktionen",
+    "usageAnalytics": "Nutzungsanalyse",
+    "features": {
+      "dailyWeeklyMonthly": "Tägliche/Wöchentliche/Monatliche Nutzungsberichte",
+      "uptimeCharts": "Diagramme zur Dienstverfügbarkeit",
+      "mostAccessed": "Meistgenutzte Dienste",
+      "responseTime": "Antwortzeitüberwachung",
+      "export": "Berichte als PDF/CSV exportieren",
+      "dateRange": "Benutzerdefinierter Datumsbereich",
+      "emailReports": "Per E-Mail geplante Berichte"
+    }
+  },
+  "nowPlaying": {
+    "refresh": "Aktualisieren",
+    "refreshedSuccess": "Jetzt wird aktualisiert",
+    "refreshFailed": "Aktualisierung fehlgeschlagen",
+    "refreshFailedAuth": "Nicht authentifiziert — bitte anmelden",
+    "refreshNoEntry": "Keine Wiedergabe erkannt",
+    "reloginSuccess": "Erfolgreich erneut angemeldet",
+    "reloginFailed": "Automatische erneute Anmeldung fehlgeschlagen",
+    "logout": "Abmelden",
+    "loading": "Lädt…",
+    "nothingPlaying": "Nichts wird abgespielt",
+    "unknownArtist": "Unbekannter Künstler",
+    "noPlayerInfo": "Keine Player-Informationen",
+    "connectButton": "Mit GhassiMusic verbinden",
+    "connectTitle": "Mit GhassiMusic verbinden",
+    "signInDesc": "Melde dich bei GhassiMusic an, um anzuzeigen, was auf deinem Dashboard abgespielt wird.",
+    "loggingIn": "Anmeldung…",
+    "login": "Anmelden"
+  },
+  "service": {
+    "check": "Status prüfen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "pin": "Anpinnen",
+    "unpin": "Lösen",
+    "open": "Öffnen",
+    "addTitle": "Neuen Dienst hinzufügen",
+    "editTitle": "Dienst bearbeiten",
+    "fields": {
+      "name": "Dienstname",
+      "description": "Beschreibung",
+      "url": "URL",
+      "icon": "Icon",
+      "preview": "Vorschau:",
+      "color": "Farbe"
+    },
+    "placeholders": {
+      "name": "z. B. Jellyfin",
+      "description": "z. B. Media-Streaming-Server",
+      "url": "https://service.beispiel.de"
+    },
+    "icon": {
+      "auto": "Favicon verwenden",
+      "choose": "Symbol wählen"
+    },
+    "faviconPreview": "Favicon-Vorschau",
+    "extraAuth": "Erfordert zusätzliche Authentifizierung",
+    "extraAuthShort": "Auth erforderlich",
+    "extraAuthDesc": "Dieser Dienst erfordert zusätzliche Authentifizierung und kann keine sofortige OIDC-Anmeldung durchführen.",
+    "ghassiMusicDesc": "Ihre persönliche Musiksammlung",
+    "ghassiNotesDesc": "Ihre persönlichen Notizen",
+    "ghassiDriveDesc": "Ihr persönlicher Cloud-Speicher",
+    "ghassiGalleryDesc": "Ihre persönliche Cloud-Galerie",
+    "ghassiStreamDesc": "Ihr persönlicher Streamingdienst",
+    "ghassiShareDesc": "Ihr persönlicher Dateifreigabedienst"
+  },
+  "app": {
+    "loading": "GhassiCloud wird geladen..."
+  },
+  "webview": {
+    "closeConfirm": {
+      "title": "Webansicht schließen?",
+      "message": "Sie sind dabei, dieses Fenster zu schließen. Fortfahren?",
+      "confirm": "Schließen",
+      "cancel": "Abbrechen"
+    },
+    "minimize": "Minimieren",
+    "minimizeLimit": "Maximale Anzahl minimierter Webansichten erreicht",
+    "openExternal": "Im externen Browser öffnen",
+    "close": "Schließen",
+    "trayLabel": "Minimierte Webansichten",
+    "restore": "Wiederherstellen",
+    "maximize": "Maximieren",
+    "restoreWindow": "Fenster wiederherstellen",
+    "refreshConfirm": {
+      "title": "Anwendung neu laden?",
+      "message": "Dadurch werden alle geöffneten Webansichten geschlossen und die App neu geladen. Fortfahren?",
+      "confirm": "Neu laden",
+      "cancel": "Abbrechen"
+    }
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "loading": "Wird geladen..."
+  }
+}

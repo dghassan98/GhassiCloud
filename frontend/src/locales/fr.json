@@ -1,0 +1,377 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "reporting": "Rapports",
+    "settings": "Paramètres",
+    "pressBackAgain": "Appuyez à nouveau sur retour pour quitter"
+  },
+  "general": {
+    "welcome": "Bienvenue sur GhassiCloud. Adoptez la souveraineté numérique.",
+    "scanMe": "Scannez-moi",
+    "userFallback": "Utilisateur",
+    "memberFallback": "Membre"
+  },
+  "sessionWarning": {
+    "title": "Session bientôt expirée",
+    "description": "Votre session de connexion va bientôt expirer en raison de l'inactivité. Souhaitez-vous rester connecté ?",
+    "logout": "Se déconnecter",
+    "stayLoggedIn": "Rester connecté",
+    "helperText": "Cliquez sur 'Rester connecté' pour continuer votre session"
+  },
+  "layout": {
+    "weatherTemp": "18°C",
+    "weatherDesc": "Partiellement nuageux",
+    "openProfile": "Ouvrir les paramètres du profil",
+    "notifications": "Notifications",
+    "signOutLocal": "Déconnexion (locale)",
+    "signOutProvider": "Déconnexion du fournisseur d'identité",
+    "signedOut": "Déconnecté"
+  },
+  "offline": {
+    "title": "Pas de Connexion",
+    "message": "Vous êtes actuellement hors ligne. Veuillez vérifier votre connexion Internet pour vous connecter.",
+    "serverUnreachable": "Serveur Inaccessible",
+    "serverMessage": "Impossible d'accéder au serveur. Veuillez vérifier votre connexion et réessayer."
+  },
+  "dashboard": {
+    "servicesOnline": "Services en ligne",
+    "addService": "Ajouter un service",
+    "searchPlaceholder": "Rechercher des services...",
+    "noServices": "Aucun service trouvé",
+    "loadingServices": "Chargement des services...",
+    "getStarted": "Ajoutez votre premier service pour commencer",
+    "noServicesPopover": "Aucun service",
+    "lastChecked": "Dernière vérification",
+    "checking": "Vérification...",
+    "never": "Jamais",
+    "yourServices": "Vos services",
+    "greetings": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir",
+      "night": "Bonne nuit"
+    }
+  },
+  "auth": {
+    "completingSignIn": "Connexion en cours...",
+    "ssoSignIn": "Se connecter ou s'inscrire avec GhassiAuth",
+    "redirecting": "Redirection…",
+    "redirectingA11y": "Redirection vers la connexion unique GhassiAuth",
+    "signInWithGhassiAuth": "Se connecter ou s'inscrire avec GhassiAuth",
+    "socialsNotePrefix": "Remarque :",
+    "socialsNote": "Connectez-vous ou créez un compte avec Google, Discord et plus.",
+    "registerPrompt": "S'inscrire par e-mail à la place",
+    "registering": "Inscription…",
+    "registerAria": "Créer un nouveau compte"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Gérez votre compte et vos préférences",
+    "profile": "Paramètres du profil",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "themeOptions": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    },
+    "accentColor": "Couleur d'accent",
+    "customAccentColor": "Couleur d'accent personnalisée",
+    "customAccentHint": "Choisissez votre propre couleur d'accent",
+    "hexCode": "Code hexadécimal",
+    "logoStyle": "Style du logo",
+    "logoHint": "Choisissez le style de logo préféré pour le tableau de bord",
+    "avatarHint": "Recommandé : PNG/JPG jusqu'à 2 Mo.",
+    "security": "Sécurité",
+    "currentPassword": "Mot de passe actuel",
+    "currentPasswordPlaceholder": "Entrez le mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
+    "twoFactor": {
+      "title": "",
+      "desc": ""
+    },
+    "enable2FA": "",
+    "ssoConfig": {
+      "title": "Configuration SSO",
+      "desc": "Connectez-vous à votre fournisseur d'identité",
+      "button": "Modifier SSO"
+    },
+    "notifications": {
+      "serviceAlerts": {
+        "title": "Alertes d'état du service",
+        "desc": "Recevez une notification lorsqu'un service est hors ligne"
+      },
+      "systemUpdates": {
+        "title": "Mises à jour système",
+        "desc": "Notifications concernant les mises à jour du système"
+      },
+      "weeklyReports": {
+        "title": "Rapports hebdomadaires",
+        "desc": "Recevez des rapports d'utilisation hebdomadaires"
+      }
+    },
+    "data": "Données & Sauvegarde",
+    "exportData": "Exporter les données",
+    "exportDataDesc": "Téléchargez toutes vos configurations de service",
+    "exportJSON": "Exporter en JSON",
+    "importData": "Importer des données",
+    "importDataDesc": "Restaurer à partir d'un fichier de sauvegarde",
+    "import": "Importer",
+    "dangerZone": "Zone dangereuse",
+    "resetAllTitle": "Réinitialiser tous les services",
+    "resetAllDesc": "Supprimer toutes les configurations de service",
+    "reset": "Réinitialiser",
+    "confirmTitle": "Êtes-vous sûr ?",
+    "confirmDesc": "Cela supprimera définitivement tous vos services. Cette action est irréversible.",
+    "cancel": "Annuler",
+    "resetting": "Réinitialisation...",
+    "resetConfirmYes": "Oui, tout réinitialiser",
+    "deleteAccountTitle": "Supprimer le compte",
+    "deleteAccountDesc": "Supprimer définitivement votre compte et toutes les données",
+    "delete": "Supprimer",
+    "saveChanges": "Enregistrer les modifications",
+    "signOut": "Se déconnecter",
+    "uploadAvatar": "Téléverser l'avatar",
+    "removeAvatar": "Supprimer",
+    "language": "Langue",
+    "languageSystem": "Système",
+    "languageHint": "Choisissez votre langue d'interface préférée",
+    "tabs": {
+      "profile": "Profil",
+      "appearance": "Apparence",
+      "security": "Sécurité",
+      "notifications": "Notifications",
+      "data": "Données & Sauvegarde",
+      "updates": "Mises à jour"
+    },
+    "syncPreferences": {
+      "title": "Synchroniser les préférences entre appareils",
+      "desc": "Enregistrez les préférences d'apparence sur votre compte et synchronisez-les sur vos appareils. Désactivez pour conserver les paramètres localement dans ce navigateur.",
+      "enabled": "Les préférences seront synchronisées",
+      "disabled": "Les préférences seront stockées localement",
+      "toggleFailed": "Échec de la mise à jour de la préférence de synchronisation"
+    },
+    "resetDefaults": {
+      "title": "Réinitialiser l'apparence par défaut",
+      "desc": "Restaurer le thème, la couleur d'accentuation et le logo par défaut. Optionnellement, oublier les préférences enregistrées sur le serveur.",
+      "forgetServer": "Oublier les préférences serveur",
+      "button": "Réinitialiser",
+      "confirm": "Cela restaurera les paramètres d'apparence par défaut. Continuer ?",
+      "localReset": "Apparence réinitialisée localement",
+      "serverReset": "Préférences serveur oubliées",
+      "serverResetFailed": "Échec de la suppression des préférences serveur",
+      "failed": "Échec de la réinitialisation locale de l'apparence",
+      "mustBeSignedIn": "Connectez-vous pour oublier les préférences serveur"
+    },
+    "updates": {
+      "title": "Mises à jour de l'App",
+      "description": "Vérifier la dernière version de l'application",
+      "checkLabel": "Vérifier manuellement les mises à jour",
+      "check": "Vérifier les mises à jour",
+      "checking": "Vérification...",
+      "available": "Mise à jour disponible ! Veuillez actualiser la page.",
+      "upToDate": "Vous utilisez la dernière version !",
+      "checkFailed": "Échec de la vérification des mises à jour",
+      "versionInfo": "Informations de version",
+      "currentVersion": "Version actuelle",
+      "forceRefresh": "Actualisation forcée",
+      "forceRefreshDesc": "Si l'application est bloquée sur une ancienne version, l'actualisation forcée effacera tous les caches et rechargera. Votre connexion sera préservée.",
+      "forceRefreshConfirm": "Cela effacera toutes les données en cache et rechargera l'application. Votre connexion sera préservée. Continuer ?",
+      "forceRefreshBtn": "Actualisation forcée",
+      "forceRefreshing": "Actualisation...",
+      "forceRefreshFailed": "Échec de l'actualisation forcée"
+    },
+    "avatarTooLarge": "L'avatar ne doit pas dépasser 2 Mo",
+    "profileSaved": "Profil enregistré",
+    "saveFailed": "Échec de l'enregistrement du profil",
+    "languageConfirmTitle": "Changer la langue ?",
+    "languageConfirmMsg": "Appliquer la langue sélectionnée à l'interface ? Si vous n'appliquez pas, elle reviendra à la langue précédente.",
+    "languageConfirmApply": "Appliquer",
+    "unsavedChanges": {
+      "title": "Modifications non enregistrées",
+      "message": "Vous avez des modifications d'apparence non enregistrées. Voulez-vous les annuler ou continuer l'édition ?",
+      "discard": "Annuler les modifications",
+      "keepEditing": "Continuer l'édition"
+    },
+    "usernameSSOHint": "Le nom d'utilisateur est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
+    "emailSSOHint": "L'email est fourni par votre fournisseur SSO et ne peut pas être modifié ici.",
+    "passwordManagedBySSOTitle": "Mot de passe géré par le fournisseur d'identité",
+    "passwordManagedBySSO": "Votre compte utilise l'authentification unique. Pour modifier votre mot de passe, veuillez visiter votre fournisseur d'authentification.",
+    "changeOnAuthPlatform": "Modifier le mot de passe sur la plateforme d'authentification",
+    "resetSuccess": "Tous les services ont été réinitialisés avec succès !",
+    "resetFailed": "Échec de la réinitialisation des services",
+    "pwaDevTools": {
+      "title": "Autoriser les outils de développement (F12) dans la PWA",
+      "desc": "Lorsque activé par un administrateur, appuyer sur F12 dans la PWA installée ouvrira l'application (ou une webview intégrée) dans une nouvelle fenêtre afin d'utiliser DevTools.",
+      "toggleLabel": "Activer F12 / outils pour PWA",
+      "allow": "Autoriser les outils de développement",
+      "saved": "Paramètre enregistré",
+      "saveFailed": "Échec de l'enregistrement du paramètre",
+      "disabledToast": "Les outils de développement sont désactivés par un administrateur",
+      "adminHint": "Administrateurs seulement — seuls les administrateurs peuvent activer ce paramètre"
+    },
+    "logLevel": {
+      "title": "Niveau de journalisation global",
+      "desc": "Les administrateurs peuvent définir le niveau global des journaux. Cela affecte la journalisation côté client et côté serveur pour tous les utilisateurs.",
+      "scope": "S'applique au frontend et au backend",
+      "saved": "Niveau de journalisation enregistré",
+      "saveFailed": "Échec de l'enregistrement du niveau de journalisation"
+    },
+    "activeSessionsTitle": "Sessions actives",
+    "activeSessionsDesc": "Voir les appareils et navigateurs connectés. Révoquer toute session inconnue.",
+    "signOutEverywhere": "Déconnecter de tous les appareils",
+    "signOutEverywhereConfirm": "Déconnecter de tous les appareils ?",
+    "signOutEverywhereSuccess": "Déconnecté de tous les appareils",
+    "signOutEverywhereFailed": "Échec de la déconnexion de tous les appareils",
+    "signOutSessionConfirm": "Déconnecter cette session ?",
+    "signOutSessionSuccess": "Session révoquée",
+    "signOutSessionFailed": "Échec de la révocation de la session",
+    "signOutEverywhereDesc": "Vous serez déconnecté de toutes les sessions actives.",
+    "signOutSessionDesc": "Vous serez déconnecté de cette session.",
+    "noActiveSessions": "Aucune session active",
+    "localNetwork": "Réseau Local",
+    "started": "Démarré",
+    "lastActive": "Dernière activité",
+    "currentSession": "Session actuelle",
+    "risk": {
+      "differentDevice": "Appareil/Navigateur différent",
+      "staleSession": "Session inactive depuis longtemps",
+      "unknownClient": "Client inconnu"
+    },
+    "userManagement": {
+      "title": "Gestion des Utilisateurs",
+      "description": "Gérer les comptes utilisateur et les permissions",
+      "loadingUsers": "Chargement des utilisateurs...",
+      "noUsers": "Aucun utilisateur trouvé",
+      "tableUser": "Utilisateur",
+      "tableEmail": "Email",
+      "tableRole": "Rôle",
+      "tableSSO": "SSO",
+      "tableActions": "Actions",
+      "roleUser": "Utilisateur",
+      "roleAdmin": "Administrateur",
+      "ssoEnabled": "SSO",
+      "localAccount": "Local",
+      "deleteUser": "Supprimer l'utilisateur",
+      "deleteConfirmTitle": "Supprimer l'utilisateur",
+      "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.",
+      "roleUpdated": "Rôle de l'utilisateur mis à jour",
+      "roleUpdateFailed": "Échec de la mise à jour du rôle",
+      "userDeleted": "Utilisateur supprimé",
+      "userDeleteFailed": "Échec de la suppression de l'utilisateur",
+      "loadFailed": "Échec du chargement des utilisateurs"
+    }
+  },
+  "profile": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "displayName": "Nom d'affichage",
+    "username": "Nom d'utilisateur",
+    "email": "Email"
+  },
+  "reporting": {
+    "title": "Rapports",
+    "description": "Analyses et informations sur vos services",
+    "comingSoon": "Bientôt disponible",
+    "plannedFeatures": "Fonctionnalités prévues",
+    "usageAnalytics": "Analyse d'utilisation",
+    "features": {
+      "dailyWeeklyMonthly": "Rapports d'utilisation quotidiens/hebdomadaires/mensuels",
+      "uptimeCharts": "Graphiques de disponibilité des services",
+      "mostAccessed": "Classement des services les plus consultés",
+      "responseTime": "Surveillance du temps de réponse",
+      "export": "Exporter les rapports en PDF/CSV",
+      "dateRange": "Filtrage par plage de dates personnalisée",
+      "emailReports": "Rapports programmés par e-mail"
+    }
+  },
+  "nowPlaying": {
+    "loading": "Chargement…",
+    "nothingPlaying": "Rien en cours",
+    "unknownArtist": "Artiste inconnu",
+    "noPlayerInfo": "Aucune information du lecteur",
+    "connectButton": "Se connecter à GhassiMusic",
+    "connectTitle": "Se connecter à GhassiMusic",
+    "signInDesc": "Connectez-vous à GhassiMusic pour afficher ce qui joue sur votre tableau de bord.",
+    "loggingIn": "Connexion…",
+    "login": "Connexion",
+    "refresh": "Rafraîchir",
+    "refreshedSuccess": "Lecture mise à jour",
+    "refreshFailed": "Échec de l'actualisation",
+    "refreshFailedAuth": "Non authentifié — veuillez vous connecter",
+    "refreshNoEntry": "Aucune lecture en cours",
+    "reloginSuccess": "Ré-authentifié et mis à jour",
+    "reloginFailed": "Échec de la reconnexion automatique",
+    "logout": "Se déconnecter"
+  },
+  "service": {
+    "check": "Vérifier l'état",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "open": "Ouvrir",
+    "addTitle": "Ajouter un nouveau service",
+    "editTitle": "Modifier le service",
+    "fields": {
+      "name": "Nom du service",
+      "description": "Description",
+      "url": "URL",
+      "icon": "Icône",
+      "preview": "Aperçu:",
+      "color": "Couleur"
+    },
+    "placeholders": {
+      "name": "ex: Jellyfin",
+      "description": "ex: Serveur de streaming média",
+      "url": "https://service.exemple.com"
+    },
+    "icon": {
+      "auto": "Utiliser le Favicon",
+      "choose": "Choisir l'icône"
+    },
+    "faviconPreview": "Aperçu du favicon",
+    "extraAuth": "Nécessite une authentification supplémentaire",
+    "extraAuthShort": "Auth requise",
+    "extraAuthDesc": "Ce service nécessite une authentification supplémentaire et ne peut pas effectuer de connexion OIDC immédiate.",
+    "ghassiMusicDesc": "Votre bibliothèque musicale personnelle",
+    "ghassiNotesDesc": "Votre carnet de notes personnel",
+    "ghassiDriveDesc": "Votre stockage cloud personnel",
+    "ghassiGalleryDesc": "Votre galerie cloud personnelle",
+    "ghassiStreamDesc": "Votre service de streaming personnel",
+    "ghassiShareDesc": "Votre service de partage de fichiers personnel"
+  },
+  "app": {
+    "loading": "Chargement de GhassiCloud..."
+  },
+  "webview": {
+    "closeConfirm": {
+      "title": "Fermer la vue web ?",
+      "message": "Vous êtes sur le point de fermer cette fenêtre. Continuer ?",
+      "confirm": "Fermer",
+      "cancel": "Annuler"
+    },
+    "minimize": "Réduire",
+    "minimizeLimit": "Nombre maximal de vues réduites atteint",
+    "openExternal": "Ouvrir dans le navigateur externe",
+    "close": "Fermer",
+    "trayLabel": "Vues web réduites",
+    "restore": "Restaurer",
+    "maximize": "Agrandir",
+    "restoreWindow": "Restaurer la fenêtre",
+    "refreshConfirm": {
+      "title": "Recharger l'application ?",
+      "message": "Cela fermera toutes les vues web ouvertes et rechargera l'application. Continuer ?",
+      "confirm": "Recharger",
+      "cancel": "Annuler"
+    }
+  },
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "loading": "Chargement..."
+  }
+}

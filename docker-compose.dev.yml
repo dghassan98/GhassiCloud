@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: ghassicloud-backend-dev
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Vienna
+      - NODE_ENV=development
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/data:/app/data
+    ports:
+      - "3001:3001"
+    networks:
+      - ghassi_cloud
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: ghassicloud-frontend-dev
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Vienna
+      - NODE_ENV=development
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - ghassi_cloud
+
+networks:
+  ghassi_cloud:
+    external: true

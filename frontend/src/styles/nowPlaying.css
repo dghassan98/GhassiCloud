@@ -1,0 +1,374 @@
+/* Now Playing card — uses server accent via --np-accent (fallback provided) */
+.nowplaying-card{
+  --np-accent: #4fb0ff; /* fallback accent (not Spotify green) */
+  display:flex;
+  gap:16px;
+  align-items:flex-start; /* align content to top so meta and player sit closer without clipping */
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px) saturate(120%);
+  padding:1.25rem; /* Match stats-card padding */
+  border-radius:12px;
+  box-shadow: 0 6px 18px rgba(10,12,20,0.45);
+  max-width:380px; /* Match stats card width */
+  width:100%;
+  box-sizing:border-box; /* Include padding in width calculation */
+  height:auto;
+  min-height:110px; /* Consistent minimum height like stats cards */
+}
+
+.np-art-wrap{
+  width:90px;
+  height:90px;
+  flex: 0 0 90px;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.45);
+  background: linear-gradient(135deg, var(--np-accent), rgba(10,10,10,0.08));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.np-art{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.np-art-fallback{
+  font-size:28px;
+  filter: drop-shadow(0 4px 8px rgba(3,7,18,0.5));
+}
+
+.np-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0; /* Allow flex children to shrink below content size */
+  overflow:hidden; /* Prevent content from expanding parent */
+}
+
+.np-meta{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0; /* Allow flex children to shrink */
+  overflow:hidden; /* Prevent overflow */
+}
+
+.np-title{
+  font-weight:700;
+  font-size:15px;
+  color:#e6eef8;
+  line-height:1.25;
+  padding-bottom:2px;
+  display:-webkit-box;
+  -webkit-line-clamp:2; /* show up to 2 lines and truncate */
+  line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  word-break:break-word; /* Allow long words to break */
+  min-width:0; /* Allow element to shrink */
+}
+
+.np-artist-album{
+  display:flex;
+  gap:6px;
+  line-height:1.3;
+  padding-bottom:6px;
+  align-items:baseline;
+  color:#9fb0c9;
+  font-size:13px;
+  flex-wrap:nowrap;
+  min-width:0;
+  overflow:hidden;
+  max-width:100%; /* Constrain to container */
+}
+
+.np-artist{
+  font-weight:600; 
+  white-space:nowrap; 
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  line-height:1.3; 
+  padding-bottom:1px; 
+  min-width:0;
+  flex-shrink:1;
+  flex-basis:auto; /* Natural content width */
+  flex-grow:0; /* Don't grow */
+  max-width:60%; /* Limit to 60% of container */
+}
+.np-sep{
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.np-album{
+  opacity:0.9;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  line-height:1.3;
+  margin-top:1px;
+  flex-shrink:1;
+  min-width:0;
+  flex-basis:auto; /* Natural content width */
+  flex-grow:0; /* Don't grow */
+}
+
+/* Light-mode card adjustments for readability */
+.np-light-card{
+  background:linear-gradient(180deg,#f8fafc,#f1f5f9);
+  border:1px solid rgba(2,6,23,0.06);
+  color:#000000;
+}
+
+/* Title & text */
+.np-light-card .np-title{
+  color:#000000;
+  font-size: 16px;
+  font-weight:700;
+  opacity:1;
+}
+.np-light-card .np-artist{color:#000000; font-weight:700; opacity:0.95}
+.np-light-card .np-album{color:#1a1a1a; opacity:1}
+.np-light-card .np-info{color:#000000; opacity:0.9}
+.np-light-card .np-player{color:#000000; opacity:0.9}
+.np-light-card .np-info-placeholder{color:#333333}
+
+/* Playing indicator and art */
+.np-light-card .np-playing-indicator .bar{background:var(--np-accent);opacity:0.95}
+.np-light-card .np-art-wrap{background:linear-gradient(135deg,var(--np-accent), rgba(10,20,30,0.04));box-shadow: 0 12px 30px rgba(11,60,80,0.06)}
+
+/* Improve contrast when nothing is playing */
+.np-light-card .np-title:empty::before{content:'Nothing playing';color:#061426}
+
+
+.np-controls{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+}
+
+.btn-icon{
+  border: none;
+  background: transparent;
+  color:#cfe7ff;
+  padding:6px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.btn-icon:hover{background: rgba(255,255,255,0.02)}
+
+.btn-play{
+  border: none;
+  background: linear-gradient(90deg, var(--np-accent), #7ad3ff);
+  color: rgba(0,0,0,0.75);
+  padding:10px 14px;
+  border-radius:999px;
+  box-shadow: 0 6px 18px rgba(14,90,120,0.12);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.btn-play:hover{transform:translateY(-1px)}
+
+/* disabled state */
+.btn-icon[disabled], .btn-play[disabled]{opacity:0.5;cursor:default}
+
+/* like button */
+.btn-like.liked{color:var(--np-accent);transform:scale(1.05)}
+
+.np-volume{margin-left:8px;color:#a8c6e8}
+
+.np-progress-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.np-time{font-size:12px;color:#9fb0c9;width:36px;text-align:center}
+.np-time-right{text-align:center}
+
+.np-progress{flex:1;height:8px;background:rgba(255,255,255,0.03);border-radius:999px;position:relative;overflow:hidden}
+
+.np-progress-bar{height:100%;background:linear-gradient(90deg,var(--np-accent), #79f2b7);border-radius:999px;box-shadow: inset 0 -6px 16px rgba(2,6,6,0.14)}
+
+.np-info-row{margin-top:6px;display:flex;gap:10px;align-items:center}
+.np-info{font-size:12px;color:#a8c6e8;background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;font-weight:600}
+.np-player{font-size:13px;color:#cfe7ff;opacity:0.95;padding:4px 8px;border-radius:8px;background:transparent;font-weight:600}
+.np-info-placeholder{font-size:12px;color:#7f9bb3}
+
+/* playing indicator (3 bars) */
+.np-playing-indicator{display:flex;gap:4px;align-items:end;width:28px}
+.np-playing-indicator .bar{width:4px;height:8px;background:var(--np-accent);border-radius:2px;transform-origin:bottom;opacity:0.85}
+.np-playing-indicator .b1{animation:np-wave 900ms infinite ease-in-out}
+.np-playing-indicator .b2{animation:np-wave 900ms infinite ease-in-out;animation-delay:120ms}
+.np-playing-indicator .b3{animation:np-wave 900ms infinite ease-in-out;animation-delay:240ms}
+.np-playing-indicator:not(.active) .bar{animation:none;opacity:0.5;transform:scaleY(0.6)}
+
+@keyframes np-wave{0%{transform:scaleY(0.45)}50%{transform:scaleY(1.15)}100%{transform:scaleY(0.6)}}
+
+/* Small responsive tweaks */
+@media (max-width:640px){
+  .nowplaying-card{gap:12px;padding:0.875rem;min-height:95px}
+  .np-art-wrap{width:72px;height:72px;flex: 0 0 72px}
+}
+
+/* Loading overlay inside the art area */
+.np-art-wrap{ position: relative; }
+.np-art-loading{ position: absolute; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.05); z-index: 5; }
+.np-art-loading .loading-spinner{ width: 40px; height: 40px; }
+
+
+/* Logout button */
+.np-logout-btn{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  border-radius:8px;
+  border:none;
+  background:transparent;
+  color:#cfe7ff;
+  padding:6px;
+  opacity:0;
+  transform:translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease, background .12s ease;
+  pointer-events:none;
+}
+
+/* Refresh button (appears on hover like logout) */
+.np-refresh-btn{
+  position:absolute;
+  top:8px;
+  right:48px; /* left of logout */
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  border-radius:8px;
+  border:none;
+  background:transparent;
+  color:#cfe7ff;
+  padding:6px;
+  opacity:0;
+  transform:translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease, background .12s ease;
+  pointer-events:none;
+}
+
+/* Show on hover, focus-within or keyboard focus */
+.nowplaying-card:hover .np-logout-btn,
+.nowplaying-card:focus-within .np-logout-btn,
+.np-logout-btn:focus,
+.nowplaying-card:hover .np-refresh-btn,
+.nowplaying-card:focus-within .np-refresh-btn,
+.np-refresh-btn:focus {
+  opacity:1;
+  transform:translateY(0);
+  background:rgba(255,255,255,0.02);
+  pointer-events:auto;
+}
+
+.np-refresh-btn svg{width:16px;height:16px;color:inherit}
+.np-refresh-btn:hover{background:rgba(255,255,255,0.04);color:var(--np-accent)}
+
+/* spinning animation when performing refresh */
+@keyframes np-spin{to{transform:rotate(360deg)}}
+.np-refresh-btn.spinning svg{animation:np-spin 1s linear infinite}
+
+.np-logout-btn svg{width:16px;height:16px;color:inherit}
+.np-logout-btn:hover{background:rgba(255,255,255,0.04);color:var(--np-accent)}
+
+@media (max-width:640px){
+  .np-logout-btn{top:6px;right:6px;width:32px;height:32px}
+}
+
+/* Login modal */
+.np-login-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.48);z-index:9999;padding:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.np-login-modal.light{background:rgba(255,255,255,0.6);backdrop-filter:blur(4px)}
+
+/* Pop-in animation */
+@keyframes np-pop-in{0%{opacity:0;transform:translateY(6px) scale(.98)}60%{opacity:1;transform:translateY(-4px) scale(1.02)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.np-login-card{animation:np-pop-in .28s cubic-bezier(.2,.9,.2,1)}.np-login-card{position:relative;background:linear-gradient(180deg, rgba(10,16,24,0.98), rgba(7,12,18,0.96));padding:22px;border-radius:14px;min-width:300px;max-width:460px;color:#e6eef8;box-shadow:0 20px 60px rgba(6,12,24,0.85);border:1px solid rgba(255,255,255,0.03);backdrop-filter: blur(8px) saturate(120%);overflow:hidden}
+.np-theme-card{background:linear-gradient(180deg, rgba(10,16,24,0.99), rgba(9,14,20,0.97));border:1px solid rgba(79,176,255,0.06)}
+
+/* Themed accent usage */
+.np-login-card{--accent: var(--np-accent, #4fb0ff)}
+.np-login-card { box-shadow: 0 12px 40px rgba(2,6,23,0.6), 0 0 0 4px rgba(0,0,0,0.02) inset }
+.np-login-card::after{ content:''; position:absolute; inset:0; pointer-events:none; border-radius:14px; box-shadow: 0 8px 30px rgba(11,60,80,0.06) inset; }
+
+/* Accent border */
+.np-theme-card{border:1px solid rgba(255,255,255,0.04)}
+.np-login-card{border:1px solid rgba(255,255,255,0.03)}
+.np-login-card .np-login-header h3{position:relative}
+.np-login-card .np-login-header h3::after{ content:''; position:absolute; left:0; bottom:-10px; width:36px; height:4px; border-radius:999px; background: linear-gradient(90deg,var(--accent), rgba(122,211,255,0.6)); opacity:0.95 }
+
+/* Light theme overrides */
+.np-login-modal.light{background:rgba(2,6,23,0.06)}
+.np-login-card.np-light{background:linear-gradient(180deg, #ffffff, #f8fafc); color:#0f172a; border:1px solid rgba(2,6,23,0.06); box-shadow:0 20px 60px rgba(15,23,42,0.08)}
+.np-login-card.np-light .np-login-sub{color:#475569}
+.np-login-card.np-light .np-login-close{color:#475569}
+.np-login-card.np-light .np-login-header h3::after{ background: linear-gradient(90deg,var(--accent), rgba(122,211,255,0.9)); opacity:1 }
+.np-login-card.np-light .np-login-body label{color:#475569}
+.np-login-card.np-light .np-login-body input{background:#ffffff;border:1px solid #e6eef8;color:#0f172a}
+.np-login-card.np-light .np-login-body input::placeholder{color:#94a3b8}
+.np-login-card.np-light .np-login-body input:focus{border-color:var(--np-accent);box-shadow:0 6px 20px rgba(79,176,255,0.08)}
+.np-login-card.np-light .btn-icon{color:#475569;border:1px solid rgba(15,23,42,0.04);background:transparent}
+.np-login-card.np-light .btn-play{background:linear-gradient(90deg,var(--np-accent),#7ad3ff);color:#07121a}
+
+
+
+/* Header */
+.np-login-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.np-login-header h3{font-size:18px;margin:0;color:#eaf6ff;font-weight:800;letter-spacing:0.2px}
+/* Light-mode header overrides: stronger text contrast and more prominent underline */
+.np-login-card.np-light .np-login-header h3{
+  color:#082034; /* darker for readability */
+  font-weight:800;
+  text-shadow:none;
+  opacity:1;
+}
+.np-login-card.np-light .np-login-header h3::after{ width:48px; height:5px; bottom:-12px; border-radius:4px; background: linear-gradient(90deg,var(--accent), rgba(122,211,255,0.95)); opacity:1 }
+.np-login-sub{font-size:13px;color:#9fb0c9;margin:6px 0 12px}
+.np-login-close{border:none;padding:6px;border-radius:8px;background:transparent;color:#9fb0c9;cursor:pointer}
+.np-login-close svg{display:block}
+.np-login-close:hover{background:rgba(255,255,255,0.02);color:var(--np-accent)}
+
+/* Body */
+.np-login-body label{display:block;margin-top:8px;font-size:13px;color:#c6d7ea}
+.np-login-body input{width:100%;margin-top:8px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);color:#e6eef8;outline:none}
+.np-login-body input:focus{border-color:rgba(79,176,255,0.9);box-shadow:0 6px 20px rgba(79,176,255,0.08)}
+
+.np-login-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.np-login-card .btn-play{background:linear-gradient(90deg,var(--np-accent),#7ad3ff);color:#07121a;padding:10px 14px;border-radius:10px;border:none;font-weight:700}
+.np-login-card .btn-play:hover{transform:translateY(-1px)}
+.np-login-card .btn-icon{background:transparent;color:#9fb0c9;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px}
+.np-login-error{margin-top:8px;color:#ffb4b4;font-size:13px}
+.np-login-card h3{margin:0 0 8px 0}
+.np-login-card label{display:block;margin-top:8px;font-size:13px;color:#c6d7ea}
+.np-login-card input{width:100%;margin-top:6px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:#e6eef8}
+.np-login-card input::placeholder{color:#9fb0c9}
+.np-login-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.np-login-card .btn-play{background:linear-gradient(90deg,var(--np-accent),#7ad3ff);color:#07121a;padding:10px 14px;border-radius:10px;border:none;font-weight:700}
+.np-login-card .btn-play:hover{transform:translateY(-1px)}
+.np-login-card .btn-icon{background:transparent;color:#9fb0c9;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px}
+.btn-connect{background:linear-gradient(90deg,var(--np-accent),#7ad3ff);color:#07121a;padding:8px 12px;border-radius:8px;border:none;font-weight:700}
+.btn-connect:hover{transform:translateY(-1px)}
+.np-login-error{margin-top:8px;color:#ffb4b4;font-size:13px}
+

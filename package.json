@@ -1,0 +1,24 @@
+{
+  "name": "ghassicloud",
+  "version": "1.6.3",
+  "description": "Self-hosted cloud dashboard PWA",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "run-p dev:*",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && chcp 65001 && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && chcp 65001 && npm start",
+    "version": "chcp 65001 && node scripts/bump-version.js"
+  },
+  "devDependencies": {
+    "npm-run-all2": "^8.0.4",
+    "png-to-ico": "^3.0.1",
+    "pino-pretty": "^10.0.0"
+  }
+}
