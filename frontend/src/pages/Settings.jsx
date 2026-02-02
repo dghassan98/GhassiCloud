@@ -98,7 +98,6 @@ export default function Settings() {
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
     { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
     { id: 'security', label: t('settings.tabs.security'), icon: Shield },
-    { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
     { id: 'data', label: t('settings.tabs.data'), icon: Database },
     ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : []),
     { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw }
@@ -1663,7 +1662,7 @@ export default function Settings() {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.6.3'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.7.0'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -1696,46 +1695,6 @@ export default function Settings() {
           )}
 
 
-
-          {activeSection === 'notifications' && (
-            <ErrorBoundary>
-              <div className="settings-section">
-                <h2>{t('settings.notifications')}</h2>
-                <div className="toggle-group">
-                  <div className="toggle-item">
-                    <div>
-                      <h4>{t('settings.notifications.serviceAlerts.title')}</h4>
-                      <p>{t('settings.notifications.serviceAlerts.desc')}</p>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="toggle-slider" />
-                    </label>
-                  </div>
-                  <div className="toggle-item">
-                    <div>
-                      <h4>{t('settings.notifications.systemUpdates.title')}</h4>
-                      <p>{t('settings.notifications.systemUpdates.desc')}</p>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" defaultChecked />
-                      <span className="toggle-slider" />
-                    </label>
-                  </div>
-                  <div className="toggle-item">
-                    <div>
-                      <h4>{t('settings.notifications.weeklyReports.title')}</h4>
-                      <p>{t('settings.notifications.weeklyReports.desc')}</p>
-                    </div>
-                    <label className="toggle">
-                      <input type="checkbox" />
-                      <span className="toggle-slider" />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </ErrorBoundary>
-          )}
 
           {activeSection === 'data' && (
             <div className="settings-section">

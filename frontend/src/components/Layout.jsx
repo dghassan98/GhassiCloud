@@ -358,9 +358,6 @@ export default function Layout() {
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="icon-button" title={t('layout.notifications') || 'Notifications'}>
-              <Bell size={18} />
-            </button>
             <button
               className="icon-button"
               onClick={handleLogout}

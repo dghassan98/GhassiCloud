@@ -2,6 +2,13 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.7.0': {
+    date: 'February 2, 2026',
+    changes: [
+      'Hidden Notifications button',
+      'Added Requirements Traceability Matrix',
+    ],
+  },
   '1.6.3': {
     date: 'January 23, 2026',
     changes: [
@@ -351,7 +358,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.6.3';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
