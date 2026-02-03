@@ -1,7 +1,7 @@
 {
   "name": "ghassicloud-frontend",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.7.1",
   "type": "module",
   "engines": {
     "node": ">=22",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",
-    "@capacitor/cli": "^2.5.0",
+    "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.0",

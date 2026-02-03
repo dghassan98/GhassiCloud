@@ -2,6 +2,14 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.7.1': {
+    date: 'February 3, 2026',
+    changes: [
+      'Developed test-health.ps1 for health check performance testing, measuring response times for the health endpoint.',
+      'Created test-docker.ps1 for monitoring Docker container performance, capturing resource usage over a specified duration.',
+      'Developed test-concurrent.ps1 to check concurrent API requests',
+    ],
+  },
   '1.7.0': {
     date: 'February 2, 2026',
     changes: [
@@ -358,7 +366,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.0';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.1';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
