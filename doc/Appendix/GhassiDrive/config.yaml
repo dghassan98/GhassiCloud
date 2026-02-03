@@ -1,0 +1,65 @@
+server:
+  numImageProcessors: 4
+  port: 53452
+  database: "/database/database.db"
+  logging:
+    - levels: 'debug'
+      apiLevels: ''
+      output: stdout
+      noColors: false
+      json: false
+  sources:
+  # your drives here, e.g.:
+    - path: "/srv"
+      name: users
+      config:
+        createUserDir: true
+        defaultEnabled: true
+        defaultUserScope: /
+  externalUrl: "https://drive.your.domain/"
+  internalUrl: "http://XXX.XXX.XXX.XXX:53452"
+integrations:
+  office:
+    url: "https://office.your.domain"
+    internalUrl: "http://XXX.XXX.XXX.XXX:53453"       # OnlyOffice container → FileBrowser
+    secret: "XXX"
+auth:
+  adminUsername: admin # or your SSO admin user here
+  tokenExpirationHours: 2
+  methods:
+    noauth: false
+    password:
+      enabled: true
+      minLength: 15
+      signup: false
+    oidc:
+      enabled: true
+      clientId: "filebrowser-client"
+      clientSecret: "XXX"  # Use environment variable
+      issuerUrl: "https://auth.your.domain/realms/master"
+      scopes: "email openid profile"
+      userIdentifier: "preferred_username"
+      createUser: true
+frontend:
+  name: "GhassiDrive"
+userDefaults:
+  darkMode: false
+  locale: "en"
+  viewMode: ""
+  singleClick: true
+  permissions:
+    api: false                            # allow api access
+    admin: false                          # allow admin access
+    modify: true                         # allow modifying files
+    share: true                          # allow sharing files
+    realtime: false                       # allow realtime updates
+    delete: true                         # allow deleting files
+    create: true                         # allow creating or uploading files
+    download: true                        # allow downloading files
+  showHidden: true
+  dateFormat: true
+  quickDownload: true
+  disableOnlyOfficeExt: .txt .csv .html
+  fileLoading:                  # upload and download settings
+    maxConcurrentUpload: 10     # max is 10, default is 1
+    uploadChunkSizeMb: 10       # 0 is disabled (default), typical is 5-50. A good first setting might be 15 MB

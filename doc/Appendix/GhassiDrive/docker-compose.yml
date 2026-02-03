@@ -1,0 +1,50 @@
+services:
+  fb_quantum:
+    container_name: fb_quantum
+    environment:
+      - FILEBROWSER_ADMIN_PASSWORD=${ADMIN_PW}
+      - FILEBROWSER_ONLYOFFICE_SECRET="XXX"
+      - FILEBROWSER_JWT_TOKEN_SECRET="XXX"
+      - NODE_ENV=production
+      - TZ=Europe/Vienna
+    volumes:
+      # your drives here, e.g.:      - 'C:/Users/:/srv:rw'
+      - './database/database.db:/database/database.db'
+      - './config.yaml:/home/filebrowser/config.yaml'
+    ports:
+      - '53452:53452'
+    image: gtstef/filebrowser:1.2.1-beta
+    restart: always
+    networks:
+      - filebrowser-quantum
+      - ghassi_cloud
+      
+  fb_onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: fb_onlyoffice
+    environment:
+      - JWT_SECRET="XXX" # same value from the above steps
+      - JWT_ENABLED=TRUE
+      - JWT_HEADER=Authorization
+      - ALLOW_PRIVATE_IP_ADDRESS=true
+      - FRAME_ANCESTORS=drive.your.domain, https://drive.your.domain, http://XXX.XXX.XXX.XXX:53452
+      - NODE_ENV=production
+      - TZ=Europe/Vienna
+      - LOG_LEVEL=DEBUG
+    ports:
+      - '53453:80' # note this is HTTP, insecure, do not expose to internet
+    restart: always
+    volumes:
+      # your drives here, e.g.:      - 'C:/Users/:/srv:rw'
+      - ./onlyoffice/config:/etc/onlyoffice/documentserver
+      - ./onlyoffice/data:/var/www/onlyoffice/Data
+      - ./onlyoffice/plugins:/var/www/onlyoffice/documentserver/sdkjs-plugins
+    networks:
+      - filebrowser-quantum
+      - ghassi_cloud
+      
+networks:
+  ghassi_cloud:
+    external: true  
+  filebrowser-quantum:
+    name: filebrowser-quantum

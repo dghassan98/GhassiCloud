@@ -2,6 +2,13 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.8.0': {
+    date: 'February 3, 2026',
+    changes: [
+      'Added Formal Thesis documents',
+      'Added entire Appendix',
+    ],
+  },
   '1.7.2': {
     date: 'February 3, 2026',
     changes: [
@@ -372,7 +379,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.2';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.8.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

@@ -1,0 +1,22 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    ports:
+      - "8096:8096"       # HTTP UI
+      #- "7359:7359/udp"   # SSDP (DLNA discovery) -> LEADS TO PROBLEMS WITH LG WEBOS TV APP 
+      #- "1900:1900/udp"   # DLNA/UPnP -> LEADS TO PROBLEMS WITH LG WEBOS TV APP
+    environment:
+      TZ: Europe/Vienna
+    volumes:
+      - ./config/:/config
+      - ./cache/:/cache
+      # your drives here, e.g.: C:/Users/YourName/Videos/:/media:rw
+    restart: unless-stopped
+    networks:
+      - ghassi_cloud
+    
+networks:
+  ghassi_cloud:
+    driver: bridge
+    external: true
