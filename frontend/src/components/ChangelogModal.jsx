@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.7.2': {
+    date: 'February 3, 2026',
+    changes: [
+      'hide stats cards with placeholder comments in Dashboard component',
+    ],
+  },
   '1.7.1': {
     date: 'February 3, 2026',
     changes: [
@@ -366,7 +372,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.1';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.7.2';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

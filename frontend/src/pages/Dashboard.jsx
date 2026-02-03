@@ -564,9 +564,10 @@ export default function Dashboard() {
               )}
             </div>
           </motion.div>
-          {stats.map((stat, i) => (
+          {/* Stats cards hidden - placeholder data */}
+          {/* {stats.map((stat, i) => (
             <StatsCard key={i} {...stat} index={i} />
-          ))}
+          ))} */}
         </div>
       </motion.section>
 
