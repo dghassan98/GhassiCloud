@@ -5,7 +5,8 @@ import {
   Plus, Search, Grid, List, ExternalLink, 
   Server, Database, Cloud, HardDrive, Shield, 
   Monitor, Film, Music, FileText, Image,
-  Home, Cpu, Smartphone
+  Home, Cpu, Smartphone, Lightbulb, ChevronRight,
+  MapPin, Droplets, Wind, Thermometer, CloudRain, CloudSnow, CloudLightning, CloudDrizzle, Sun, CloudSun, CloudFog, RefreshCw as RefreshIcon
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -37,6 +38,190 @@ const iconMap = {
   default: Cloud
 };
 
+/* ── WMO Weather Code → icon & label key mapping ── */
+const weatherMeta = (code) => {
+  if (code === 0) return { icon: Sun, label: 'weather.clear', bg: 'weather-clear' }
+  if (code <= 3) return { icon: CloudSun, label: 'weather.partlyCloudy', bg: 'weather-cloudy' }
+  if (code <= 48) return { icon: CloudFog, label: 'weather.foggy', bg: 'weather-fog' }
+  if (code <= 57) return { icon: CloudDrizzle, label: 'weather.drizzle', bg: 'weather-rain' }
+  if (code <= 67) return { icon: CloudRain, label: 'weather.rain', bg: 'weather-rain' }
+  if (code <= 77) return { icon: CloudSnow, label: 'weather.snow', bg: 'weather-snow' }
+  if (code <= 82) return { icon: CloudRain, label: 'weather.showers', bg: 'weather-rain' }
+  if (code <= 86) return { icon: CloudSnow, label: 'weather.snowShowers', bg: 'weather-snow' }
+  if (code >= 95) return { icon: CloudLightning, label: 'weather.thunderstorm', bg: 'weather-storm' }
+  return { icon: Cloud, label: 'weather.cloudy', bg: 'weather-cloudy' }
+}
+
+/* ── Weather Widget (Open-Meteo, free, no API key) ── */
+function WeatherWidget() {
+  const { t } = useLanguage()
+  const [weather, setWeather] = useState(null)
+  const [city, setCity] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchWeather = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      /* 1. Get coords from browser or fall back to IP geolocation */
+      let lat, lon
+      try {
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000, maximumAge: 600000 })
+        )
+        lat = pos.coords.latitude
+        lon = pos.coords.longitude
+      } catch {
+        /* Fallback: IP-based location via open API */
+        const ipRes = await fetch('https://ipapi.co/json/')
+        if (ipRes.ok) {
+          const ipData = await ipRes.json()
+          lat = ipData.latitude
+          lon = ipData.longitude
+          if (!city) setCity(ipData.city || '')
+        } else {
+          throw new Error('location')
+        }
+      }
+
+      /* 2. Reverse geocode for city name (Open-Meteo geocoding) */
+      if (!city) {
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`)
+          if (geoRes.ok) {
+            const geoData = await geoRes.json()
+            setCity(geoData.address?.city || geoData.address?.town || geoData.address?.village || '')
+          }
+        } catch { /* ignore, city is optional */ }
+      }
+
+      /* 3. Fetch weather from Open-Meteo */
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('api')
+      const data = await res.json()
+      setWeather(data.current)
+    } catch (err) {
+      logger.debug('Weather fetch error', err)
+      setError(err.message === 'location' ? 'location' : 'api')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchWeather()
+    const id = setInterval(fetchWeather, 15 * 60 * 1000) // refresh every 15 min
+    return () => clearInterval(id)
+  }, [])
+
+  if (error === 'location') {
+    return (
+      <motion.div className="weather-widget weather-error" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <MapPin size={20} />
+        <span className="weather-error-text">{t('weather.locationDenied') || 'Enable location for weather'}</span>
+        <button className="weather-retry" onClick={fetchWeather}><RefreshIcon size={14} /></button>
+      </motion.div>
+    )
+  }
+
+  if (loading || !weather) {
+    return (
+      <motion.div className="weather-widget weather-loading" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="weather-skeleton">
+          <div className="skel-circle" />
+          <div className="skel-lines">
+            <div className="skel-line skel-lg" />
+            <div className="skel-line skel-sm" />
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
+  const meta = weatherMeta(weather.weather_code)
+  const WeatherIcon = meta.icon
+  const temp = Math.round(weather.temperature_2m)
+  const feelsLike = Math.round(weather.apparent_temperature)
+  const humidity = weather.relative_humidity_2m
+  const wind = Math.round(weather.wind_speed_10m)
+
+  return (
+    <motion.div
+      className={`weather-widget ${meta.bg}`}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+    >
+      <div className="weather-main">
+        <div className="weather-icon-wrap">
+          <WeatherIcon size={32} strokeWidth={1.5} />
+        </div>
+        <div className="weather-temp-col">
+          <span className="weather-temp">{temp}°</span>
+          <span className="weather-desc">{t(meta.label)}</span>
+        </div>
+      </div>
+      <div className="weather-details">
+        {city && (
+          <span className="weather-detail"><MapPin size={13} /> {city}</span>
+        )}
+        <span className="weather-detail"><Thermometer size={13} /> {t('weather.feelsLike') || 'Feels'} {feelsLike}°</span>
+        <span className="weather-detail"><Droplets size={13} /> {humidity}%</span>
+        <span className="weather-detail"><Wind size={13} /> {wind} km/h</span>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ── Quick Tips Widget (pure local, no API) ── */
+const tipKeys = [
+  'dashboard.tips.pin',
+  'dashboard.tips.search',
+  'dashboard.tips.theme',
+  'dashboard.tips.pull',
+  'dashboard.tips.qr',
+  'dashboard.tips.language',
+]
+
+function QuickTips() {
+  const { t } = useLanguage()
+  const [idx, setIdx] = useState(() => Math.floor(Math.random() * tipKeys.length))
+
+  useEffect(() => {
+    const id = setInterval(() => setIdx(i => (i + 1) % tipKeys.length), 8000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <motion.div
+      className="quick-tips-widget"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      <div className="tip-icon-wrap">
+        <Lightbulb size={16} />
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.span
+          className="tip-text"
+          key={idx}
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -12 }}
+          transition={{ duration: 0.3 }}
+        >
+          {t(tipKeys[idx]) || 'Pin your favorite services for quick access.'}
+        </motion.span>
+      </AnimatePresence>
+      <button className="tip-next" onClick={() => setIdx(i => (i + 1) % tipKeys.length)} aria-label="Next tip">
+        <ChevronRight size={16} />
+      </button>
+    </motion.div>
+  )
+}
 
 const defaultServices = [
   {
@@ -148,6 +333,12 @@ export default function Dashboard() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingService, setEditingService] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showWeather, setShowWeather] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ghassicloud-show-weather')
+      return saved === null ? true : saved === 'true'
+    } catch { return true }
+  })
   const token = localStorage.getItem('ghassicloud-token')
 
   // RT Services Online with manual refresh
@@ -241,6 +432,17 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    const handler = () => {
+      try {
+        const saved = localStorage.getItem('ghassicloud-show-weather')
+        setShowWeather(saved === null ? true : saved === 'true')
+      } catch {}
+    }
+    window.addEventListener('ghassicloud:weather-preference-changed', handler)
+    return () => window.removeEventListener('ghassicloud:weather-preference-changed', handler)
+  }, [])
+
   function PercentDelta({ online = 0, total = 0, trend = 'neutral', change = '' }) {
     const pct = total ? Math.round((online / total) * 100) : null
     return (
@@ -301,7 +503,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!showServicesPopover) return
     const onDoc = (e) => {
-      if (!e.target.closest('.stats-card.services-online') && !e.target.closest('.services-popover')) {
+      if (!e.target.closest('.services-status-badge') && !e.target.closest('.services-popover')) {
         setShowServicesPopover(false)
       }
     }
@@ -504,79 +706,70 @@ export default function Dashboard() {
           <h1>{greeting}</h1>
           <p>{t('general.welcome')}</p>
         </div>
+        <div className="hero-widgets">
+          {showWeather && <WeatherWidget />}
+          <QuickTips />
+        </div>
         <div className="hero-stats">
-          {/* NowPlayingCard temporarily removed */}
-          <motion.div ref={servicesCardRef} className={`stats-card services-online ${statusClass}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="stats-content">
-              <span className="stats-label">{t('dashboard.servicesOnline')}</span>
-              <div className="ssc-row">
-                <span className="stats-value">{servicesOnlineLoading ? <Loader2 className="ssc-spin" size={20} /> : servicesOnline.value}</span>
-                <button
-                  className="ssc-refresh"
-                  onClick={fetchServicesOnline}
-                  disabled={servicesOnlineLoading}
-                  title="Check Now"
-                >
-                  <RefreshCw size={18} />
-                </button>
-              </div>
-            </div>
-            <div className="stats-trend" style={{ color: '#64748b', position: 'relative' }}>
-              {/* progress bar & trend pill */}
-              <div
-                className="services-sparkline"
-                onClick={toggleServicesPopover}
-                role="button"
-                tabIndex={0}
-                aria-label="Show services details"
-              >
-                {!servicesOnlineLoading && (
-                  <>
-                    <div className="services-trend-wrap">
-                      <PercentDelta online={servicesStatus.online} total={servicesStatus.total} trend={servicesOnline.trend} change={servicesOnline.change} />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {showServicesPopover && createPortal(
-                <AnimatePresence>
-                  <motion.div className="services-popover" style={popoverStyle} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-                    <div className="popover-list">
-                      {servicesRef.current && servicesRef.current.length > 0 ? servicesRef.current.slice().sort((a, b) => {
-                        if (a.status === 'offline' && b.status !== 'offline') return -1
-                        if (b.status === 'offline' && a.status !== 'offline') return 1
-                        return 0
-                      }).map(s => (
-                        <div className="popover-item" key={s.id}>
-                          <span className={`dot ${s.status === 'online' ? 'online' : 'offline'}`}></span>
-                          <a className="service-link" href={s.url} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}>{s.name}</a>
-                          <div className="item-actions">
-                            <button className="btn-icon" title={t('service.check')} aria-label={t('service.check')} onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
-                            <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title={t('service.open')} onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}><ExternalLink size={14} /></a>
-                          </div>
-                        </div>
-                      )) : <div className="popover-empty">{t('dashboard.noServicesPopover')}</div>}
-                      <div className="popover-footer">{t('dashboard.lastChecked')}: {servicesOnlineLoading ? t('dashboard.checking') : (servicesStatus.total ? `${servicesStatus.online}/${servicesStatus.total}` : t('dashboard.never'))}</div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>,
-                document.body
-              )}
-            </div>
-          </motion.div>
           <EventQRCard />
-          {/* Stats cards hidden - placeholder data */}
-          {/* {stats.map((stat, i) => (
-            <StatsCard key={i} {...stat} index={i} />
-          ))} */}
         </div>
       </motion.section>
 
       {/* Services Section */}
       <section className="services-section">
         <div className="services-header">
-          <h2>{t('dashboard.yourServices')}</h2>
+          <div className="services-title-row">
+            <h2>{t('dashboard.yourServices')}</h2>
+            <motion.div
+              ref={servicesCardRef}
+              className={`services-status-badge ${statusClass}`}
+              onClick={toggleServicesPopover}
+              role="button"
+              tabIndex={0}
+              aria-label="Show services details"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <span className="badge-dot"></span>
+              <span className="badge-count">{servicesOnlineLoading ? <Loader2 className="ssc-spin" size={14} /> : servicesOnline.value}</span>
+              {servicesStatus.total > 0 && (
+                <span className="badge-percent">{Math.round((servicesStatus.online / servicesStatus.total) * 100)}%</span>
+              )}
+              <button
+                className="badge-refresh"
+                onClick={(e) => { e.stopPropagation(); fetchServicesOnline(); }}
+                disabled={servicesOnlineLoading}
+                title="Check Now"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </motion.div>
+          </div>
+
+          {showServicesPopover && createPortal(
+            <AnimatePresence>
+              <motion.div className="services-popover" style={popoverStyle} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                <div className="popover-list">
+                  {servicesRef.current && servicesRef.current.length > 0 ? servicesRef.current.slice().sort((a, b) => {
+                    if (a.status === 'offline' && b.status !== 'offline') return -1
+                    if (b.status === 'offline' && a.status !== 'offline') return 1
+                    return 0
+                  }).map(s => (
+                    <div className="popover-item" key={s.id}>
+                      <span className={`dot ${s.status === 'online' ? 'online' : 'offline'}`}></span>
+                      <a className="service-link" href={s.url} target="_blank" rel="noreferrer" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}>{s.name}</a>
+                      <div className="item-actions">
+                        <button className="btn-icon" title={t('service.check')} aria-label={t('service.check')} onClick={() => checkSingleService(s)}><RefreshCw size={14} /></button>
+                        <a className="btn-icon" href={s.url} target="_blank" rel="noreferrer" title={t('service.open')} onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(s.url, s.name) } else { window.open(s.url, '_blank', 'noopener,noreferrer') } }}><ExternalLink size={14} /></a>
+                      </div>
+                    </div>
+                  )) : <div className="popover-empty">{t('dashboard.noServicesPopover')}</div>}
+                  <div className="popover-footer">{t('dashboard.lastChecked')}: {servicesOnlineLoading ? t('dashboard.checking') : (servicesStatus.total ? `${servicesStatus.online}/${servicesStatus.total}` : t('dashboard.never'))}</div>
+                </div>
+              </motion.div>
+            </AnimatePresence>,
+            document.body
+          )}
 
           <div className="services-controls">
             <div className="search-box">

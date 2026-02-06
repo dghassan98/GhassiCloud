@@ -50,7 +50,35 @@
       "afternoon": "Guten Tag",
       "evening": "Guten Abend",
       "night": "Gute Nacht"
+    },
+    "tips": {
+      "pin": "Hefte deine Lieblingsdienste für schnellen Zugriff an.",
+      "search": "Nutze die Suchleiste, um jeden Dienst schnell zu finden.",
+      "theme": "Probiere verschiedene Designs unter Einstellungen → Darstellung.",
+      "pull": "Ziehe auf dem Handy nach unten, um deine Dienste zu aktualisieren.",
+      "qr": "Scanne den QR-Code, um GhassiCloud auf einem anderen Gerät zu öffnen.",
+      "language": "GhassiCloud unterstützt 7 Sprachen – wechsle in den Einstellungen."
     }
+  },
+  "weather": {
+    "clear": "Klarer Himmel",
+    "partlyCloudy": "Teilweise bewölkt",
+    "cloudy": "Bewölkt",
+    "foggy": "Neblig",
+    "drizzle": "Nieselregen",
+    "rain": "Regen",
+    "showers": "Schauer",
+    "snow": "Schnee",
+    "snowShowers": "Schneeschauer",
+    "thunderstorm": "Gewitter",
+    "feelsLike": "Gefühlt",
+    "locationDenied": "Standort aktivieren für Wetter"
+  },
+  "eventQr": {
+    "featured": "Empfohlen",
+    "hide": "Ausblenden",
+    "scanOrClick": "Scannen oder klicken zum Besuchen",
+    "openEvent": "Event öffnen"
   },
   "auth": {
     "completingSignIn": "Anmeldung wird abgeschlossen...",
@@ -73,12 +101,13 @@
     "themeOptions": {
       "light": "Hell",
       "dark": "Dunkel",
-      "ultraDark": "Ultra Dunkel",
+      "midnight": "Mitternacht",
       "beige": "Beige",
       "system": "System"
     },
-    "accentColor": "Akzentfarbe",
-    "customAccentColor": "Benutzerdefinierte Akzentfarbe",
+    "accentColor": "Akzentfarbe",    "saveAccent": "Akzentfarbe speichern",
+    "revertAccent": "Zurücksetzen",
+    "accentSaved": "Akzentfarbe gespeichert",    "customAccentColor": "Benutzerdefinierte Akzentfarbe",
     "customAccentHint": "Wähle deine eigene Akzentfarbe",
     "hexCode": "Hex-Code",
     "logoStyle": "Logo-Stil",
@@ -147,7 +176,7 @@
       "security": "Sicherheit",
       "notifications": "Benachrichtigungen",
       "data": "Daten & Backup",
-      "eventQr": "Event-QR-Code",
+      "eventQr": "Event-Spotlight",
       "updates": "Updates"
     },
     "syncPreferences": {
@@ -156,6 +185,13 @@
       "enabled": "Einstellungen werden synchronisiert",
       "disabled": "Einstellungen werden lokal gespeichert",
       "toggleFailed": "Fehler beim Aktualisieren der Synchronisationseinstellung"
+    },
+    "weather": {
+      "title": "Wetter-Widget anzeigen",
+      "desc": "Lokales Wetter auf Ihrem Dashboard anzeigen. Verwendet Browser-Standort (nicht auf Servern gespeichert). Sie können dies jederzeit deaktivieren.",
+      "enabled": "Wetter-Widget aktiviert",
+      "disabled": "Wetter-Widget deaktiviert",
+      "toggleFailed": "Fehler beim Aktualisieren der Wetter-Einstellung"
     },
     "resetDefaults": {
       "title": "Design auf Standard zurücksetzen",
@@ -223,21 +259,21 @@
       "saveFailed": "Fehler beim Speichern der Protokollstufe"
     },
     "eventQr": {
-      "title": "Event-QR-Code",
-      "desc": "Konfigurieren Sie einen hervorgehobenen QR-Code auf dem Dashboard für Events, temporäre Links oder Aktionen. Für alle Benutzer sichtbar, wenn aktiviert.",
+      "title": "Event-Spotlight",
+      "desc": "Konfigurieren Sie ein hervorgehobenes Event auf dem Dashboard für Veranstaltungen, temporäre Links oder Aktionen. Für alle Benutzer sichtbar, wenn aktiviert.",
       "urlLabel": "Ziel-URL",
       "labelField": "Anzeigetext",
       "labelPlaceholder": "z. B. Sommer-Event 2026",
       "visibility": "Sichtbarkeit",
-      "visibilityDesc": "Umschalten, ob der Event-QR-Code im Dashboard für alle Benutzer angezeigt wird.",
-      "configTitle": "QR-Konfiguration",
-      "configDesc": "Setzen Sie die Ziel-URL und eine anzuzeigende Beschriftung für den QR-Code.",
+      "visibilityDesc": "Umschalten, ob das Event-Spotlight im Dashboard für alle Benutzer angezeigt wird.",
+      "configTitle": "Event-Konfiguration",
+      "configDesc": "Setzen Sie die Ziel-URL und eine Beschriftung für das Event-Spotlight.",
       "visibleLabel": "Auf dem Dashboard sichtbar",
       "hiddenLabel": "Ausgeblendet",
-      "enabled": "Event-QR aktiviert",
-      "disabled": "Event-QR ausgeblendet",
-      "saved": "Event-QR gespeichert",
-      "saveFailed": "Fehler beim Speichern des Event-QR",
+      "enabled": "Event-Spotlight aktiviert",
+      "disabled": "Event-Spotlight ausgeblendet",
+      "saved": "Event-Spotlight gespeichert",
+      "saveFailed": "Fehler beim Speichern des Event-Spotlights",
       "preview": "Vorschau ↗"
     },    "activeSessionsTitle": "Aktive Sitzungen",
     "activeSessionsDesc": "Geräte und Browser anzeigen, die derzeit angemeldet sind. Widerrufe alle Sitzungen, die du nicht erkennst.",

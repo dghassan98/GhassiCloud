@@ -8,7 +8,7 @@ const ThemeContext = createContext()
 function updateFavicon(theme) {
   const favicon = document.querySelector('link[rel="icon"]')
   if (favicon) {
-    if (theme === 'dark' || theme === 'ultra-dark') {
+    if (theme === 'dark' || theme === 'midnight') {
       favicon.href = '/favicon-circle-dark-alternative.ico'
     } else {
       const savedLogo = localStorage.getItem('ghassicloud-logo') || 'circle'
@@ -48,7 +48,7 @@ export function ThemeProvider({ children }) {
     if (themeValue === 'system') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     }
-    return themeValue // 'light', 'dark', 'ultra-dark', 'beige'
+    return themeValue // 'light', 'dark', 'midnight', 'beige'
   }
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export function ThemeProvider({ children }) {
 
   const toggleTheme = () => {
     setTheme(prev => {
-      const order = ['light', 'dark', 'ultra-dark', 'beige', 'system']
+      const order = ['light', 'dark', 'midnight', 'beige', 'system']
       const idx = order.indexOf(prev)
       return order[(idx + 1) % order.length]
     })

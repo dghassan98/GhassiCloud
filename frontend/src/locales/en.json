@@ -60,12 +60,35 @@
     },
     "pullToRefresh": "Pull to refresh",
     "releaseToRefresh": "Release to refresh",
-    "refreshing": "Refreshing..."
+    "refreshing": "Refreshing...",
+    "tips": {
+      "pin": "Pin your favorite services for quick access.",
+      "search": "Use the search bar to quickly find any service.",
+      "theme": "Try different themes in Settings → Appearance.",
+      "pull": "Pull down on mobile to refresh your services.",
+      "qr": "Scan the QR code to open GhassiCloud on another device.",
+      "language": "GhassiCloud supports 7 languages — switch in Settings."
+    }
+  },
+  "weather": {
+    "clear": "Clear sky",
+    "partlyCloudy": "Partly cloudy",
+    "cloudy": "Cloudy",
+    "foggy": "Foggy",
+    "drizzle": "Drizzle",
+    "rain": "Rain",
+    "showers": "Showers",
+    "snow": "Snow",
+    "snowShowers": "Snow showers",
+    "thunderstorm": "Thunderstorm",
+    "feelsLike": "Feels",
+    "locationDenied": "Enable location for weather"
   },
   "eventQr": {
     "featured": "Featured",
     "hide": "Hide",
-    "scanOrClick": "Scan or click to visit"
+    "scanOrClick": "Scan or click to visit",
+    "openEvent": "Open Event"
   },
   "auth": {
     "completingSignIn": "Completing sign in...",
@@ -88,12 +111,13 @@
     "themeOptions": {
       "light": "Light",
       "dark": "Dark",
-      "ultraDark": "Ultra Dark",
+      "midnight": "Midnight",
       "beige": "Beige",
       "system": "System"
     },
-    "tabs": { "profile": "Profile Settings", "appearance": "Appearance", "security": "Security", "notifications": "Notifications", "updates": "Updates", "data": "Data & Backup", "eventQr": "Event QR Code" },
+    "tabs": { "profile": "Profile Settings", "appearance": "Appearance", "security": "Security", "notifications": "Notifications", "updates": "Updates", "data": "Data & Backup", "eventQr": "Event Spotlight" },
     "syncPreferences": { "title": "Sync preferences across devices", "desc": "Save appearance preferences to your account and sync them across devices. Turn off to keep settings local to this browser.", "enabled": "Preferences will be synced", "disabled": "Preferences will be stored locally", "toggleFailed": "Failed to update sync preference" },
+    "weather": { "title": "Show weather widget", "desc": "Display local weather on your dashboard. Uses browser location (not stored on servers). You can disable this anytime.", "enabled": "Weather widget enabled", "disabled": "Weather widget disabled", "toggleFailed": "Failed to update weather preference" },
     "resetDefaults": { "title": "Reset appearance to defaults", "desc": "Restore default theme, accent and logo. Optionally forget server-saved preferences.", "forgetServer": "Forget server preferences", "button": "Reset to defaults", "confirm": "This will restore appearance settings to defaults. Continue?", "localReset": "Appearance reset locally", "serverReset": "Server preferences forgotten", "serverResetFailed": "Failed to clear server preferences", "failed": "Failed to reset appearance locally", "mustBeSignedIn": "Sign in to forget server preferences" },
     "updates": {
       "title": "App Updates",
@@ -114,6 +138,9 @@
       "forceRefreshFailed": "Force refresh failed"
     },
     "accentColor": "Accent Color",
+    "saveAccent": "Save Accent Color",
+    "revertAccent": "Revert",
+    "accentSaved": "Accent color saved",
     "customAccentColor": "Custom Accent Color",
     "customAccentHint": "Choose your own accent color",
     "hexCode": "Hex Code",
@@ -214,21 +241,21 @@
       "saveFailed": "Failed to save log level"
     },
     "eventQr": {
-      "title": "Event QR Code",
-      "desc": "Configure a highlighted QR code on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.",
+      "title": "Event Spotlight",
+      "desc": "Configure a featured event highlight on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.",
       "urlLabel": "Target URL",
       "labelField": "Display Label",
       "labelPlaceholder": "e.g., Summer Event 2026",
       "visibility": "Visibility",
-      "visibilityDesc": "Toggle whether the Event QR code is displayed on the dashboard for all users.",
-      "configTitle": "QR Configuration",
-      "configDesc": "Set the target URL and a display label for the QR code.",
+      "visibilityDesc": "Toggle whether the event spotlight is displayed on the dashboard for all users.",
+      "configTitle": "Event Configuration",
+      "configDesc": "Set the target URL and a display label for the event spotlight.",
       "visibleLabel": "Visible on dashboard",
       "hiddenLabel": "Hidden",
-      "enabled": "Event QR enabled",
-      "disabled": "Event QR hidden",
-      "saved": "Event QR saved",
-      "saveFailed": "Failed to save Event QR",
+      "enabled": "Event spotlight enabled",
+      "disabled": "Event spotlight hidden",
+      "saved": "Event spotlight saved",
+      "saveFailed": "Failed to save event spotlight",
       "preview": "Preview link ↗"
     },
     "adminRequired": "Admin access required",

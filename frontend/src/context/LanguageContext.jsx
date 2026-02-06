@@ -6,11 +6,12 @@ import fr from '../locales/fr.json'
 import es from '../locales/es.json'
 import ru from '../locales/ru.json'
 import ar from '../locales/ar.json'
+import pt from '../locales/pt.json'
 import { useAuth } from './AuthContext'
 
-const translations = { en, de, fr, es, ru, ar }
+const translations = { en, de, fr, es, ru, ar, pt }
 const defaultLang = (navigator.language || 'en').split('-')[0]
-const supported = ['system', 'en', 'de', 'fr', 'es', 'ru', 'ar']
+const supported = ['system', 'en', 'de', 'fr', 'es', 'ru', 'ar', 'pt']
 
 const LanguageContext = createContext()
 
@@ -31,7 +32,15 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     try { localStorage.setItem('ghassicloud-lang', language) } catch (e) {}
-    const resolved = language === 'system' ? ((navigator.language || 'en').split('-')[0]) : language
+    let resolved = language === 'system' ? ((navigator.language || 'en').split('-')[0]) : language
+    // Fallback to English if resolved language is not supported
+    if (!translations[resolved]) resolved = 'en'
+    logger.info('[LanguageContext] Language detection:', {
+      setting: language,
+      navigatorLanguage: navigator.language,
+      resolved,
+      supportedTranslations: Object.keys(translations)
+    })
     document.documentElement.lang = resolved
     document.documentElement.dir = resolved === 'ar' ? 'rtl' : 'ltr'
   }, [language])
@@ -61,7 +70,9 @@ export function LanguageProvider({ children }) {
       return node
     }
 
-    const resolvedLang = (language === 'system') ? ((navigator.language || 'en').split('-')[0]) : language
+    let resolvedLang = (language === 'system') ? ((navigator.language || 'en').split('-')[0]) : language
+    // Fallback to English if resolved language is not supported
+    if (!translations[resolvedLang]) resolvedLang = 'en'
     let node = resolve(key, resolvedLang)
     if (typeof node === 'string') return node
 

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import {
   User, Lock, Palette, Bell, Shield, Database,
   Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
-  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw, QrCode, Contrast, Coffee
+  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw, Sparkles, Contrast, Coffee
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -23,7 +23,7 @@ export default function Settings() {
   const { user, logout, updateUser, refreshUser } = useAuth()
   const { theme, setTheme } = useTheme()
   const { currentLogo, setLogo } = useLogo()
-  const { currentAccent, setAccent } = useAccent()
+  const { currentAccent, setAccent, confirmAccent, revertAccent, isPreview: accentPreviewActive } = useAccent()
   const { t, language, setLanguage } = useLanguage()
   const { showToast } = useToast()
   const { checkForUpdate, forceRefresh, showChangelog, dismissChangelog } = usePWAUpdate()
@@ -37,6 +37,13 @@ export default function Settings() {
       if (local !== null) return local === 'true'
       return user?.preferences?.syncPreferences === true
     } catch (e) { logger.error('Failed to get sync preferences from localStorage:', e); return false }
+  })
+
+  const [showWeather, setShowWeather] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ghassicloud-show-weather')
+      return saved === null ? true : saved === 'true'
+    } catch { return true }
   })
 
   useEffect(() => {
@@ -94,13 +101,26 @@ export default function Settings() {
     }
   }
 
+  const handleToggleWeather = () => {
+    const next = !showWeather
+    setShowWeather(next)
+    try {
+      localStorage.setItem('ghassicloud-show-weather', next ? 'true' : 'false')
+      window.dispatchEvent(new Event('ghassicloud:weather-preference-changed'))
+      showToast({ message: next ? (t('settings.weather.enabled') || 'Weather widget enabled') : (t('settings.weather.disabled') || 'Weather widget disabled'), type: 'success' })
+    } catch (e) {
+      logger.error('Failed to update weather preference:', e)
+      showToast({ message: t('settings.weather.toggleFailed') || 'Failed to update weather preference', type: 'error' })
+    }
+  }
+
   const settingsSections = [
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
     { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
     { id: 'security', label: t('settings.tabs.security'), icon: Shield },
     { id: 'data', label: t('settings.tabs.data'), icon: Database },
     ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : []),
-    ...(isAdmin ? [{ id: 'eventqr', label: t('settings.tabs.eventQr') || 'Event QR Code', icon: QrCode }] : []),
+    ...(isAdmin ? [{ id: 'eventqr', label: t('settings.tabs.eventQr') || 'Event Spotlight', icon: Sparkles }] : []),
     { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw }
   ]
   const [activeSection, setActiveSection] = useState('profile')
@@ -119,7 +139,8 @@ export default function Settings() {
     fr: 'Français',
     de: 'Deutsch',
     ar: 'العربية',
-    ru: 'Русский'
+    ru: 'Русский',
+    pt: 'Português'
   }
 
   const [sessions, setSessions] = useState([])
@@ -142,6 +163,13 @@ export default function Settings() {
   const [eventQrSaved, setEventQrSaved] = useState(false)
 
   const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
+
+  // Revert unsaved accent preview when leaving the page
+  useEffect(() => {
+    return () => {
+      revertAccent()
+    }
+  }, [])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleResetDefaults = async () => {
     if (!window.confirm(t('settings.resetDefaults.confirm') || 'This will restore appearance settings to defaults. Continue?')) return
@@ -1358,6 +1386,7 @@ export default function Settings() {
                       <option value="de">{languageLabels.de}</option>
                       <option value="ar">{languageLabels.ar}</option>
                       <option value="ru">{languageLabels.ru}</option>
+                      <option value="pt">{languageLabels.pt}</option>
                     </select>
                     <p className="form-hint">{t('settings.languageHint') || 'Choose your preferred UI language'}</p>
                   </div>
@@ -1377,6 +1406,16 @@ export default function Settings() {
                   </div>
                   <label className="toggle">
                     <input type="checkbox" checked={!!syncPreferences} onChange={handleToggleSync} />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
+                <div className="toggle-item">
+                  <div>
+                    <h4>{t('settings.weather.title') || 'Show weather widget'}</h4>
+                    <p>{t('settings.weather.desc') || 'Display local weather on your dashboard. Uses browser location (not stored on servers). You can disable this anytime.'}</p>
+                  </div>
+                  <label className="toggle">
+                    <input type="checkbox" checked={!!showWeather} onChange={handleToggleWeather} />
                     <span className="toggle-slider" />
                   </label>
                 </div>
@@ -1407,11 +1446,11 @@ export default function Settings() {
                     <span>{t('settings.themeOptions.dark') || 'Dark'}</span>
                   </button>
                   <button
-                    className={`theme-option ${theme === 'ultra-dark' ? 'active' : ''}`}
-                    onClick={() => setTheme('ultra-dark')}
+                    className={`theme-option ${theme === 'midnight' ? 'active' : ''}`}
+                    onClick={() => setTheme('midnight')}
                   >
                     <Contrast size={24} />
-                    <span>{t('settings.themeOptions.ultraDark') || 'Ultra Dark'}</span>
+                    <span>{t('settings.themeOptions.midnight') || 'Midnight'}</span>
                   </button>
                   <button
                     className={`theme-option ${theme === 'system' ? 'active' : ''}`}
@@ -1432,7 +1471,7 @@ export default function Settings() {
                       key={id}
                       className={`color-option ${currentAccent.id === id ? 'active' : ''}`}
                       style={{ backgroundColor: color }}
-                      onClick={() => setAccent(id)}
+                      onClick={() => setAccent(id, undefined, true)}
                       title={name}
                     >
                       {currentAccent.id === id && <Check size={14} />}
@@ -1503,7 +1542,7 @@ export default function Settings() {
                                 setSaturation(newSat)
                                 setLightness(newLight)
                                 const hex = hslToHex(hue, newSat, newLight)
-                                setAccent('custom', hex)
+                                setAccent('custom', hex, true)
                                 setHexInput(hex)
                               }
 
@@ -1547,7 +1586,7 @@ export default function Settings() {
                                 const newHue = parseInt(e.target.value)
                                 setHue(newHue)
                                 const hex = hslToHex(newHue, saturation, lightness)
-                                setAccent('custom', hex)
+                                setAccent('custom', hex, true)
                                 setHexInput(hex)
                               }}
                               className="hue-slider"
@@ -1567,7 +1606,7 @@ export default function Settings() {
                                 if (/^#[0-9A-F]{0,6}$/.test(value)) {
                                   setHexInput(value)
                                   if (value.length === 7) {
-                                    setAccent('custom', value)
+                                    setAccent('custom', value, true)
                                     const hsl = hexToHSL(value)
                                     setHue(hsl.h)
                                     setSaturation(hsl.s)
@@ -1605,7 +1644,7 @@ export default function Settings() {
                               className="color-swatch"
                               style={{ backgroundColor: color }}
                               onClick={() => {
-                                setAccent('custom', color)
+                                setAccent('custom', color, true)
                                 setHexInput(color.toUpperCase())
                               }}
                               title={color.toUpperCase()}
@@ -1617,6 +1656,27 @@ export default function Settings() {
                   )}
                 </div>
               </div>
+              {accentPreviewActive && (
+                <div className="form-group" style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => { confirmAccent(); showToast({ message: t('settings.accentSaved') || 'Accent color saved', type: 'success' }) }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    <Save size={14} />
+                    {t('settings.saveAccent') || 'Save Accent Color'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => revertAccent()}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    {t('settings.revertAccent') || 'Revert'}
+                  </button>
+                </div>
+              )}
               <div className="form-group">
                 <label>{t('settings.logoStyle')}</label>
                 <p className="form-hint">{t('settings.logoHint')}</p>
@@ -1707,7 +1767,7 @@ export default function Settings() {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.9.0'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.9.1'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -1816,21 +1876,21 @@ export default function Settings() {
             </div>
           )}
 
-          {/* Event QR Code Section (Admin Only) */}
+          {/* Event Spotlight Section (Admin Only) */}
           {activeSection === 'eventqr' && isAdmin && (
             <div className="settings-section">
               <div className="section-header">
                 <div>
-                  <h2>{t('settings.eventQr.title') || 'Event QR Code'}</h2>
-                  <p>{t('settings.eventQr.desc') || 'Configure a highlighted QR code on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.'}</p>
+                  <h2>{t('settings.eventQr.title') || 'Event Spotlight'}</h2>
+                  <p>{t('settings.eventQr.desc') || 'Configure a featured event highlight on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.'}</p>
                 </div>
               </div>
 
               <div className="sso-card">
-                <div className="sso-card-left"><QrCode size={22} /></div>
+                <div className="sso-card-left"><Sparkles size={22} /></div>
                 <div className="sso-card-body">
                   <h4>{t('settings.eventQr.visibility') || 'Visibility'}</h4>
-                  <p className="form-hint">{t('settings.eventQr.visibilityDesc') || 'Toggle whether the Event QR code is displayed on the dashboard for all users.'}</p>
+                  <p className="form-hint">{t('settings.eventQr.visibilityDesc') || 'Toggle whether the event spotlight is displayed on the dashboard for all users.'}</p>
                   <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
                     <label className="toggle" style={{ margin: 0 }}>
                       <input
@@ -1847,7 +1907,7 @@ export default function Settings() {
                             if (token) headers.Authorization = token
                             const res = await fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'eventQrVisible', value: next ? 'true' : 'false' }) })
                             if (res.ok) {
-                              showToast({ message: next ? (t('settings.eventQr.enabled') || 'Event QR enabled') : (t('settings.eventQr.disabled') || 'Event QR hidden'), type: 'success' })
+                              showToast({ message: next ? (t('settings.eventQr.enabled') || 'Event spotlight enabled') : (t('settings.eventQr.disabled') || 'Event spotlight hidden'), type: 'success' })
                               try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrVisible', value: next ? 'true' : 'false' } })) } catch (e) { }
                             } else {
                               setEventQrVisible(!next)
@@ -1869,8 +1929,8 @@ export default function Settings() {
               <div className="sso-card" style={{ marginTop: '1rem' }}>
                 <div className="sso-card-left"><Globe size={22} /></div>
                 <div className="sso-card-body">
-                  <h4>{t('settings.eventQr.configTitle') || 'QR Configuration'}</h4>
-                  <p className="form-hint">{t('settings.eventQr.configDesc') || 'Set the target URL and a display label for the QR code.'}</p>
+                  <h4>{t('settings.eventQr.configTitle') || 'Event Configuration'}</h4>
+                  <p className="form-hint">{t('settings.eventQr.configDesc') || 'Set the target URL and a display label for the event spotlight.'}</p>
 
                   <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div>
@@ -1914,7 +1974,7 @@ export default function Settings() {
                             ])
                             if (r1.ok && r2.ok) {
                               setEventQrSaved(true)
-                              showToast({ message: t('settings.eventQr.saved') || 'Event QR saved', type: 'success' })
+                              showToast({ message: t('settings.eventQr.saved') || 'Event spotlight saved', type: 'success' })
                               try {
                                 window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrUrl', value: eventQrUrl } }))
                                 window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrLabel', value: eventQrLabel } }))
@@ -1943,7 +2003,7 @@ export default function Settings() {
                       <div style={{ marginTop: 8, padding: '1rem', borderRadius: 12, background: 'rgba(99, 102, 241, 0.06)', border: '1px solid rgba(99, 102, 241, 0.12)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <img
                           src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(eventQrUrl)}&bgcolor=0f1724&color=ffffff&margin=1`}
-                          alt="QR Preview"
+                          alt="Event Preview"
                           style={{ width: 64, height: 64, borderRadius: 8, imageRendering: 'pixelated' }}
                         />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

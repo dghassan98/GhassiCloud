@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { QrCode, ExternalLink, EyeOff, Sparkles } from 'lucide-react'
+import { ExternalLink, EyeOff, Sparkles, Ticket, ArrowRight } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useWebview } from '../context/WebviewContext'
 import { isPWA, isMobile } from '../hooks/useCapacitor'
@@ -12,6 +12,7 @@ export default function EventQRCard() {
   const [config, setConfig] = useState(null)
   const [hidden, setHidden] = useState(false)
   const [loading, setLoading] = useState(true)
+  const mobile = isMobile()
 
   useEffect(() => {
     let cancelled = false
@@ -26,7 +27,7 @@ export default function EventQRCard() {
           if (!cancelled) setConfig(data)
         }
       } catch (err) {
-        logger.error('Failed to fetch event QR config:', err)
+        logger.error('Failed to fetch event config:', err)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -66,7 +67,7 @@ export default function EventQRCard() {
   return (
     <AnimatePresence>
       <motion.div
-        className="event-qr-card"
+        className={`event-qr-card${mobile ? ' event-card-mobile' : ''}`}
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -88,43 +89,79 @@ export default function EventQRCard() {
           <span>{t('eventQr.featured') || 'Featured'}</span>
         </div>
 
-        {/* Clickable QR image */}
-        <a
-          href={config.url}
-          onClick={handleClick}
-          className="event-qr-link"
-          target="_blank"
-          rel="noopener noreferrer"
-          title={t('eventQr.scanOrClick') || 'Scan or click to visit'}
-        >
-          <div className="event-qr-image-wrap">
-            <img
-              src={qrImageUrl}
-              alt={config.label || 'Event QR Code'}
-              width={qrSize}
-              height={qrSize}
-              loading="eager"
-            />
-            <div className="event-qr-glow" />
-          </div>
-        </a>
-
-        {/* Label & URL */}
-        <div className="event-qr-info">
-          {config.label && (
-            <span className="event-qr-label">{config.label}</span>
-          )}
-          <a
-            href={config.url}
-            onClick={handleClick}
-            className="event-qr-url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink size={12} />
-            <span>{config.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
-          </a>
-        </div>
+        {mobile ? (
+          /* ── Mobile: Ticket-style event banner ── */
+          <>
+            <a
+              href={config.url}
+              onClick={handleClick}
+              className="event-card-mobile-hero"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="event-card-mobile-icon">
+                <Ticket size={32} />
+              </div>
+              {config.label && (
+                <span className="event-card-mobile-label">{config.label}</span>
+              )}
+              <span className="event-card-mobile-cta">
+                {t('eventQr.openEvent') || 'Open Event'}
+                <ArrowRight size={14} />
+              </span>
+            </a>
+            <div className="event-qr-info">
+              <a
+                href={config.url}
+                onClick={handleClick}
+                className="event-qr-url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink size={12} />
+                <span>{config.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+              </a>
+            </div>
+          </>
+        ) : (
+          /* ── Desktop: Scannable QR code ── */
+          <>
+            <a
+              href={config.url}
+              onClick={handleClick}
+              className="event-qr-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              title={t('eventQr.scanOrClick') || 'Scan or click to visit'}
+            >
+              <div className="event-qr-image-wrap">
+                <img
+                  src={qrImageUrl}
+                  alt={config.label || 'Event'}
+                  width={qrSize}
+                  height={qrSize}
+                  loading="eager"
+                />
+                <div className="event-qr-glow" />
+              </div>
+            </a>
+            <div className="event-qr-info">
+              {config.label && (
+                <span className="event-qr-label">{config.label}</span>
+              )}
+              <a
+                href={config.url}
+                onClick={handleClick}
+                className="event-qr-url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink size={12} />
+                <span>{config.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+              </a>
+            </div>
+          </>
+        )}
       </motion.div>
     </AnimatePresence>
   )

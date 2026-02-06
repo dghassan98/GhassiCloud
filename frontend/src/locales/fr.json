@@ -50,7 +50,35 @@
       "afternoon": "Bon après-midi",
       "evening": "Bonsoir",
       "night": "Bonne nuit"
+    },
+    "tips": {
+      "pin": "Épinglez vos services favoris pour un accès rapide.",
+      "search": "Utilisez la barre de recherche pour trouver un service rapidement.",
+      "theme": "Essayez différents thèmes dans Paramètres → Apparence.",
+      "pull": "Tirez vers le bas sur mobile pour actualiser vos services.",
+      "qr": "Scannez le QR code pour ouvrir GhassiCloud sur un autre appareil.",
+      "language": "GhassiCloud prend en charge 7 langues — changez dans les Paramètres."
     }
+  },
+  "weather": {
+    "clear": "Ciel dégagé",
+    "partlyCloudy": "Partiellement nuageux",
+    "cloudy": "Nuageux",
+    "foggy": "Brumeux",
+    "drizzle": "Bruine",
+    "rain": "Pluie",
+    "showers": "Averses",
+    "snow": "Neige",
+    "snowShowers": "Averses de neige",
+    "thunderstorm": "Orage",
+    "feelsLike": "Ressenti",
+    "locationDenied": "Activez la localisation pour la météo"
+  },
+  "eventQr": {
+    "featured": "À la Une",
+    "hide": "Masquer",
+    "scanOrClick": "Scannez ou cliquez pour visiter",
+    "openEvent": "Ouvrir l'événement"
   },
   "auth": {
     "completingSignIn": "Connexion en cours...",
@@ -73,11 +101,14 @@
     "themeOptions": {
       "light": "Clair",
       "dark": "Sombre",
-      "ultraDark": "Ultra Sombre",
+      "midnight": "Minuit",
       "beige": "Beige",
       "system": "Système"
     },
     "accentColor": "Couleur d'accent",
+    "saveAccent": "Enregistrer la couleur d'accent",
+    "revertAccent": "Annuler",
+    "accentSaved": "Couleur d'accent enregistrée",
     "customAccentColor": "Couleur d'accent personnalisée",
     "customAccentHint": "Choisissez votre propre couleur d'accent",
     "hexCode": "Code hexadécimal",
@@ -147,7 +178,7 @@
       "security": "Sécurité",
       "notifications": "Notifications",
       "data": "Données & Sauvegarde",
-      "eventQr": "Code QR de l'événement",
+      "eventQr": "Événement à la Une",
       "updates": "Mises à jour"
     },
     "syncPreferences": {
@@ -156,6 +187,13 @@
       "enabled": "Les préférences seront synchronisées",
       "disabled": "Les préférences seront stockées localement",
       "toggleFailed": "Échec de la mise à jour de la préférence de synchronisation"
+    },
+    "weather": {
+      "title": "Afficher le widget météo",
+      "desc": "Afficher la météo locale sur votre tableau de bord. Utilise la localisation du navigateur (non stockée sur les serveurs). Vous pouvez désactiver cela à tout moment.",
+      "enabled": "Widget météo activé",
+      "disabled": "Widget météo désactivé",
+      "toggleFailed": "Échec de la mise à jour de la préférence météo"
     },
     "resetDefaults": {
       "title": "Réinitialiser l'apparence par défaut",
@@ -224,21 +262,21 @@
       "saveFailed": "Échec de l'enregistrement du niveau de journalisation"
     },
     "eventQr": {
-      "title": "Code QR de l'événement",
-      "desc": "Configurez un code QR mis en avant sur le tableau de bord pour les événements, les liens temporaires ou les promotions. Visible par tous les utilisateurs lorsqu'il est activé.",
+      "title": "Événement à la Une",
+      "desc": "Configurez un événement mis en avant sur le tableau de bord pour les événements, les liens temporaires ou les promotions. Visible par tous les utilisateurs lorsqu'il est activé.",
       "urlLabel": "URL cible",
       "labelField": "Étiquette",
       "labelPlaceholder": "ex. Événement Été 2026",
       "visibility": "Visibilité",
-      "visibilityDesc": "Basculer si le code QR de l'événement est affiché sur le tableau de bord pour tous les utilisateurs.",
-      "configTitle": "Configuration QR",
-      "configDesc": "Définissez l'URL cible et une étiquette d'affichage pour le QR.",
+      "visibilityDesc": "Basculer si l'événement à la une est affiché sur le tableau de bord pour tous les utilisateurs.",
+      "configTitle": "Configuration de l'Événement",
+      "configDesc": "Définissez l'URL cible et une étiquette d'affichage pour l'événement à la une.",
       "visibleLabel": "Visible sur le tableau de bord",
       "hiddenLabel": "Masqué",
-      "enabled": "Code QR activé",
-      "disabled": "Code QR masqué",
-      "saved": "Code QR enregistré",
-      "saveFailed": "Échec de l'enregistrement du code QR",
+      "enabled": "Événement à la une activé",
+      "disabled": "Événement à la une masqué",
+      "saved": "Événement à la une enregistré",
+      "saveFailed": "Échec de l'enregistrement de l'événement",
       "preview": "Aperçu ↗"
     },
     "activeSessionsTitle": "Sessions actives",

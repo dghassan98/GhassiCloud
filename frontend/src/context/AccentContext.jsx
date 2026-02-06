@@ -88,6 +88,18 @@ export function AccentProvider({ children }) {
     setIsPreview(preview)
   }
 
+  const confirmAccent = () => {
+    setIsPreview(false)
+  }
+
+  const revertAccent = () => {
+    const savedId = localStorage.getItem('ghassicloud-accent') || 'cyan'
+    const savedCustom = localStorage.getItem('ghassicloud-custom-accent') || '#6366f1'
+    setAccentIdState(savedId)
+    setCustomColorState(savedCustom)
+    setIsPreview(false)
+  }
+
   const currentAccent = accentId === 'custom' 
     ? { id: 'custom', color: customColor, name: 'Custom' }
     : accentColors.find(a => a.id === accentId) || accentColors[6]
@@ -177,7 +189,7 @@ export function AccentProvider({ children }) {
   }, [accentId, currentAccent, customColor, isPreview])
 
   return (
-    <AccentContext.Provider value={{ currentAccent, setAccent, accentColors, customColor }}>
+    <AccentContext.Provider value={{ currentAccent, setAccent, confirmAccent, revertAccent, isPreview, accentColors, customColor }}>
       {children}
     </AccentContext.Provider>
   )

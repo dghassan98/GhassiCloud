@@ -50,7 +50,35 @@
       "afternoon": "Buenas tardes",
       "evening": "Buenas tardes",
       "night": "Buenas noches"
+    },
+    "tips": {
+      "pin": "Fija tus servicios favoritos para un acceso rápido.",
+      "search": "Usa la barra de búsqueda para encontrar cualquier servicio.",
+      "theme": "Prueba diferentes temas en Ajustes → Apariencia.",
+      "pull": "Desliza hacia abajo en el móvil para actualizar tus servicios.",
+      "qr": "Escanea el código QR para abrir GhassiCloud en otro dispositivo.",
+      "language": "GhassiCloud soporta 7 idiomas — cambia en Ajustes."
     }
+  },
+  "weather": {
+    "clear": "Cielo despejado",
+    "partlyCloudy": "Parcialmente nublado",
+    "cloudy": "Nublado",
+    "foggy": "Niebla",
+    "drizzle": "Llovizna",
+    "rain": "Lluvia",
+    "showers": "Chubascos",
+    "snow": "Nieve",
+    "snowShowers": "Chubascos de nieve",
+    "thunderstorm": "Tormenta",
+    "feelsLike": "Sensación",
+    "locationDenied": "Activa la ubicación para el clima"
+  },
+  "eventQr": {
+    "featured": "Destacado",
+    "hide": "Ocultar",
+    "scanOrClick": "Escanea o haz clic para visitar",
+    "openEvent": "Abrir Evento"
   },
   "auth": {
     "completingSignIn": "Completando el inicio de sesión...",
@@ -73,11 +101,14 @@
     "themeOptions": {
       "light": "Claro",
       "dark": "Oscuro",
-      "ultraDark": "Ultra Oscuro",
+      "midnight": "Medianoche",
       "beige": "Beige",
       "system": "Sistema"
     },
     "accentColor": "Color de acento",
+    "saveAccent": "Guardar color de acento",
+    "revertAccent": "Revertir",
+    "accentSaved": "Color de acento guardado",
     "customAccentColor": "Color de acento personalizado",
     "customAccentHint": "Elige tu propio color de acento",
     "hexCode": "Código hexadecimal",
@@ -147,7 +178,7 @@
       "security": "Seguridad",
       "notifications": "Notificaciones",
       "data": "Datos y copia de seguridad",
-      "eventQr": "Código QR del Evento",
+      "eventQr": "Evento Destacado",
       "updates": "Actualizaciones"
     },
     "syncPreferences": {
@@ -156,6 +187,13 @@
       "enabled": "Las preferencias se sincronizarán",
       "disabled": "Las preferencias se guardarán localmente",
       "toggleFailed": "No se pudo actualizar la preferencia de sincronización"
+    },
+    "weather": {
+      "title": "Mostrar widget del clima",
+      "desc": "Muestra el clima local en tu panel. Usa la ubicación del navegador (no se almacena en servidores). Puedes desactivarlo en cualquier momento.",
+      "enabled": "Widget del clima activado",
+      "disabled": "Widget del clima desactivado",
+      "toggleFailed": "Error al actualizar la preferencia del clima"
     },
     "resetDefaults": {
       "title": "Restablecer apariencia a los valores predeterminados",
@@ -223,21 +261,21 @@
       "saveFailed": "Error al guardar el nivel de registro"
     },
     "eventQr": {
-      "title": "Código QR del Evento",
-      "desc": "Configura un código QR destacado en el panel para eventos, enlaces temporales o promociones. Visible para todos los usuarios cuando está habilitado.",
+      "title": "Evento Destacado",
+      "desc": "Configura un evento destacado en el panel para eventos, enlaces temporales o promociones. Visible para todos los usuarios cuando está habilitado.",
       "urlLabel": "URL destino",
       "labelField": "Etiqueta para mostrar",
       "labelPlaceholder": "p.ej., Evento de Verano 2026",
       "visibility": "Visibilidad",
-      "visibilityDesc": "Alterna si el código QR de evento se muestra en el panel para todos los usuarios.",
-      "configTitle": "Configuración del QR",
-      "configDesc": "Establece la URL de destino y una etiqueta para mostrar.",
+      "visibilityDesc": "Alterna si el evento destacado se muestra en el panel para todos los usuarios.",
+      "configTitle": "Configuración del Evento",
+      "configDesc": "Establece la URL de destino y una etiqueta para el evento destacado.",
       "visibleLabel": "Visible en el panel",
       "hiddenLabel": "Oculto",
-      "enabled": "QR de Evento habilitado",
-      "disabled": "QR de Evento oculto",
-      "saved": "QR de Evento guardado",
-      "saveFailed": "Error al guardar el QR de Evento",
+      "enabled": "Evento destacado habilitado",
+      "disabled": "Evento destacado oculto",
+      "saved": "Evento destacado guardado",
+      "saveFailed": "Error al guardar el evento destacado",
       "preview": "Vista previa ↗"
     },    "activeSessionsTitle": "Sesiones activas",
     "activeSessionsDesc": "Ver dispositivos y navegadores actualmente conectados. Revoca sesiones que no reconozcas.",

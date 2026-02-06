@@ -2,10 +2,17 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.1': {
+    date: 'February 6, 2026',
+    changes: [
+      'style: update global CSS variables for dark theme and add new midnight theme',
+      'feat: add Portuguese localization file with translations for various app sections',
+    ],
+  },
   '1.9.0': {
     date: 'February 6, 2026',
     changes: [
-      'add Event QR code configuration and display on dashboard',
+      'add Event Spotlight configuration and display on dashboard',
       'added ultra dark and beige theme',
     ],
   },
@@ -386,7 +393,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.0';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.1';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
