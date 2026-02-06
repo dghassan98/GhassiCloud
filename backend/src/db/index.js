@@ -154,6 +154,18 @@ export async function initDatabase() {
     )
   `)
 
+  // Add columns for Keycloak token storage (used for proactive session refresh on PWA restart)
+  try {
+    db.exec(`ALTER TABLE user_sessions ADD COLUMN keycloak_refresh_token TEXT`)
+  } catch (e) {
+    logger.debug('keycloak_refresh_token column already exists in user_sessions, skipping')
+  }
+  try {
+    db.exec(`ALTER TABLE user_sessions ADD COLUMN keycloak_id_token TEXT`)
+  } catch (e) {
+    logger.debug('keycloak_id_token column already exists in user_sessions, skipping')
+  }
+
   // Create audit_logs table for tracking all user activities and access changes
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_logs (

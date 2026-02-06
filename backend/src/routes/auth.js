@@ -223,8 +223,8 @@ router.post('/sso/callback', async (req, res) => {
 
       if (sessionId) {
         try {
-          db.prepare(`INSERT OR REPLACE INTO user_sessions (session_id, user_id, client_id, ip, user_agent, last_seen) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`)
-            .run(sessionId, user && user.id ? user.id : 'unknown', KEYCLOAK_CLIENT_ID, ip, userAgent)
+          db.prepare(`INSERT OR REPLACE INTO user_sessions (session_id, user_id, client_id, ip, user_agent, keycloak_refresh_token, keycloak_id_token, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`)
+            .run(sessionId, user && user.id ? user.id : 'unknown', KEYCLOAK_CLIENT_ID, ip, userAgent, tokens.refresh_token || null, tokens.id_token || null)
         } catch (e) {
           logger.warn('Failed to persist SSO session metadata:', e)
         }
@@ -1492,6 +1492,109 @@ router.get('/sso/refresh-config', authenticateToken, async (req, res) => {
   } catch (err) {
     logger.error('SSO refresh config error:', err)
     res.status(500).json({ message: 'Failed to get refresh config' })
+  }
+})
+
+/**
+ * POST /sso/token-refresh
+ * 
+ * Uses the stored Keycloak refresh_token to obtain fresh tokens server-side.
+ * This keeps the Keycloak server-side session alive and returns a fresh
+ * GhassiCloud JWT + the Keycloak id_token (used as id_token_hint for
+ * re-establishing the browser session cookie via a silent iframe).
+ * 
+ * Called by the frontend on PWA startup to fix the "lost session cookie" problem.
+ */
+router.post('/sso/token-refresh', authenticateToken, async (req, res) => {
+  try {
+    const db = getDb()
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id)
+
+    if (!user || !user.sso_provider) {
+      return res.status(400).json({ success: false, message: 'Not an SSO user' })
+    }
+
+    const sessionId = req.user.sessionId
+    if (!sessionId) {
+      return res.status(400).json({ success: false, message: 'No session ID in token' })
+    }
+
+    const session = db.prepare('SELECT * FROM user_sessions WHERE session_id = ? AND user_id = ?').get(sessionId, user.id)
+    if (!session || !session.keycloak_refresh_token) {
+      return res.status(400).json({ success: false, message: 'No refresh token stored for this session' })
+    }
+
+    // Exchange refresh_token for new tokens at Keycloak's token endpoint
+    const tokenParams = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: KEYCLOAK_CLIENT_ID,
+      refresh_token: session.keycloak_refresh_token
+    })
+
+    const tokenResponse = await fetch(
+      `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: tokenParams
+      }
+    )
+
+    if (!tokenResponse.ok) {
+      const errText = await tokenResponse.text()
+      logger.warn('SSO token refresh failed:', tokenResponse.status, errText)
+
+      // If the refresh token is expired/invalid, clean it up
+      if (tokenResponse.status === 400 || tokenResponse.status === 401) {
+        try {
+          db.prepare('UPDATE user_sessions SET keycloak_refresh_token = NULL, keycloak_id_token = NULL WHERE session_id = ?').run(sessionId)
+        } catch (e) { logger.warn('Failed to clear stale refresh token:', e) }
+      }
+
+      return res.status(401).json({
+        success: false,
+        message: 'Keycloak session expired',
+        needsReauth: true
+      })
+    }
+
+    const tokens = JSON.parse(await tokenResponse.text())
+
+    // Update stored tokens with the fresh ones
+    try {
+      db.prepare('UPDATE user_sessions SET keycloak_refresh_token = ?, keycloak_id_token = ?, last_seen = CURRENT_TIMESTAMP WHERE session_id = ?')
+        .run(tokens.refresh_token || session.keycloak_refresh_token, tokens.id_token || session.keycloak_id_token, sessionId)
+    } catch (e) {
+      logger.warn('Failed to update refreshed tokens in DB:', e)
+    }
+
+    // Issue a fresh GhassiCloud JWT (extends the app-level session)
+    const newSessionId = tokens.session_state || sessionId
+    const newToken = generateToken(user, newSessionId)
+
+    // If the session_state changed, migrate the session row
+    if (tokens.session_state && tokens.session_state !== sessionId) {
+      try {
+        db.prepare('DELETE FROM user_sessions WHERE session_id = ?').run(sessionId)
+        const rawIp = req.ip || (req.headers && (req.headers['x-forwarded-for'] || req.connection?.remoteAddress)) || null
+        const ip = normalizeIp(rawIp)
+        db.prepare('INSERT OR REPLACE INTO user_sessions (session_id, user_id, client_id, ip, user_agent, keycloak_refresh_token, keycloak_id_token, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)')
+          .run(newSessionId, user.id, KEYCLOAK_CLIENT_ID, ip, req.headers?.['user-agent'] || '', tokens.refresh_token || null, tokens.id_token || null)
+      } catch (e) {
+        logger.warn('Failed to migrate session row:', e)
+      }
+    }
+
+    logger.info({ userId: user.id }, 'SSO token refresh successful')
+
+    res.json({
+      success: true,
+      token: newToken,
+      idToken: tokens.id_token || null
+    })
+  } catch (err) {
+    logger.error('SSO token refresh error:', err)
+    res.status(500).json({ success: false, message: 'Token refresh failed' })
   }
 })
 

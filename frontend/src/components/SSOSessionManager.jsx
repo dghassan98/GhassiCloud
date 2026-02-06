@@ -1,15 +1,17 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import useSSOSessionMonitor from '../hooks/useSSOSessionMonitor'
 import SessionExpirationWarning from './SessionExpirationWarning'
+import logger from '../logger'
 
 export default function SSOSessionManager() {
-  const { user, logout } = useAuth()
+  const { user, logout, loginWithSSO } = useAuth()
   const { t } = useLanguage()
   
   const [showWarning, setShowWarning] = useState(false)
   const [expiresIn, setExpiresIn] = useState(null)
+  const reauthAttemptedRef = useRef(false)
 
   const handleSessionWarning = useCallback((seconds) => {
     logger.info('SSO session warning: expires in', seconds, 'seconds')
@@ -27,7 +29,7 @@ export default function SSOSessionManager() {
   }, [logout])
 
 
-  const { attemptSilentRefresh } = useSSOSessionMonitor({
+  const { attemptSilentRefresh, sessionStatus } = useSSOSessionMonitor({
     user,
     logout,
     onSessionWarning: handleSessionWarning,
@@ -37,6 +39,33 @@ export default function SSOSessionManager() {
     proactiveRefreshIntervalMs: 5 * 60 * 1000, 
     showWarning: false, 
   })
+
+  // When needsReauth is flagged (session cookies lost after PWA restart),
+  // trigger a transparent full SSO re-auth to re-establish Keycloak cookies
+  useEffect(() => {
+    if (!sessionStatus.needsReauth || reauthAttemptedRef.current) return
+    reauthAttemptedRef.current = true
+
+    logger.info('SSOSessionManager: Keycloak session cookies lost, triggering transparent re-auth...')
+
+    // Use the full SSO login flow which will redirect to Keycloak.
+    // If the Keycloak session is still alive server-side (from our refresh),
+    // Keycloak will auto-redirect back without showing a login form.
+    // If it's truly expired, the user will briefly see the Keycloak login page.
+    const triggerReauth = async () => {
+      try {
+        await loginWithSSO()
+        logger.info('SSOSessionManager: Transparent re-auth completed successfully')
+      } catch (err) {
+        logger.warn('SSOSessionManager: Transparent re-auth failed:', err)
+        // Don't log out - the app still works, just services may require re-auth
+      }
+    }
+
+    // Small delay to let the app finish rendering
+    const timer = setTimeout(triggerReauth, 1500)
+    return () => clearTimeout(timer)
+  }, [sessionStatus.needsReauth, loginWithSSO])
 
   const handleExtendSession = useCallback(async () => {
     logger.info('User clicked "Stay Logged In", attempting silent refresh...')

@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.2': {
+    date: 'February 6, 2026',
+    changes: [
+      'feat: implement Keycloak token storage and session refresh for SSO integration',
+    ],
+  },
   '1.9.1': {
     date: 'February 6, 2026',
     changes: [
@@ -393,7 +399,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.1';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.2';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
