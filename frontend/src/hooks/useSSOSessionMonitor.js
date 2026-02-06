@@ -423,7 +423,9 @@ export function useSSOSessionMonitor({
       return
     }
 
-    // Start periodic checks (no upfront warmup - we'll do lazy re-auth on first service access)
+    // Run non-destructive warmup in background (tries to re-establish session cookie
+    // via silent iframe). Won't redirect or interrupt the user if it fails.
+    warmupSession()
     performCheck()
     intervalRef.current = setInterval(performCheck, checkIntervalMs)
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import useSSOSessionMonitor from '../hooks/useSSOSessionMonitor'
@@ -6,7 +6,7 @@ import SessionExpirationWarning from './SessionExpirationWarning'
 import logger from '../logger'
 
 export default function SSOSessionManager() {
-  const { user, logout, loginWithSSO } = useAuth()
+  const { user, logout } = useAuth()
   const { t } = useLanguage()
   
   const [showWarning, setShowWarning] = useState(false)

@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.4': {
+    date: 'February 6, 2026',
+    changes: [
+      'feat: enhance SSO configuration by adding offline_access scope and improve session monitoring logic',
+    ],
+  },
   '1.9.3': {
     date: 'February 6, 2026',
     changes: [
@@ -405,7 +411,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.3';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.4';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
