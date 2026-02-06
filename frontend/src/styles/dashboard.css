@@ -1882,6 +1882,8 @@
   .quick-tips-widget {
     min-width: unset;
     padding: 1rem 1.25rem;
+    overflow: visible;
+    align-items: flex-start;
   }
   .tip-text {
     white-space: normal;
@@ -1889,6 +1891,9 @@
     overflow: visible;
     text-overflow: unset;
     line-height: 1.5;
+  }
+  .tip-icon-wrap {
+    margin-top: 0.1rem;
   }
 
   .hero-stats {
