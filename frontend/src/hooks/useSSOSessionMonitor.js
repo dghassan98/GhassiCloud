@@ -423,10 +423,8 @@ export function useSSOSessionMonitor({
       return
     }
 
-    // Run startup warmup first, then start periodic checks
-    warmupSession().then(() => {
-      performCheck()
-    })
+    // Start periodic checks (no upfront warmup - we'll do lazy re-auth on first service access)
+    performCheck()
     intervalRef.current = setInterval(performCheck, checkIntervalMs)
 
     return () => {
@@ -471,9 +469,7 @@ export function useSSOSessionMonitor({
       if (document.visibilityState === 'visible') {
         const timeSinceLastCheck = Date.now() - lastCheckRef.current
         if (timeSinceLastCheck > 5000) {
-          // Re-run warmup on foreground to re-establish cookies
-          startupWarmupDoneRef.current = false
-          warmupSession().then(() => performCheck())
+          performCheck()
         }
       }
     }
@@ -482,12 +478,58 @@ export function useSSOSessionMonitor({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [isSSO, user, warmupSession, performCheck])
 
+  /**
+   * Ensure SSO session is ready (cookies exist or can be restored).
+   * Call this before opening services. Returns true if ready, false if needs full re-auth.
+   */
+  const ensureSessionReady = useCallback(async () => {
+    if (!isSSO || !user) return true
+
+    // If warmup already succeeded, we're good
+    if (sessionStatus.sessionWarmedUp) return true
+
+    // Try warmup strategies
+    logger.info('ensureSessionReady: attempting session restoration...')
+
+    // Strategy 1: Server-side refresh
+    const serverRefresh = await refreshTokensServerSide()
+    if (serverRefresh.success) {
+      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+      if (refreshed) {
+        setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
+        return true
+      }
+    }
+
+    // Strategy 2: Stored id_token
+    const storedIdToken = localStorage.getItem('ghassicloud-id-token')
+    if (storedIdToken) {
+      const refreshed = await attemptSilentRefresh(storedIdToken)
+      if (refreshed) {
+        setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
+        return true
+      }
+    }
+
+    // Strategy 3: No hint
+    const refreshed = await attemptSilentRefresh(null)
+    if (refreshed) {
+      setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
+      return true
+    }
+
+    // All silent strategies failed - need full re-auth
+    logger.warn('ensureSessionReady: silent methods failed, full re-auth needed')
+    return false
+  }, [isSSO, user, sessionStatus.sessionWarmedUp, refreshTokensServerSide, attemptSilentRefresh])
+
   return {
     sessionStatus,
     validateSession,
     attemptSilentRefresh,
     refreshTokensServerSide,
     warmupSession,
+    ensureSessionReady,
     isSSO,
   }
 }

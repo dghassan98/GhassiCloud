@@ -2,8 +2,10 @@ import { motion } from 'framer-motion'
 import { ExternalLink, MoreVertical, Edit2, Trash2, Pin, RefreshCw, AlertTriangle } from 'lucide-react' 
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import { useHaptics, isNative, isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import useSSOSessionMonitor from '../hooks/useSSOSessionMonitor'
 import logger from '../logger'
 
 const FAVICON_PATHS = [
@@ -16,6 +18,7 @@ const FAVICON_PATHS = [
 
 export default function ServiceCard({ service, iconMap, index, viewMode, onDelete, onEdit, onPin, onCheck }) {
   const { t } = useLanguage()
+  const { user, loginWithSSO } = useAuth()
   const { impact, notification } = useHaptics()
   const descText = service.descriptionKey ? t(service.descriptionKey) : service.description
   const [showMenu, setShowMenu] = useState(false)
@@ -24,6 +27,9 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
   const rootRef = useRef(null)
   const authBtnRef = useRef(null)
   const [authOpen, setAuthOpen] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(false)
+
+  const { ensureSessionReady, isSSO } = useSSOSessionMonitor({ user })
 
   const Icon = iconMap[service.icon] || iconMap.default
 
@@ -106,19 +112,42 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
 
   const { openWebview } = useWebview()
 
-  const handleClick = (e) => {
+  // Check SSO session and open the service
+  const openService = async (url, name) => {
+    // For SSO users, ensure session is ready before opening service
+    if (isSSO && !isCheckingSession) {
+      setIsCheckingSession(true)
+      try {
+        const ready = await ensureSessionReady()
+        if (!ready) {
+          // Silent methods failed - trigger full re-auth
+          logger.info('ServiceCard: Triggering full SSO re-auth before opening service...')
+          await loginWithSSO()
+          // After redirect completes, user can click again
+          return
+        }
+      } catch (err) {
+        logger.error('ServiceCard: Session check failed:', err)
+      } finally {
+        setIsCheckingSession(false)
+      }
+    }
+
+    // Open the service
+    if (isPWA() && !isMobile()) {
+      openWebview(url, name)
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  const handleClick = async (e) => {
     if (e.target.closest('.card-menu') || e.target.closest('.menu-button') || e.target.closest('.pin-button')) {
       logger.debug('ServiceCard: Click on menu or pin button, not opening service')
       return
     }
 
-    if (isPWA() && !isMobile()) {
-      // Open inside the PWA in an app tab/modal (desktop PWAs only)
-      openWebview(service.url, service.name)
-      return
-    }
-
-    window.open(service.url, '_blank', 'noopener,noreferrer')
+    await openService(service.url, service.name)
   }
 
   // Close the menu when clicking outside the card
@@ -286,7 +315,11 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
                   href={service.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(service.url, service.name) } else { window.open(service.url, '_blank', 'noopener,noreferrer') } }}
+                  onClick={async (e) => { 
+                    e.stopPropagation()
+                    e.preventDefault()
+                    await openService(service.url, service.name)
+                  }}
                   title={t('service.open')}
                 >
                   <span className="service-url-right">{new URL(service.url).hostname}</span>
@@ -482,7 +515,11 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
               href={service.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (isPWA() && !isMobile()) { openWebview(service.url, service.name) } else { window.open(service.url, '_blank', 'noopener,noreferrer') } }}
+              onClick={async (e) => { 
+                e.stopPropagation()
+                e.preventDefault()
+                await openService(service.url, service.name)
+              }}
               title={t('service.open')}
             >
               <span className="service-url">{new URL(service.url).hostname}</span>
