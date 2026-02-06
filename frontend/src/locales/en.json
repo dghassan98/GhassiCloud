@@ -88,9 +88,11 @@
     "themeOptions": {
       "light": "Light",
       "dark": "Dark",
+      "ultraDark": "Ultra Dark",
+      "beige": "Beige",
       "system": "System"
     },
-    "tabs": { "profile": "Profile Settings", "appearance": "Appearance", "security": "Security", "notifications": "Notifications", "updates": "Updates", "data": "Data & Backup" },
+    "tabs": { "profile": "Profile Settings", "appearance": "Appearance", "security": "Security", "notifications": "Notifications", "updates": "Updates", "data": "Data & Backup", "eventQr": "Event QR Code" },
     "syncPreferences": { "title": "Sync preferences across devices", "desc": "Save appearance preferences to your account and sync them across devices. Turn off to keep settings local to this browser.", "enabled": "Preferences will be synced", "disabled": "Preferences will be stored locally", "toggleFailed": "Failed to update sync preference" },
     "resetDefaults": { "title": "Reset appearance to defaults", "desc": "Restore default theme, accent and logo. Optionally forget server-saved preferences.", "forgetServer": "Forget server preferences", "button": "Reset to defaults", "confirm": "This will restore appearance settings to defaults. Continue?", "localReset": "Appearance reset locally", "serverReset": "Server preferences forgotten", "serverResetFailed": "Failed to clear server preferences", "failed": "Failed to reset appearance locally", "mustBeSignedIn": "Sign in to forget server preferences" },
     "updates": {
@@ -217,6 +219,10 @@
       "urlLabel": "Target URL",
       "labelField": "Display Label",
       "labelPlaceholder": "e.g., Summer Event 2026",
+      "visibility": "Visibility",
+      "visibilityDesc": "Toggle whether the Event QR code is displayed on the dashboard for all users.",
+      "configTitle": "QR Configuration",
+      "configDesc": "Set the target URL and a display label for the QR code.",
       "visibleLabel": "Visible on dashboard",
       "hiddenLabel": "Hidden",
       "enabled": "Event QR enabled",

@@ -2,6 +2,13 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.0': {
+    date: 'February 6, 2026',
+    changes: [
+      'add Event QR code configuration and display on dashboard',
+      'added ultra dark and beige theme',
+    ],
+  },
   '1.8.0': {
     date: 'February 3, 2026',
     changes: [
@@ -379,7 +386,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.8.0';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

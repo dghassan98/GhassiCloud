@@ -73,6 +73,8 @@
     "themeOptions": {
       "light": "Claro",
       "dark": "Oscuro",
+      "ultraDark": "Ultra Oscuro",
+      "beige": "Beige",
       "system": "Sistema"
     },
     "accentColor": "Color de acento",
@@ -145,6 +147,7 @@
       "security": "Seguridad",
       "notifications": "Notificaciones",
       "data": "Datos y copia de seguridad",
+      "eventQr": "Código QR del Evento",
       "updates": "Actualizaciones"
     },
     "syncPreferences": {
@@ -218,6 +221,24 @@
       "scope": "Se aplica a frontend y backend",
       "saved": "Nivel de registro guardado",
       "saveFailed": "Error al guardar el nivel de registro"
+    },
+    "eventQr": {
+      "title": "Código QR del Evento",
+      "desc": "Configura un código QR destacado en el panel para eventos, enlaces temporales o promociones. Visible para todos los usuarios cuando está habilitado.",
+      "urlLabel": "URL destino",
+      "labelField": "Etiqueta para mostrar",
+      "labelPlaceholder": "p.ej., Evento de Verano 2026",
+      "visibility": "Visibilidad",
+      "visibilityDesc": "Alterna si el código QR de evento se muestra en el panel para todos los usuarios.",
+      "configTitle": "Configuración del QR",
+      "configDesc": "Establece la URL de destino y una etiqueta para mostrar.",
+      "visibleLabel": "Visible en el panel",
+      "hiddenLabel": "Oculto",
+      "enabled": "QR de Evento habilitado",
+      "disabled": "QR de Evento oculto",
+      "saved": "QR de Evento guardado",
+      "saveFailed": "Error al guardar el QR de Evento",
+      "preview": "Vista previa ↗"
     },    "activeSessionsTitle": "Sesiones activas",
     "activeSessionsDesc": "Ver dispositivos y navegadores actualmente conectados. Revoca sesiones que no reconozcas.",
     "signOutEverywhere": "Cerrar sesión en todos los dispositivos",

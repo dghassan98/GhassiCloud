@@ -73,6 +73,8 @@
     "themeOptions": {
       "light": "Hell",
       "dark": "Dunkel",
+      "ultraDark": "Ultra Dunkel",
+      "beige": "Beige",
       "system": "System"
     },
     "accentColor": "Akzentfarbe",
@@ -145,6 +147,7 @@
       "security": "Sicherheit",
       "notifications": "Benachrichtigungen",
       "data": "Daten & Backup",
+      "eventQr": "Event-QR-Code",
       "updates": "Updates"
     },
     "syncPreferences": {
@@ -218,6 +221,24 @@
       "scope": "Gilt für Frontend und Backend",
       "saved": "Protokollstufe gespeichert",
       "saveFailed": "Fehler beim Speichern der Protokollstufe"
+    },
+    "eventQr": {
+      "title": "Event-QR-Code",
+      "desc": "Konfigurieren Sie einen hervorgehobenen QR-Code auf dem Dashboard für Events, temporäre Links oder Aktionen. Für alle Benutzer sichtbar, wenn aktiviert.",
+      "urlLabel": "Ziel-URL",
+      "labelField": "Anzeigetext",
+      "labelPlaceholder": "z. B. Sommer-Event 2026",
+      "visibility": "Sichtbarkeit",
+      "visibilityDesc": "Umschalten, ob der Event-QR-Code im Dashboard für alle Benutzer angezeigt wird.",
+      "configTitle": "QR-Konfiguration",
+      "configDesc": "Setzen Sie die Ziel-URL und eine anzuzeigende Beschriftung für den QR-Code.",
+      "visibleLabel": "Auf dem Dashboard sichtbar",
+      "hiddenLabel": "Ausgeblendet",
+      "enabled": "Event-QR aktiviert",
+      "disabled": "Event-QR ausgeblendet",
+      "saved": "Event-QR gespeichert",
+      "saveFailed": "Fehler beim Speichern des Event-QR",
+      "preview": "Vorschau ↗"
     },    "activeSessionsTitle": "Aktive Sitzungen",
     "activeSessionsDesc": "Geräte und Browser anzeigen, die derzeit angemeldet sind. Widerrufe alle Sitzungen, die du nicht erkennst.",
     "signOutEverywhere": "Auf allen Geräten abmelden",

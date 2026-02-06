@@ -73,6 +73,8 @@
     "themeOptions": {
       "light": "Clair",
       "dark": "Sombre",
+      "ultraDark": "Ultra Sombre",
+      "beige": "Beige",
       "system": "Système"
     },
     "accentColor": "Couleur d'accent",
@@ -145,6 +147,7 @@
       "security": "Sécurité",
       "notifications": "Notifications",
       "data": "Données & Sauvegarde",
+      "eventQr": "Code QR de l'événement",
       "updates": "Mises à jour"
     },
     "syncPreferences": {
@@ -219,6 +222,24 @@
       "scope": "S'applique au frontend et au backend",
       "saved": "Niveau de journalisation enregistré",
       "saveFailed": "Échec de l'enregistrement du niveau de journalisation"
+    },
+    "eventQr": {
+      "title": "Code QR de l'événement",
+      "desc": "Configurez un code QR mis en avant sur le tableau de bord pour les événements, les liens temporaires ou les promotions. Visible par tous les utilisateurs lorsqu'il est activé.",
+      "urlLabel": "URL cible",
+      "labelField": "Étiquette",
+      "labelPlaceholder": "ex. Événement Été 2026",
+      "visibility": "Visibilité",
+      "visibilityDesc": "Basculer si le code QR de l'événement est affiché sur le tableau de bord pour tous les utilisateurs.",
+      "configTitle": "Configuration QR",
+      "configDesc": "Définissez l'URL cible et une étiquette d'affichage pour le QR.",
+      "visibleLabel": "Visible sur le tableau de bord",
+      "hiddenLabel": "Masqué",
+      "enabled": "Code QR activé",
+      "disabled": "Code QR masqué",
+      "saved": "Code QR enregistré",
+      "saveFailed": "Échec de l'enregistrement du code QR",
+      "preview": "Aperçu ↗"
     },
     "activeSessionsTitle": "Sessions actives",
     "activeSessionsDesc": "Voir les appareils et navigateurs connectés. Révoquer toute session inconnue.",
