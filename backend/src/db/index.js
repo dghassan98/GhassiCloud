@@ -116,6 +116,15 @@ export async function initDatabase() {
     logger.warn('Failed to initialize default settings:', e)
   }
 
+  // Event QR code defaults
+  try {
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('eventQrUrl', '')
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('eventQrLabel', '')
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('eventQrVisible', 'false')
+  } catch (e) {
+    logger.warn('Failed to initialize event QR settings:', e)
+  }
+
   // deprecated: navidrome_credentials table
   // db.exec(`
   //   CREATE TABLE IF NOT EXISTS navidrome_credentials (

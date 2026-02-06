@@ -62,6 +62,11 @@
     "releaseToRefresh": "Release to refresh",
     "refreshing": "Refreshing..."
   },
+  "eventQr": {
+    "featured": "Featured",
+    "hide": "Hide",
+    "scanOrClick": "Scan or click to visit"
+  },
   "auth": {
     "completingSignIn": "Completing sign in...",
     "ssoSignIn": "Sign in or register with GhassiAuth",
@@ -205,6 +210,20 @@
       "scope": "Applies to frontend and backend",
       "saved": "Log level saved",
       "saveFailed": "Failed to save log level"
+    },
+    "eventQr": {
+      "title": "Event QR Code",
+      "desc": "Configure a highlighted QR code on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.",
+      "urlLabel": "Target URL",
+      "labelField": "Display Label",
+      "labelPlaceholder": "e.g., Summer Event 2026",
+      "visibleLabel": "Visible on dashboard",
+      "hiddenLabel": "Hidden",
+      "enabled": "Event QR enabled",
+      "disabled": "Event QR hidden",
+      "saved": "Event QR saved",
+      "saveFailed": "Failed to save Event QR",
+      "preview": "Preview link ↗"
     },
     "adminRequired": "Admin access required",
     "notAuthenticated": "Not authenticated — please sign in",

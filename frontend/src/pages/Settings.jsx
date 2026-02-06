@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import {
   User, Lock, Palette, Bell, Shield, Database,
   Save, Moon, Sun, Monitor, ChevronRight, Check, AlertTriangle,
-  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw
+  Globe, Zap, Compass, Terminal, Package, Box, Users, UserCog, Trash2, Edit3, RefreshCw, QrCode
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -132,6 +132,13 @@ export default function Settings() {
   const [logLevel, setLogLevel] = useState('info')
   const [savingLogLevel, setSavingLogLevel] = useState(false)
   const [logLevelError, setLogLevelError] = useState(null)
+
+  // Event QR admin state
+  const [eventQrUrl, setEventQrUrl] = useState('')
+  const [eventQrLabel, setEventQrLabel] = useState('')
+  const [eventQrVisible, setEventQrVisible] = useState(false)
+  const [savingEventQr, setSavingEventQr] = useState(false)
+  const [eventQrSaved, setEventQrSaved] = useState(false)
 
   const [forgetServerPrefs, setForgetServerPrefs] = useState(false)
 
@@ -458,6 +465,16 @@ export default function Settings() {
           if (lvlRes.ok) {
             const lvlData = await lvlRes.json()
             if (!cancelled && lvlData && lvlData.value) setLogLevel(lvlData.value)
+          }
+          // Load event QR settings
+          const qrRes = await fetch('/api/auth/event-qr', { headers })
+          if (qrRes.ok) {
+            const qrData = await qrRes.json()
+            if (!cancelled) {
+              setEventQrUrl(qrData.url || '')
+              setEventQrLabel(qrData.label || '')
+              setEventQrVisible(!!qrData.visible)
+            }
           }
         } catch (e) { logger.error('Failed to load admin settings', e) }
       })()
@@ -1146,6 +1163,120 @@ export default function Settings() {
                         {logLevelError && (
                           <div className="muted small" style={{ color: 'var(--danger)' }}>{logLevelError}</div>
                         )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Admin-only: Event QR Code configuration */}
+                  <div className="sso-card">
+                    <div className="sso-card-left"><QrCode size={22} /></div>
+                    <div className="sso-card-body">
+                      <h4>{t('settings.eventQr.title') || 'Event QR Code'}</h4>
+                      <p className="form-hint">{t('settings.eventQr.desc') || 'Configure a highlighted QR code on the dashboard for events, temporary links, or promotions. Visible to all users when enabled.'}<br /><span className="muted small">{t('settings.pwaDevTools.adminHint') || 'Admins only — only administrators can change this setting'}</span></p>
+
+                      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {/* Visible toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <label className="toggle" style={{ margin: 0 }}>
+                            <input
+                              type="checkbox"
+                              checked={eventQrVisible}
+                              disabled={savingEventQr}
+                              onChange={async () => {
+                                const next = !eventQrVisible
+                                setEventQrVisible(next)
+                                try {
+                                  setSavingEventQr(true)
+                                  const token = getAuthToken()
+                                  const headers = { 'Content-Type': 'application/json' }
+                                  if (token) headers.Authorization = token
+                                  const res = await fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'eventQrVisible', value: next ? 'true' : 'false' }) })
+                                  if (res.ok) {
+                                    showToast({ message: next ? (t('settings.eventQr.enabled') || 'Event QR enabled') : (t('settings.eventQr.disabled') || 'Event QR hidden'), type: 'success' })
+                                    try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrVisible', value: next ? 'true' : 'false' } })) } catch (e) { }
+                                  } else {
+                                    setEventQrVisible(!next)
+                                    showToast({ message: t('settings.eventQr.saveFailed') || 'Failed to save', type: 'error' })
+                                  }
+                                } catch (e) {
+                                  setEventQrVisible(!next)
+                                  showToast({ message: t('settings.eventQr.saveFailed') || 'Failed to save', type: 'error' })
+                                } finally { setSavingEventQr(false) }
+                              }}
+                            />
+                            <span className="toggle-slider" />
+                          </label>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{eventQrVisible ? (t('settings.eventQr.visibleLabel') || 'Visible on dashboard') : (t('settings.eventQr.hiddenLabel') || 'Hidden')}</span>
+                        </div>
+
+                        {/* URL input */}
+                        <div>
+                          <label className="muted small" style={{ marginBottom: 4, display: 'block' }}>{t('settings.eventQr.urlLabel') || 'Target URL'}</label>
+                          <input
+                            type="url"
+                            value={eventQrUrl}
+                            onChange={(e) => setEventQrUrl(e.target.value)}
+                            placeholder="https://example.com/event"
+                            style={{ width: '100%', padding: '0.5rem 0.7rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-input, var(--bg-secondary))', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+                          />
+                        </div>
+
+                        {/* Label input */}
+                        <div>
+                          <label className="muted small" style={{ marginBottom: 4, display: 'block' }}>{t('settings.eventQr.labelField') || 'Display Label'}</label>
+                          <input
+                            type="text"
+                            value={eventQrLabel}
+                            onChange={(e) => setEventQrLabel(e.target.value)}
+                            placeholder={t('settings.eventQr.labelPlaceholder') || 'e.g., Summer Event 2026'}
+                            maxLength={60}
+                            style={{ width: '100%', padding: '0.5rem 0.7rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-input, var(--bg-secondary))', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+                          />
+                        </div>
+
+                        {/* Save button */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <button
+                            className="btn-primary"
+                            disabled={savingEventQr}
+                            style={{ padding: '0.45rem 1.2rem', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600 }}
+                            onClick={async () => {
+                              try {
+                                setSavingEventQr(true)
+                                setEventQrSaved(false)
+                                const token = getAuthToken()
+                                const headers = { 'Content-Type': 'application/json' }
+                                if (token) headers.Authorization = token
+                                // Save URL and label
+                                const [r1, r2] = await Promise.all([
+                                  fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'eventQrUrl', value: eventQrUrl }) }),
+                                  fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'eventQrLabel', value: eventQrLabel }) })
+                                ])
+                                if (r1.ok && r2.ok) {
+                                  setEventQrSaved(true)
+                                  showToast({ message: t('settings.eventQr.saved') || 'Event QR saved', type: 'success' })
+                                  try {
+                                    window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrUrl', value: eventQrUrl } }))
+                                    window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'eventQrLabel', value: eventQrLabel } }))
+                                  } catch (e) { }
+                                  setTimeout(() => setEventQrSaved(false), 2500)
+                                } else {
+                                  showToast({ message: t('settings.eventQr.saveFailed') || 'Failed to save', type: 'error' })
+                                }
+                              } catch (e) {
+                                logger.error('Save event QR error:', e)
+                                showToast({ message: t('settings.eventQr.saveFailed') || 'Failed to save', type: 'error' })
+                              } finally { setSavingEventQr(false) }
+                            }}
+                          >
+                            {savingEventQr ? (t('common.loading') || 'Saving...') : eventQrSaved ? '✓ Saved' : (t('settings.saveChanges') || 'Save Changes')}
+                          </button>
+                          {eventQrUrl && (
+                            <a href={eventQrUrl} target="_blank" rel="noopener noreferrer" className="muted small" style={{ textDecoration: 'none', color: 'var(--accent)' }}>
+                              {t('settings.eventQr.preview') || 'Preview link ↗'}
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

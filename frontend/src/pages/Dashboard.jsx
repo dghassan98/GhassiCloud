@@ -15,6 +15,7 @@ import { RefreshCw, Loader2 } from 'lucide-react'
 import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
+import EventQRCard from '../components/EventQRCard'
 import { isNative, isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import '../styles/dashboard.css'
@@ -564,6 +565,7 @@ export default function Dashboard() {
               )}
             </div>
           </motion.div>
+          <EventQRCard />
           {/* Stats cards hidden - placeholder data */}
           {/* {stats.map((stat, i) => (
             <StatsCard key={i} {...stat} index={i} />

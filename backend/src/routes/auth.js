@@ -1277,6 +1277,25 @@ router.delete('/users/:userId', authenticateToken, async (req, res) => {
   }
 })
 
+// Public endpoint: fetch event QR code configuration (visible to all authenticated users)
+router.get('/event-qr', authenticateToken, async (req, res) => {
+  try {
+    const db = getDb()
+    const keys = ['eventQrUrl', 'eventQrLabel', 'eventQrVisible']
+    const rows = db.prepare(`SELECT key, value FROM settings WHERE key IN (${keys.map(() => '?').join(',')})`).all(...keys)
+    const obj = {}
+    rows.forEach(r => { obj[r.key] = r.value })
+    res.json({
+      url: obj.eventQrUrl || '',
+      label: obj.eventQrLabel || '',
+      visible: obj.eventQrVisible === 'true'
+    })
+  } catch (err) {
+    logger.error('Get event QR settings error:', err)
+    res.status(500).json({ message: 'Failed to fetch event QR settings' })
+  }
+})
+
 router.get('/admin/settings', authenticateToken, async (req, res) => {
   try {
     if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' })
