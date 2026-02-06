@@ -28,7 +28,7 @@ async function readSSOConfig() {
     return {
       authUrl: `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth`,
       clientId: KEYCLOAK_CLIENT_ID,
-      scope: 'openid profile email offline_access'
+      scope: 'openid profile email'
     }
   }
 }
@@ -65,7 +65,7 @@ router.put('/sso/config', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'authUrl and clientId are required' })
     }
 
-    const newCfg = { authUrl, clientId, scope: scope || 'openid profile email offline_access' }
+    const newCfg = { authUrl, clientId, scope: scope || 'openid profile email' }
     const ok = await writeSSOConfig(newCfg)
     if (!ok) return res.status(500).json({ message: 'Failed to save SSO configuration' })
 
@@ -356,7 +356,7 @@ router.post('/login', async (req, res) => {
         })
 
         if (process.env.KEYCLOAK_CLIENT_SECRET) tokenParams.set('client_secret', process.env.KEYCLOAK_CLIENT_SECRET)
-        tokenParams.set('scope', 'openid profile email offline_access')
+        tokenParams.set('scope', 'openid profile email')
 
         logger.info({ username, tokenEndpoint: `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token` }, '[AUTH] Attempting Keycloak password grant')
 
