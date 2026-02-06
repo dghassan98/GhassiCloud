@@ -300,6 +300,7 @@ router.post('/sso/callback', async (req, res) => {
 
     res.json({
       token,
+      idToken: tokens.id_token || null,
       user: {
         id: user.id,
         username: user.username,

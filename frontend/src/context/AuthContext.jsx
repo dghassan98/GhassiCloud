@@ -322,6 +322,7 @@ export function AuthProvider({ children }) {
 
               localStorage.setItem('ghassicloud-token', data.token)
               try { localStorage.setItem('ghassicloud-sso', 'true') } catch (e) { }
+              try { if (data.idToken) localStorage.setItem('ghassicloud-id-token', data.idToken) } catch (e) { }
               setUser(data.user)
               try { localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() })) } catch (e) { }
               if (data.user?.avatar) { try { const _img2 = new Image(); _img2.src = data.user.avatar } catch (e) { } }
@@ -452,6 +453,7 @@ export function AuthProvider({ children }) {
     try { localStorage.removeItem('ghassicloud-token') } catch (e) { }
     try { localStorage.removeItem('ghassicloud-sso') } catch (e) { }
     try { localStorage.removeItem('ghassicloud-user') } catch (e) { }
+    try { localStorage.removeItem('ghassicloud-id-token') } catch (e) { }
     setUser(null)
 
     try {

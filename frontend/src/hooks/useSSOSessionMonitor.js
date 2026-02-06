@@ -122,6 +122,10 @@ export function useSSOSessionMonitor({
         localStorage.setItem('ghassicloud-token', data.token)
         logger.info('Updated GhassiCloud JWT from server-side token refresh')
       }
+      // Store fresh id_token for future warmups
+      if (data.idToken) {
+        localStorage.setItem('ghassicloud-id-token', data.idToken)
+      }
 
       return { success: true, idToken: data.idToken || null }
     } catch (err) {
@@ -266,6 +270,7 @@ export function useSSOSessionMonitor({
               if (res.ok) {
                 const data = await res.json()
                 localStorage.setItem('ghassicloud-token', data.token)
+                if (data.idToken) localStorage.setItem('ghassicloud-id-token', data.idToken)
                 logger.info('Silent token refresh successful')
                 refreshInProgressRef.current = false
                 resolve(true)
@@ -367,32 +372,45 @@ export function useSSOSessionMonitor({
     if (startupWarmupDoneRef.current) return
     startupWarmupDoneRef.current = true
 
-    logger.info('SSO startup warmup: refreshing Keycloak session...')
+    logger.info('SSO startup warmup: re-establishing Keycloak session cookie...')
 
-    // Step 1: Server-side refresh to keep Keycloak session alive and get id_token
+    // Strategy 1: Try server-side refresh first (extends idle-timed-out sessions)
+    // This uses the stored Keycloak refresh_token and returns a fresh id_token.
     const serverRefresh = await refreshTokensServerSide()
-
-    if (!serverRefresh.success) {
-      if (serverRefresh.needsReauth) {
-        logger.warn('SSO startup warmup: Keycloak refresh_token expired, full re-auth needed')
-        setSessionStatus(prev => ({ ...prev, needsReauth: true }))
-      } else {
-        logger.warn('SSO startup warmup: Server-side refresh failed (may not have stored tokens yet)')
+    if (serverRefresh.success) {
+      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+      if (refreshed) {
+        logger.info('SSO startup warmup: Session cookie re-established via server-side refresh')
+        setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
+        return
       }
+    }
+
+    // Strategy 2: Try with stored id_token from localStorage
+    // (works even without backend refresh_token, as long as Keycloak session is alive)
+    const storedIdToken = localStorage.getItem('ghassicloud-id-token')
+    if (storedIdToken) {
+      logger.info('SSO startup warmup: trying with stored id_token_hint...')
+      const refreshed = await attemptSilentRefresh(storedIdToken)
+      if (refreshed) {
+        logger.info('SSO startup warmup: Session cookie re-established via stored id_token')
+        setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
+        return
+      }
+    }
+
+    // Strategy 3: Try without any hint (works if Keycloak cookie somehow persisted)
+    logger.info('SSO startup warmup: trying without id_token_hint...')
+    const refreshed = await attemptSilentRefresh(null)
+    if (refreshed) {
+      logger.info('SSO startup warmup: Session cookie was still valid')
+      setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
       return
     }
 
-    // Step 2: Silent iframe with id_token_hint to re-establish browser session cookie
-    const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
-
-    if (refreshed) {
-      logger.info('SSO startup warmup: Session cookie re-established successfully')
-      setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
-    } else {
-      logger.warn('SSO startup warmup: Silent iframe failed, triggering full SSO re-auth...')
-      // The cookie is gone and prompt=none failed - trigger a transparent full re-auth
-      setSessionStatus(prev => ({ ...prev, needsReauth: true }))
-    }
+    // All strategies failed — Keycloak session is truly gone
+    logger.warn('SSO startup warmup: All strategies failed, services may require re-authentication')
+    setSessionStatus(prev => ({ ...prev, needsReauth: true }))
   }, [isSSO, user, refreshTokensServerSide, attemptSilentRefresh])
 
   // Main check interval

@@ -26,6 +26,23 @@ export default function SSOCallback() {
         hasOpener: !!window.opener,
         isInFrame: window.parent !== window
       })
+
+      // Silent iframe refresh: just forward raw code/state to the parent
+      // and stop — the parent's message handler will exchange the code.
+      // This avoids a double-exchange and prevents the iframe from navigating.
+      if (window.parent && window.parent !== window && !window.opener) {
+        try {
+          window.parent.postMessage({
+            type: 'SSO_CALLBACK',
+            code,
+            state,
+            error: error ? (errorDescription || error) : null
+          }, window.location.origin)
+        } catch (e) {
+          logger.error('Failed to post message to parent iframe:', e)
+        }
+        return
+      }
       
       if (window.opener) {
         try {
@@ -123,16 +140,11 @@ export default function SSOCallback() {
 
             localStorage.setItem('ghassicloud-token', data.token)
             localStorage.setItem('ghassicloud-sso', 'true')
+            if (data.idToken) {
+              localStorage.setItem('ghassicloud-id-token', data.idToken)
+            }
             if (data.user) {
               localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() }))
-            }
-
-            if (window.parent && window.parent !== window) {
-              try {
-                window.parent.postMessage({ type: 'SSO_CALLBACK', success: true }, window.location.origin)
-              } catch (e) {
-                logger.debug('Failed to post message to parent after SSO', e)
-              }
             }
 
             cleanupSSOData()
