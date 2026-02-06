@@ -136,6 +136,11 @@ function WeatherWidget() {
             <div className="skel-line skel-sm" />
           </div>
         </div>
+        <div className="weather-details" style={{ marginTop: '0.5rem' }}>
+          <span className="weather-detail" style={{ width: '80px', height: '20px' }}></span>
+          <span className="weather-detail" style={{ width: '70px', height: '20px' }}></span>
+          <span className="weather-detail" style={{ width: '50px', height: '20px' }}></span>
+        </div>
       </motion.div>
     )
   }
@@ -708,11 +713,14 @@ export default function Dashboard() {
         </div>
         <div className="hero-widgets">
           {showWeather && <WeatherWidget />}
+          {!isMobile() && <EventQRCard />}
           <QuickTips />
         </div>
-        <div className="hero-stats">
-          <EventQRCard />
-        </div>
+        {isMobile() && (
+          <div className="hero-stats">
+            <EventQRCard />
+          </div>
+        )}
       </motion.section>
 
       {/* Services Section */}

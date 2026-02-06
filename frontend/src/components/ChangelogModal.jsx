@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.8': {
+    date: 'February 7, 2026',
+    changes: [
+      'feat: enhance WeatherWidget layout and add EventQRCard for desktop view',
+    ],
+  },
   '1.9.7': {
     date: 'February 7, 2026',
     changes: [
@@ -429,7 +435,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.7';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.8';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

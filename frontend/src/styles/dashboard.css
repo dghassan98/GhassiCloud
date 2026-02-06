@@ -270,6 +270,11 @@
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   align-items: stretch;
+  /* Allow items to grow but maintain constraints */
+}
+
+.hero-widgets > * {
+  flex: 0 1 auto;
 }
 
 /* ── Weather Widget ── */
@@ -386,6 +391,7 @@
 .skel-line { height: 12px; border-radius: 6px; background: rgba(255,255,255,0.06); animation: skel-pulse 1.5s ease infinite; }
 .skel-lg { width: 60%; }
 .skel-sm { width: 40%; }
+.weather-loading .weather-detail { background: rgba(255,255,255,0.06); animation: skel-pulse 1.5s ease infinite; border: none; }
 @keyframes skel-pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.8; } }
 
 /* Light theme */
@@ -400,6 +406,7 @@
 [data-theme="light"] .weather-widget.weather-storm  { background: linear-gradient(135deg, rgba(168,85,247,0.06), #faf5ff); }
 [data-theme="light"] .weather-detail { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.04); }
 [data-theme="light"] .skel-circle, [data-theme="light"] .skel-line { background: rgba(0,0,0,0.06); }
+[data-theme="light"] .weather-loading .weather-detail { background: rgba(0,0,0,0.06); }
 
 /* Beige theme */
 [data-theme="beige"] .weather-widget {
@@ -1996,6 +2003,13 @@
   .service-card .card-glow {
     opacity: 1;
   }
+}
+
+/* Event QR Card in hero-widgets (desktop only) */
+.hero-widgets .event-qr-card {
+  min-width: 240px;
+  max-width: 300px;
+  flex: 0 0 auto;
 }
 
 /* ===== Event QR Card ===== */
