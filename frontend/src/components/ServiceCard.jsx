@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { useHaptics, isNative, isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import { ensureSessionReady, getSessionWarmedUp } from '../hooks/ssoSessionBridge'
 import logger from '../logger'
 
 const FAVICON_PATHS = [
@@ -106,10 +107,26 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
 
   const { openWebview } = useWebview()
 
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     if (e.target.closest('.card-menu') || e.target.closest('.menu-button') || e.target.closest('.pin-button')) {
       logger.debug('ServiceCard: Click on menu or pin button, not opening service')
       return
+    }
+
+    // If SSO session wasn't warmed up on startup (cookies lost after browser restart),
+    // try to restore it now before opening the service iframe.
+    // This prevents the service from showing the Keycloak login page.
+    const isSSO = localStorage.getItem('ghassicloud-sso') === 'true'
+    if (isSSO && !getSessionWarmedUp()) {
+      logger.info('ServiceCard: SSO session not warmed up, attempting restore before opening service...')
+      const ready = await ensureSessionReady()
+      if (!ready) {
+        logger.warn('ServiceCard: Silent session restore failed, trying popup re-auth with kc_idp_hint...')
+        const popupOk = await popupReauth()
+        if (!popupOk) {
+          logger.warn('ServiceCard: Popup re-auth also failed, opening service anyway (will show Keycloak login)')
+        }
+      }
     }
 
     if (isPWA() && !isMobile()) {
@@ -119,6 +136,124 @@ export default function ServiceCard({ service, iconMap, index, viewMode, onDelet
     }
 
     window.open(service.url, '_blank', 'noopener,noreferrer')
+  }
+
+  /**
+   * Fallback: do a popup-based Keycloak re-auth using kc_idp_hint.
+   * Since the user is already logged into Google/GitHub/Discord in their browser,
+   * the social provider auto-completes and the popup closes almost instantly.
+   * This re-establishes the Keycloak session cookie so the service iframe works.
+   */
+  const popupReauth = async () => {
+    const idpHint = localStorage.getItem('ghassicloud-idp-hint')
+    if (!idpHint) {
+      logger.warn('popupReauth: no idp hint stored, cannot do transparent re-auth')
+      return false
+    }
+
+    try {
+      const configRes = await fetch('/api/auth/sso/config')
+      if (!configRes.ok) return false
+      const config = await configRes.json()
+
+      const state = crypto.randomUUID()
+      sessionStorage.setItem('sso_state', state)
+
+      // Generate PKCE
+      const array = new Uint8Array(64)
+      crypto.getRandomValues(array)
+      const codeVerifier = Array.from(array, byte =>
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[byte % 66]
+      ).join('')
+      const encoder = new TextEncoder()
+      const digest = await crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier))
+      const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+      sessionStorage.setItem('sso_code_verifier', codeVerifier)
+
+      const redirectUri = `${window.location.origin}/sso-callback`
+      sessionStorage.setItem('sso_redirect_uri', redirectUri)
+
+      const authUrl = new URL(config.authUrl)
+      authUrl.searchParams.set('client_id', config.clientId)
+      authUrl.searchParams.set('redirect_uri', redirectUri)
+      authUrl.searchParams.set('response_type', 'code')
+      authUrl.searchParams.set('scope', config.scope)
+      authUrl.searchParams.set('state', state)
+      authUrl.searchParams.set('code_challenge', codeChallenge)
+      authUrl.searchParams.set('code_challenge_method', 'S256')
+      authUrl.searchParams.set('kc_idp_hint', idpHint)
+
+      logger.info('popupReauth: opening popup with kc_idp_hint =', idpHint)
+
+      const width = 500, height = 600
+      const left = window.screenX + (window.outerWidth - width) / 2
+      const top = window.screenY + (window.outerHeight - height) / 2
+      const popup = window.open(
+        authUrl.toString(),
+        'GhassiCloud SSO Re-Auth',
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+      )
+
+      if (!popup) {
+        logger.warn('popupReauth: popup blocked by browser')
+        return false
+      }
+
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', handleMessage)
+          try { popup.close() } catch (e) {}
+          resolve(false)
+        }, 15000)
+
+        const handleMessage = async (event) => {
+          if (event.origin !== window.location.origin) return
+          if (event.data.type !== 'SSO_CALLBACK') return
+
+          clearTimeout(timeout)
+          window.removeEventListener('message', handleMessage)
+          try { popup.close() } catch (e) {}
+
+          const { code, state: returnedState, error } = event.data
+          if (error || !code || returnedState !== state) {
+            logger.warn('popupReauth: failed -', error || 'state mismatch')
+            resolve(false)
+            return
+          }
+
+          try {
+            const res = await fetch('/api/auth/sso/callback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                code,
+                redirectUri,
+                codeVerifier
+              })
+            })
+            if (res.ok) {
+              const data = await res.json()
+              localStorage.setItem('ghassicloud-token', data.token)
+              if (data.idToken) localStorage.setItem('ghassicloud-id-token', data.idToken)
+              if (data.identityProvider) localStorage.setItem('ghassicloud-idp-hint', data.identityProvider)
+              logger.info('popupReauth: success! Keycloak session cookie re-established')
+              resolve(true)
+            } else {
+              resolve(false)
+            }
+          } catch (err) {
+            logger.error('popupReauth: token exchange failed:', err)
+            resolve(false)
+          }
+        }
+
+        window.addEventListener('message', handleMessage)
+      })
+    } catch (err) {
+      logger.error('popupReauth: error:', err)
+      return false
+    }
   }
 
   // Close the menu when clicking outside the card

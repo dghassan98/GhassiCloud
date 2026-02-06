@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import useSSOSessionMonitor from '../hooks/useSSOSessionMonitor'
+import { setEnsureSessionReady, setSessionWarmedUp } from '../hooks/ssoSessionBridge'
 import SessionExpirationWarning from './SessionExpirationWarning'
 import logger from '../logger'
 
@@ -28,7 +29,7 @@ export default function SSOSessionManager() {
   }, [logout])
 
 
-  const { attemptSilentRefresh, sessionStatus } = useSSOSessionMonitor({
+  const { attemptSilentRefresh, sessionStatus, ensureSessionReady } = useSSOSessionMonitor({
     user,
     logout,
     onSessionWarning: handleSessionWarning,
@@ -38,6 +39,16 @@ export default function SSOSessionManager() {
     proactiveRefreshIntervalMs: 5 * 60 * 1000, 
     showWarning: false, 
   })
+
+  // Expose ensureSessionReady and warmedUp status to the global bridge
+  // so ServiceCard can use it without a full React context
+  useEffect(() => {
+    setEnsureSessionReady(ensureSessionReady)
+  }, [ensureSessionReady])
+  
+  useEffect(() => {
+    setSessionWarmedUp(sessionStatus.sessionWarmedUp)
+  }, [sessionStatus.sessionWarmedUp])
 
   const handleExtendSession = useCallback(async () => {
     logger.info('User clicked "Stay Logged In", attempting silent refresh...')

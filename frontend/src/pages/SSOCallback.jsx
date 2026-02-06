@@ -143,6 +143,9 @@ export default function SSOCallback() {
             if (data.idToken) {
               localStorage.setItem('ghassicloud-id-token', data.idToken)
             }
+            if (data.identityProvider) {
+              localStorage.setItem('ghassicloud-idp-hint', data.identityProvider)
+            }
             if (data.user) {
               localStorage.setItem('ghassicloud-user', JSON.stringify({ user: data.user, storedAt: Date.now() }))
             }

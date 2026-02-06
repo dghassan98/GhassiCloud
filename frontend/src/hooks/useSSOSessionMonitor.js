@@ -27,7 +27,7 @@ export function useSSOSessionMonitor({
   onSessionExpired,
   checkIntervalMs = 60000,
   warningThresholdSec = 300,
-  refreshTimeoutMs = 3000, 
+  refreshTimeoutMs = 10000, 
   refreshCooldownMs = 3000,
   proactiveRefreshIntervalMs = 5 * 60 * 1000,
   showWarning = true,
@@ -126,15 +126,19 @@ export function useSSOSessionMonitor({
       if (data.idToken) {
         localStorage.setItem('ghassicloud-id-token', data.idToken)
       }
+      // Store identity provider hint for silent refresh kc_idp_hint
+      if (data.identityProvider) {
+        localStorage.setItem('ghassicloud-idp-hint', data.identityProvider)
+      }
 
-      return { success: true, idToken: data.idToken || null }
+      return { success: true, idToken: data.idToken || null, identityProvider: data.identityProvider || null }
     } catch (err) {
       logger.error('Server-side token refresh error:', err)
       return { success: false }
     }
   }, [isSSO])
 
-  const attemptSilentRefresh = useCallback(async (idTokenHint) => {
+  const attemptSilentRefresh = useCallback(async (idTokenHint, idpHint) => {
     if (!isSSO) return false
 
     const token = localStorage.getItem('ghassicloud-token')
@@ -210,6 +214,16 @@ export function useSSOSessionMonitor({
             authUrl.searchParams.set('id_token_hint', idTokenHint)
           }
 
+          // kc_idp_hint tells Keycloak which social provider to forward to.
+          // This is CRITICAL for silent re-auth with social logins (Google, GitHub, etc.)
+          // Without it, Keycloak has no session cookie and returns login_required.
+          // With it, Keycloak forwards prompt=none to Google, which auto-completes.
+          const effectiveIdpHint = idpHint || localStorage.getItem('ghassicloud-idp-hint')
+          if (effectiveIdpHint) {
+            authUrl.searchParams.set('kc_idp_hint', effectiveIdpHint)
+            logger.info('Silent refresh: using kc_idp_hint =', effectiveIdpHint)
+          }
+
           const iframe = document.createElement('iframe')
           iframe.style.display = 'none'
           iframe.setAttribute('aria-hidden', 'true')
@@ -240,7 +254,7 @@ export function useSSOSessionMonitor({
             const { code, state: returnedState, error } = event.data
 
             if (error || !code) {
-              logger.warn('Silent refresh failed:', error || 'no code')
+              logger.warn('Silent refresh failed:', error || 'no code', '| idpHint:', effectiveIdpHint || 'none')
               refreshInProgressRef.current = false
               resolve(false)
               return
@@ -313,7 +327,8 @@ export function useSSOSessionMonitor({
       const serverRefresh = await refreshTokensServerSide()
 
       // Step 2: Attempt silent iframe with id_token_hint from server refresh
-      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+      const idpHint = serverRefresh.identityProvider || localStorage.getItem('ghassicloud-idp-hint') || null
+      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null, idpHint)
       
       if (refreshed) {
         warningShownRef.current = false
@@ -342,7 +357,8 @@ export function useSSOSessionMonitor({
         warningShownRef.current = true
         
         const serverRefresh = await refreshTokensServerSide()
-        const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+        const idpHint = serverRefresh.identityProvider || localStorage.getItem('ghassicloud-idp-hint') || null
+        const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null, idpHint)
         
         if (refreshed) {
           warningShownRef.current = false
@@ -377,8 +393,9 @@ export function useSSOSessionMonitor({
     // Strategy 1: Try server-side refresh first (extends idle-timed-out sessions)
     // This uses the stored Keycloak refresh_token and returns a fresh id_token.
     const serverRefresh = await refreshTokensServerSide()
+    const idpHint = serverRefresh.identityProvider || localStorage.getItem('ghassicloud-idp-hint') || null
     if (serverRefresh.success) {
-      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null, idpHint)
       if (refreshed) {
         logger.info('SSO startup warmup: Session cookie re-established via server-side refresh')
         setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
@@ -391,7 +408,7 @@ export function useSSOSessionMonitor({
     const storedIdToken = localStorage.getItem('ghassicloud-id-token')
     if (storedIdToken) {
       logger.info('SSO startup warmup: trying with stored id_token_hint...')
-      const refreshed = await attemptSilentRefresh(storedIdToken)
+      const refreshed = await attemptSilentRefresh(storedIdToken, idpHint)
       if (refreshed) {
         logger.info('SSO startup warmup: Session cookie re-established via stored id_token')
         setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
@@ -401,7 +418,7 @@ export function useSSOSessionMonitor({
 
     // Strategy 3: Try without any hint (works if Keycloak cookie somehow persisted)
     logger.info('SSO startup warmup: trying without id_token_hint...')
-    const refreshed = await attemptSilentRefresh(null)
+    const refreshed = await attemptSilentRefresh(null, idpHint)
     if (refreshed) {
       logger.info('SSO startup warmup: Session cookie was still valid')
       setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
@@ -451,7 +468,8 @@ export function useSSOSessionMonitor({
       logger.debug('Proactive SSO refresh: keeping Keycloak session alive...')
       const serverRefresh = await refreshTokensServerSide()
       if (serverRefresh.success) {
-        await attemptSilentRefresh(serverRefresh.idToken || null)
+        const idpHint = serverRefresh.identityProvider || localStorage.getItem('ghassicloud-idp-hint') || null
+        await attemptSilentRefresh(serverRefresh.idToken || null, idpHint)
       }
     }, proactiveRefreshIntervalMs)
 
@@ -493,10 +511,12 @@ export function useSSOSessionMonitor({
     // Try warmup strategies
     logger.info('ensureSessionReady: attempting session restoration...')
 
+    const idpHint = localStorage.getItem('ghassicloud-idp-hint') || null
+
     // Strategy 1: Server-side refresh
     const serverRefresh = await refreshTokensServerSide()
     if (serverRefresh.success) {
-      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null)
+      const refreshed = await attemptSilentRefresh(serverRefresh.idToken || null, serverRefresh.identityProvider || idpHint)
       if (refreshed) {
         setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
         return true
@@ -506,7 +526,7 @@ export function useSSOSessionMonitor({
     // Strategy 2: Stored id_token
     const storedIdToken = localStorage.getItem('ghassicloud-id-token')
     if (storedIdToken) {
-      const refreshed = await attemptSilentRefresh(storedIdToken)
+      const refreshed = await attemptSilentRefresh(storedIdToken, idpHint)
       if (refreshed) {
         setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
         return true
@@ -514,7 +534,7 @@ export function useSSOSessionMonitor({
     }
 
     // Strategy 3: No hint
-    const refreshed = await attemptSilentRefresh(null)
+    const refreshed = await attemptSilentRefresh(null, idpHint)
     if (refreshed) {
       setSessionStatus(prev => ({ ...prev, sessionWarmedUp: true, needsReauth: false }))
       return true

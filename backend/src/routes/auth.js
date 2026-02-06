@@ -19,6 +19,21 @@ const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || 'ghassicloud'
 
 const SSO_CONFIG_FILE = path.resolve('backend', 'data', 'sso-config.json')
 
+/**
+ * Decode a JWT payload without verifying the signature.
+ * Used to extract claims like identity_provider from Keycloak tokens.
+ */
+function decodeJwtPayload(token) {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const payload = Buffer.from(parts[1], 'base64url').toString('utf8')
+    return JSON.parse(payload)
+  } catch (e) {
+    return null
+  }
+}
+
 async function readSSOConfig() {
   try {
     const raw = await fs.readFile(SSO_CONFIG_FILE, 'utf8')
@@ -298,9 +313,23 @@ router.post('/sso/callback', async (req, res) => {
       status: 'success'
     })
 
+    // Extract the identity provider alias (google, github, discord, etc.) from Keycloak tokens.
+    // This is used client-side as kc_idp_hint for silent re-authentication.
+    let identityProvider = null
+    if (tokens.access_token) {
+      const payload = decodeJwtPayload(tokens.access_token)
+      if (payload && payload.identity_provider) identityProvider = payload.identity_provider
+    }
+    if (!identityProvider && tokens.id_token) {
+      const payload = decodeJwtPayload(tokens.id_token)
+      if (payload && payload.identity_provider) identityProvider = payload.identity_provider
+    }
+    logger.info({ identityProvider }, 'SSO callback: detected identity provider')
+
     res.json({
       token,
       idToken: tokens.id_token || null,
+      identityProvider: identityProvider || null,
       user: {
         id: user.id,
         username: user.username,
@@ -1586,12 +1615,24 @@ router.post('/sso/token-refresh', authenticateToken, async (req, res) => {
       }
     }
 
-    logger.info({ userId: user.id }, 'SSO token refresh successful')
+    // Extract identity provider alias from refreshed tokens
+    let identityProvider = null
+    if (tokens.access_token) {
+      const payload = decodeJwtPayload(tokens.access_token)
+      if (payload && payload.identity_provider) identityProvider = payload.identity_provider
+    }
+    if (!identityProvider && tokens.id_token) {
+      const payload = decodeJwtPayload(tokens.id_token)
+      if (payload && payload.identity_provider) identityProvider = payload.identity_provider
+    }
+
+    logger.info({ userId: user.id, identityProvider }, 'SSO token refresh successful')
 
     res.json({
       success: true,
       token: newToken,
-      idToken: tokens.id_token || null
+      idToken: tokens.id_token || null,
+      identityProvider: identityProvider || null
     })
   } catch (err) {
     logger.error('SSO token refresh error:', err)
