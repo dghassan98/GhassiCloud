@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.6': {
+    date: 'February 7, 2026',
+    changes: [
+      'feat: enhance quick tips widget styling for improved readability and layout',
+    ],
+  },
   '1.9.5': {
     date: 'February 7, 2026',
     changes: [
@@ -417,7 +423,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.5';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.6';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
