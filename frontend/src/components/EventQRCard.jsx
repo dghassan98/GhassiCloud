@@ -57,6 +57,7 @@ export default function EventQRCard() {
 
   const handleClick = (e) => {
     e.preventDefault()
+    e.stopPropagation()
     if (isPWA() && !isMobile()) {
       openWebview(config.url, config.label || 'Event')
     } else {
@@ -96,7 +97,6 @@ export default function EventQRCard() {
               href={config.url}
               onClick={handleClick}
               className="event-card-mobile-hero"
-              target="_blank"
               rel="noopener noreferrer"
             >
               <div className="event-card-mobile-icon">
@@ -115,7 +115,6 @@ export default function EventQRCard() {
                 href={config.url}
                 onClick={handleClick}
                 className="event-qr-url"
-                target="_blank"
                 rel="noopener noreferrer"
               >
                 <ExternalLink size={12} />
@@ -130,7 +129,6 @@ export default function EventQRCard() {
               href={config.url}
               onClick={handleClick}
               className="event-qr-link"
-              target="_blank"
               rel="noopener noreferrer"
               title={t('eventQr.scanOrClick') || 'Scan or click to visit'}
             >
@@ -153,7 +151,6 @@ export default function EventQRCard() {
                 href={config.url}
                 onClick={handleClick}
                 className="event-qr-url"
-                target="_blank"
                 rel="noopener noreferrer"
               >
                 <ExternalLink size={12} />

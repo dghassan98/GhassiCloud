@@ -8,6 +8,18 @@ export function WebviewProvider({ children }) {
   const MAX_MINIMIZED = 5
 
   const openWebview = useCallback((url, title) => {
+    // Check if a tab with this URL already exists
+    const existing = tabs.find(t => t.url === url)
+    if (existing) {
+      // If tab exists and is minimized, restore it; otherwise just activate it
+      if (existing.minimized) {
+        setTabs(prev => prev.map(t => t.id === existing.id ? { ...t, minimized: false } : t))
+      }
+      setActiveId(existing.id)
+      return existing.id
+    }
+
+    // Create new tab
     const id = `webtab-${Date.now()}`
     const hostname = (() => {
       try { return new URL(url).hostname } catch { return url }
@@ -16,7 +28,7 @@ export function WebviewProvider({ children }) {
     setTabs(prev => [...prev, { id, url, title: title || hostname, hostname, minimized: false }])
     setActiveId(id)
     return id
-  }, [])
+  }, [tabs])
 
   const closeWebview = useCallback((id) => {
     setTabs(prev => prev.filter(t => t.id !== id))
