@@ -34,7 +34,7 @@ export function usePWAUpdate() {
   });
 
   useEffect(() => {
-    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.8';
+    const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.9';
     const lastSeenVersion = localStorage.getItem('lastSeenVersion');
     const changelogShownThisSession = sessionStorage.getItem('changelogShown');
     const runningAsPWA = isPWA();

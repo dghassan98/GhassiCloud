@@ -47,8 +47,10 @@ export default function WebViewModal() {
     }
 
     let didLoad = false
+    let cancelled = false
 
     const onLoad = () => {
+      if (cancelled) return
       didLoad = true
       try { if (iframe.dataset) iframe.dataset.loaded = '1' } catch (e) { logger.warn('Failed to set iframe dataset', e) }
 
@@ -63,7 +65,7 @@ export default function WebViewModal() {
 
       setLoadingMap(prev => ({ ...prev, [active.id]: false }))
 
-      if (blocked) {
+      if (blocked && !cancelled) {
         logger.warn('Iframe blocked by X-Frame-Options or CSP, opening in external browser', { url: active.url })
         showToast({ message: 'This site prevents embedding. Opening in external browser.', type: 'warning' })
         closeWebview(active.id)
@@ -72,6 +74,7 @@ export default function WebViewModal() {
     }
 
     const onError = () => {
+      if (cancelled) return
       setLoadingMap(prev => ({ ...prev, [active.id]: false }))
       showToast({ message: 'Failed to load site, opening in external browser.', type: 'error' })
       closeWebview(active.id)
@@ -83,7 +86,7 @@ export default function WebViewModal() {
 
     setLoadingMap(prev => ({ ...prev, [active.id]: true }))
     const t = setTimeout(() => {
-      if (!didLoad) {
+      if (!didLoad && !cancelled) {
         logger.warn('Site did not load in-app within timeout, opening in external browser', { url: active.url })
         showToast({ message: 'Site did not load in-app, opening in external browser.', type: 'warning' })
         try { closeWebview(active.id) } catch (e) { }
@@ -92,6 +95,7 @@ export default function WebViewModal() {
     }, 6000)
 
     return () => {
+      cancelled = true
       try { iframe.removeEventListener('load', onLoad) } catch (e) { }
       try { iframe.removeEventListener('error', onError) } catch (e) { }
       clearTimeout(t)

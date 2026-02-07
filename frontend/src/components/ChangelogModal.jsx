@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.9': {
+    date: 'February 7, 2026',
+    changes: [
+      'fix: prevent iframe loading issues by adding cancellation logic',
+    ],
+  },
   '1.9.8': {
     date: 'February 7, 2026',
     changes: [
@@ -435,7 +441,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.8';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.9';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
