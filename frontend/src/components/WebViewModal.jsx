@@ -100,7 +100,7 @@ export default function WebViewModal() {
       try { iframe.removeEventListener('error', onError) } catch (e) { }
       clearTimeout(t)
     }
-  }, [active, closeWebview, showToast])
+  }, [active?.id, active?.url, closeWebview, showToast])
 
   // Prevent background scrolling while modal is open (only on installed desktop PWAs)
   useEffect(() => {

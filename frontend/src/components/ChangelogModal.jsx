@@ -2,6 +2,12 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.9.10': {
+    date: 'February 7, 2026',
+    changes: [
+      'fix: update dependencies in useEffect to prevent potential errors in WebViewModal',
+    ],
+  },
   '1.9.9': {
     date: 'February 7, 2026',
     changes: [
@@ -441,7 +447,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.9';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.10';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {
