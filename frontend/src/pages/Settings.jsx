@@ -14,6 +14,7 @@ import { useToast } from '../context/ToastContext'
 import { usePWAUpdate } from '../hooks/usePWAUpdate'
 import { isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
+import { useRamadan } from '../context/RamadanContext'
 import logger from '../logger'
 import '../styles/settings.css'
 import ErrorBoundary from '../components/ErrorBoundary'
@@ -28,6 +29,7 @@ export default function Settings() {
   const { showToast } = useToast()
   const { checkForUpdate, forceRefresh, showChangelog, dismissChangelog } = usePWAUpdate()
   const { openWebview } = useWebview()
+  const ramadan = useRamadan()
   const isAdmin = user?.role === 'admin'
   const [forceRefreshing, setForceRefreshing] = useState(false)
 
@@ -121,6 +123,7 @@ export default function Settings() {
     { id: 'data', label: t('settings.tabs.data'), icon: Database },
     ...(isAdmin ? [{ id: 'users', label: t('settings.userManagement.title') || 'User Management', icon: Users }] : []),
     ...(isAdmin ? [{ id: 'eventqr', label: t('settings.tabs.eventQr') || 'Event Spotlight', icon: Sparkles }] : []),
+    ...(isAdmin ? [{ id: 'ramadan', label: t('ramadan.adminTitle') || 'Ramadan Theme', icon: Moon }] : []),
     { id: 'updates', label: t('settings.tabs.updates') || 'Updates', icon: RefreshCw }
   ]
   const [activeSection, setActiveSection] = useState('profile')
@@ -154,6 +157,14 @@ export default function Settings() {
   const [logLevel, setLogLevel] = useState('info')
   const [savingLogLevel, setSavingLogLevel] = useState(false)
   const [logLevelError, setLogLevelError] = useState(null)
+
+  // Ramadan admin state
+  const [ramadanAdminEnabled, setRamadanAdminEnabled] = useState(true)
+  const [ramadanStartDate, setRamadanStartDate] = useState('')
+  const [ramadanEndDate, setRamadanEndDate] = useState('')
+  const [ramadanShowPref, setRamadanShowPref] = useState(true)
+  const [savingRamadan, setSavingRamadan] = useState(false)
+  const [ramadanSaved, setRamadanSaved] = useState(false)
 
   // Event QR admin state
   const [eventQrUrl, setEventQrUrl] = useState('')
@@ -518,6 +529,29 @@ export default function Settings() {
           }
         }
       } catch (e) { logger.error('Failed to load event QR settings', e) }
+    })()
+    return () => { cancelled = true }
+  }, [activeSection, isAdmin])
+
+  // Load Ramadan admin settings when that section is active
+  useEffect(() => {
+    if (activeSection !== 'ramadan' || !isAdmin) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const token = getAuthToken()
+        const headers = token ? { Authorization: token } : {}
+        const res = await fetch('/api/auth/ramadan-settings', { headers })
+        if (res.ok) {
+          const data = await res.json()
+          if (!cancelled) {
+            setRamadanAdminEnabled(data.enabled !== false)
+            setRamadanStartDate(data.startDate || '')
+            setRamadanEndDate(data.endDate || '')
+            setRamadanShowPref(data.showPreference !== false)
+          }
+        }
+      } catch (e) { logger.error('Failed to load Ramadan admin settings', e) }
     })()
     return () => { cancelled = true }
   }, [activeSection, isAdmin])
@@ -1419,6 +1453,31 @@ export default function Settings() {
                     <span className="toggle-slider" />
                   </label>
                 </div>
+                {ramadan.showUserToggle && (
+                  <div className="toggle-item">
+                    <div>
+                      <h4>{t('ramadan.title') || 'Ramadan Theme'} ☪</h4>
+                      <p>{t('ramadan.desc') || 'Show festive Ramadan decorations with lanterns, ribbons, and ambient effects during the holy month.'}</p>
+                    </div>
+                    <label className="toggle">
+                      <input
+                        type="checkbox"
+                        checked={!!ramadan.userEnabled}
+                        onChange={() => {
+                          const next = !ramadan.userEnabled
+                          ramadan.setRamadanEnabled(next)
+                          showToast({
+                            message: next
+                              ? (t('ramadan.enabled') || 'Ramadan theme enabled')
+                              : (t('ramadan.disabled') || 'Ramadan theme disabled'),
+                            type: 'success'
+                          })
+                        }}
+                      />
+                      <span className="toggle-slider" />
+                    </label>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -1767,7 +1826,7 @@ export default function Settings() {
               <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>{t('settings.updates.versionInfo')}</label>
                 <p className="form-hint">
-                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.9.11'}</strong>
+                  {t('settings.updates.currentVersion')}: <strong>{import.meta.env.VITE_APP_VERSION || '1.10.0'}</strong>
                 </p>
               </div>
               <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
@@ -2015,6 +2074,159 @@ export default function Settings() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ramadan Theme Admin Section */}
+          {activeSection === 'ramadan' && isAdmin && (
+            <div className="settings-section">
+              <div className="section-header">
+                <div>
+                  <h2>{t('ramadan.adminTitle') || 'Ramadan Theme'} ☪</h2>
+                  <p>{t('ramadan.adminDesc') || 'Configure the seasonal Ramadan theme with lanterns, ribbons, and decorations. Active by default during the Ramadan season.'}</p>
+                </div>
+              </div>
+
+              <div className="sso-card">
+                <div className="sso-card-left"><Moon size={22} /></div>
+                <div className="sso-card-body">
+                  <h4>{t('ramadan.masterToggle') || 'Enable Ramadan theme'}</h4>
+                  <p className="form-hint">{t('ramadan.masterToggleDesc') || 'Master switch — when disabled, no users will see Ramadan decorations.'}</p>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <label className="toggle" style={{ margin: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={ramadanAdminEnabled}
+                        disabled={savingRamadan}
+                        onChange={async () => {
+                          const next = !ramadanAdminEnabled
+                          setRamadanAdminEnabled(next)
+                          try {
+                            setSavingRamadan(true)
+                            const token = getAuthToken()
+                            const headers = { 'Content-Type': 'application/json' }
+                            if (token) headers.Authorization = token
+                            const res = await fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'ramadanEnabled', value: next ? 'true' : 'false' }) })
+                            if (res.ok) {
+                              showToast({ message: next ? (t('ramadan.enabled') || 'Ramadan theme enabled') : (t('ramadan.disabled') || 'Ramadan theme disabled'), type: 'success' })
+                              try { window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'ramadanEnabled', value: next ? 'true' : 'false' } })) } catch (e) { }
+                              ramadan.fetchAdminSettings()
+                            } else {
+                              setRamadanAdminEnabled(!next)
+                              showToast({ message: t('ramadan.saveFailed') || 'Failed to save', type: 'error' })
+                            }
+                          } catch (e) {
+                            setRamadanAdminEnabled(!next)
+                            showToast({ message: t('ramadan.saveFailed') || 'Failed to save', type: 'error' })
+                          } finally { setSavingRamadan(false) }
+                        }}
+                      />
+                      <span className="toggle-slider" />
+                    </label>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{ramadanAdminEnabled ? (t('ramadan.activeLabel') || 'Active for all users') : (t('ramadan.inactiveLabel') || 'Disabled')}</span>
+                    {ramadanAdminEnabled && ramadan.seasonActive && (
+                      <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 500, marginLeft: 4 }}>● {t('ramadan.seasonActive') || 'Theme is currently active'}</span>
+                    )}
+                    {ramadanAdminEnabled && !ramadan.seasonActive && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: 500, marginLeft: 4 }}>○ {t('ramadan.seasonEnded') || 'Season has ended'}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="sso-card" style={{ marginTop: '1rem' }}>
+                <div className="sso-card-left"><Globe size={22} /></div>
+                <div className="sso-card-body">
+                  <h4>{t('ramadan.startDateLabel') || 'Ramadan Start Date'}</h4>
+                  <p className="form-hint">{t('ramadan.startDateDesc') || 'The date Ramadan begins. A countdown will be displayed until this date.'}</p>
+                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <input
+                      type="date"
+                      value={ramadanStartDate}
+                      onChange={(e) => setRamadanStartDate(e.target.value)}
+                      style={{ width: '100%', maxWidth: 260, padding: '0.5rem 0.7rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-input, var(--bg-secondary))', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="sso-card" style={{ marginTop: '1rem' }}>
+                <div className="sso-card-left"><Globe size={22} /></div>
+                <div className="sso-card-body">
+                  <h4>{t('ramadan.endDateLabel') || 'Season End Date'}</h4>
+                  <p className="form-hint">{t('ramadan.endDateDesc') || 'The Ramadan theme will automatically deactivate after this date.'}</p>
+                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <input
+                      type="date"
+                      value={ramadanEndDate}
+                      onChange={(e) => setRamadanEndDate(e.target.value)}
+                      style={{ width: '100%', maxWidth: 260, padding: '0.5rem 0.7rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-input, var(--bg-secondary))', color: 'var(--text-primary)', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="sso-card" style={{ marginTop: '1rem' }}>
+                <div className="sso-card-left"><Users size={22} /></div>
+                <div className="sso-card-body">
+                  <h4>{t('ramadan.showPreference') || 'Show user preference toggle'}</h4>
+                  <p className="form-hint">{t('ramadan.showPreferenceDesc') || 'Allow users to individually opt out of the Ramadan theme in their appearance settings.'}</p>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <label className="toggle" style={{ margin: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={ramadanShowPref}
+                        disabled={savingRamadan}
+                        onChange={() => setRamadanShowPref(prev => !prev)}
+                      />
+                      <span className="toggle-slider" />
+                    </label>
+                    <span style={{ fontSize: '0.9rem' }}>{ramadanShowPref ? (t('ramadan.activeLabel') || 'Visible to users') : (t('ramadan.inactiveLabel') || 'Hidden from users')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  className="btn-primary"
+                  disabled={savingRamadan}
+                  style={{ padding: '0.45rem 1.2rem', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600 }}
+                  onClick={async () => {
+                    try {
+                      setSavingRamadan(true)
+                      setRamadanSaved(false)
+                      const token = getAuthToken()
+                      const headers = { 'Content-Type': 'application/json' }
+                      if (token) headers.Authorization = token
+                      const [r1, r2, r3, r4] = await Promise.all([
+                        fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'ramadanStartDate', value: ramadanStartDate }) }),
+                        fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'ramadanEndDate', value: ramadanEndDate }) }),
+                        fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'ramadanShowPreference', value: ramadanShowPref ? 'true' : 'false' }) }),
+                        fetch('/api/auth/admin/settings', { method: 'POST', headers, body: JSON.stringify({ key: 'ramadanEnabled', value: ramadanAdminEnabled ? 'true' : 'false' }) })
+                      ])
+                      if (r1.ok && r2.ok && r3.ok && r4.ok) {
+                        setRamadanSaved(true)
+                        showToast({ message: t('ramadan.saved') || 'Ramadan settings saved', type: 'success' })
+                        try {
+                          window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'ramadanStartDate', value: ramadanStartDate } }))
+                          window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'ramadanEndDate', value: ramadanEndDate } }))
+                          window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'ramadanShowPreference', value: ramadanShowPref ? 'true' : 'false' } }))
+                          window.dispatchEvent(new CustomEvent('ghassicloud:settings-updated', { detail: { key: 'ramadanEnabled', value: ramadanAdminEnabled ? 'true' : 'false' } }))
+                        } catch (e) { }
+                        ramadan.fetchAdminSettings()
+                        setTimeout(() => setRamadanSaved(false), 2500)
+                      } else {
+                        showToast({ message: t('ramadan.saveFailed') || 'Failed to save', type: 'error' })
+                      }
+                    } catch (e) {
+                      logger.error('Save Ramadan settings error:', e)
+                      showToast({ message: t('ramadan.saveFailed') || 'Failed to save', type: 'error' })
+                    } finally { setSavingRamadan(false) }
+                  }}
+                >
+                  {savingRamadan ? (t('common.loading') || 'Saving...') : ramadanSaved ? '✓ Saved' : (t('settings.saveChanges') || 'Save Changes')}
+                </button>
               </div>
             </div>
           )}

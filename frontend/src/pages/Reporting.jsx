@@ -218,6 +218,45 @@ export default function Reporting() {
     return <IconComponent size={16} />
   }
   
+  // Group consecutive similar events by the same user within 5 minutes
+  const groupLogs = (logs) => {
+    if (!logs || logs.length === 0) return []
+    
+    const grouped = []
+    let currentGroup = null
+    
+    logs.forEach((log, index) => {
+      if (!currentGroup) {
+        currentGroup = { ...log, groupedLogs: [log], count: 1 }
+      } else {
+        const timeDiff = new Date(log.created_at) - new Date(currentGroup.created_at)
+        const within5Minutes = Math.abs(timeDiff) < 5 * 60 * 1000
+        const sameUser = log.user_id === currentGroup.user_id
+        const sameAction = log.action === currentGroup.action
+        const sameStatus = log.status === currentGroup.status
+        
+        // Group if it's the same user, action, status, and within 5 minutes
+        if (sameUser && sameAction && sameStatus && within5Minutes) {
+          currentGroup.count++
+          currentGroup.groupedLogs.push(log)
+          // Update to most recent timestamp
+          currentGroup.created_at = log.created_at
+        } else {
+          // Push current group and start new one
+          grouped.push(currentGroup)
+          currentGroup = { ...log, groupedLogs: [log], count: 1 }
+        }
+      }
+      
+      // Push the last group
+      if (index === logs.length - 1) {
+        grouped.push(currentGroup)
+      }
+    })
+    
+    return grouped
+  }
+  
   const clearFilters = () => {
     setSelectedCategory('')
     setSelectedAction('')
@@ -331,7 +370,7 @@ export default function Reporting() {
               <User size={24} />
             </div>
             <div className="stat-info">
-              <span className="stat-value">{statsLoading ? '...' : (stats?.topUsers?.length || 0)}</span>
+              <span className="stat-value">{statsLoading ? '...' : (stats?.activeUsers || 0)}</span>
               <span className="stat-label">{t('reporting.activeUsers') || 'Active Users'}</span>
               <span className="stat-period">Last 30 days</span>
             </div>
@@ -527,7 +566,7 @@ export default function Reporting() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log, idx) => (
+                    {groupLogs(logs).map((log, idx) => (
                       <motion.tr 
                         key={log.id}
                         initial={{ opacity: 0, x: -20 }}
@@ -555,6 +594,11 @@ export default function Reporting() {
                           <span className="action-badge">
                             {getActionIcon(log.action)}
                             {formatAction(log.action)}
+                            {log.count > 1 && (
+                              <span className="group-count-badge" title={`${log.count} similar events grouped`}>
+                                ×{log.count}
+                              </span>
+                            )}
                           </span>
                         </td>
                         <td className="category-cell">

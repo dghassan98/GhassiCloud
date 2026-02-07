@@ -1326,6 +1326,26 @@ router.get('/event-qr', authenticateToken, async (req, res) => {
   }
 })
 
+// Public endpoint: fetch Ramadan theme settings (visible to all authenticated users)
+router.get('/ramadan-settings', authenticateToken, async (req, res) => {
+  try {
+    const db = getDb()
+    const keys = ['ramadanEnabled', 'ramadanStartDate', 'ramadanEndDate', 'ramadanShowPreference']
+    const rows = db.prepare(`SELECT key, value FROM settings WHERE key IN (${keys.map(() => '?').join(',')})`).all(...keys)
+    const obj = {}
+    rows.forEach(r => { obj[r.key] = r.value })
+    res.json({
+      enabled: obj.ramadanEnabled !== 'false',
+      startDate: obj.ramadanStartDate || '',
+      endDate: obj.ramadanEndDate || '',
+      showPreference: obj.ramadanShowPreference !== 'false'
+    })
+  } catch (err) {
+    logger.error('Get Ramadan settings error:', err)
+    res.status(500).json({ message: 'Failed to fetch Ramadan settings' })
+  }
+})
+
 router.get('/admin/settings', authenticateToken, async (req, res) => {
   try {
     if (!req.user || req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' })

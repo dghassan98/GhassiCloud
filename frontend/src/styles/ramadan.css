@@ -1,0 +1,491 @@
+/* ===== Ramadan Theme Overlay ===== */
+
+/* Container — sits above everything, pointer-events: none so it doesn't block interaction */
+.ramadan-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  overflow: hidden;
+}
+
+.ramadan-overlay-visible {
+  opacity: 1;
+}
+
+/* ===== Lanterns Row ===== */
+.ramadan-lanterns-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  pointer-events: none;
+}
+
+.ramadan-lantern {
+  position: absolute;
+  top: -8px;
+  animation: ramadan-lantern-sway 4s ease-in-out infinite;
+  transform-origin: top center;
+  filter: drop-shadow(0 4px 12px rgba(245, 200, 66, 0.3));
+}
+
+@keyframes ramadan-lantern-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* ===== Corner Ribbons ===== */
+.ramadan-ribbon {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.ramadan-ribbon-top-left {
+  top: 0;
+  left: 0;
+}
+
+.ramadan-ribbon-top-right {
+  top: 0;
+  right: 0;
+}
+
+.ramadan-ribbon-bottom-right {
+  bottom: 0;
+  right: 0;
+}
+
+.ramadan-ribbon-text {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  padding: 5px 0;
+  background: linear-gradient(135deg, #c97b2a 0%, #f5c842 50%, #e8a020 100%);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(201, 123, 42, 0.4);
+  white-space: nowrap;
+}
+
+.ramadan-ribbon-top-left .ramadan-ribbon-text {
+  top: 38px;
+  left: -62px;
+  transform: rotate(-45deg);
+}
+
+.ramadan-ribbon-top-right .ramadan-ribbon-text {
+  top: 35px;
+  right: -50px;
+  transform: rotate(45deg);
+}
+
+.ramadan-ribbon-bottom-right .ramadan-ribbon-text {
+  bottom: 38px;
+  right: -62px;
+  transform: rotate(-45deg);
+}
+
+/* ===== Twinkling Stars ===== */
+.ramadan-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ramadan-star {
+  position: absolute;
+  color: #f5c842;
+  font-size: 12px;
+  opacity: 0;
+  animation: ramadan-star-twinkle 3s ease-in-out infinite;
+  text-shadow: 0 0 6px rgba(245, 200, 66, 0.6);
+}
+
+@keyframes ramadan-star-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+/* ===== Bottom Glow ===== */
+.ramadan-bottom-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(245, 200, 66, 0.3) 20%, 
+    rgba(245, 200, 66, 0.6) 50%, 
+    rgba(245, 200, 66, 0.3) 80%,
+    transparent 100%
+  );
+  animation: ramadan-bottom-pulse 4s ease-in-out infinite;
+}
+
+@keyframes ramadan-bottom-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* ===== Countdown Dashboard Card ===== */
+.ramadan-countdown-widget {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  min-width: 210px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(232, 160, 32, 0.02));
+  border: 1px solid rgba(245, 200, 66, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
+}
+
+.ramadan-countdown-widget:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* Shimmer sweep */
+.ramadan-countdown-widget::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 200, 66, 0.04) 40%,
+    rgba(245, 200, 66, 0.08) 50%,
+    rgba(245, 200, 66, 0.04) 60%,
+    transparent 100%
+  );
+  animation: rc-shimmer 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes rc-shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+.rc-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rc-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f5c842;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-shadow: 0 0 10px rgba(245, 200, 66, 0.2);
+}
+
+.rc-rings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rc-ring {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-ring-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-ring-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary, #fff);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rc-ring-label {
+  font-size: 0.5rem;
+  font-weight: 500;
+  color: rgba(245, 200, 66, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 1px;
+}
+
+.rc-subtitle {
+  font-size: 0.6rem;
+  color: rgba(245, 200, 66, 0.4);
+  letter-spacing: 0.8px;
+  text-align: center;
+}
+
+/* ===== Ramadan body class effects ===== */
+body.ramadan-active::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(245, 200, 66, 0.03) 0%,
+    transparent 60%
+  );
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  .ramadan-lanterns-row {
+    height: 100px;
+  }
+
+  .ramadan-lantern svg {
+    width: 80%;
+    height: 80%;
+  }
+
+  .ramadan-ribbon {
+    width: 160px;
+    height: 160px;
+  }
+
+  .ramadan-ribbon-text {
+    width: 230px;
+    font-size: 0.55rem;
+    padding: 4px 0;
+    letter-spacing: 1px;
+  }
+
+  .ramadan-ribbon-top-left .ramadan-ribbon-text {
+    top: 28px;
+    left: -50px;
+  }
+
+  .ramadan-ribbon-top-right .ramadan-ribbon-text {
+    top: 28px;
+    right: -50px;
+  }
+
+  .ramadan-ribbon-bottom-right .ramadan-ribbon-text {
+    bottom: 28px;
+    right: -50px;
+  }
+
+  .ramadan-star {
+    font-size: 9px;
+  }
+
+  .ramadan-bottom-glow {
+    height: 2px;
+  }
+
+  .ramadan-countdown-widget {
+    min-width: unset;
+    width: 100%;
+    padding: 0.85rem 1rem;
+  }
+
+  .rc-rings {
+    gap: 6px;
+  }
+
+  .rc-ring-value {
+    font-size: 0.9rem;
+  }
+
+  .rc-title {
+    font-size: 0.65rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .ramadan-ribbon {
+    width: 130px;
+    height: 130px;
+  }
+
+  .ramadan-ribbon-text {
+    width: 190px;
+    font-size: 0.5rem;
+    top: 22px;
+  }
+
+  .ramadan-ribbon-top-left .ramadan-ribbon-text {
+    left: -40px;
+  }
+
+  .ramadan-ribbon-bottom-right .ramadan-ribbon-text {
+    right: -40px;
+  }
+}
+
+/* ===== Standalone PWA / Capacitor — account for safe areas ===== */
+@media (display-mode: standalone) {
+  .ramadan-lanterns-row {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  .ramadan-ribbon-top-left,
+  .ramadan-ribbon-top-right {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  .ramadan-ribbon-bottom-right {
+    bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ===== Light theme adjustments ===== */
+[data-theme="light"] .ramadan-lantern {
+  filter: drop-shadow(0 4px 12px rgba(201, 123, 42, 0.25));
+}
+
+[data-theme="light"] .ramadan-star {
+  color: #c97b2a;
+  text-shadow: 0 0 6px rgba(201, 123, 42, 0.4);
+}
+
+[data-theme="light"] .ramadan-bottom-glow {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(201, 123, 42, 0.2) 20%,
+    rgba(201, 123, 42, 0.4) 50%,
+    rgba(201, 123, 42, 0.2) 80%,
+    transparent 100%
+  );
+}
+
+[data-theme="light"] .ramadan-ribbon-text {
+  background: linear-gradient(135deg, #b06d20 0%, #d4960c 50%, #c97b2a 100%);
+}
+
+[data-theme="light"] .ramadan-countdown-widget {
+  background: linear-gradient(135deg, rgba(245, 200, 66, 0.1), rgba(255, 250, 240, 0.9));
+  border-color: rgba(201, 123, 42, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .rc-title {
+  color: #b06d20;
+  text-shadow: none;
+}
+
+[data-theme="light"] .rc-ring-value {
+  color: #4a3520;
+}
+
+[data-theme="light"] .rc-ring-label {
+  color: rgba(176, 109, 32, 0.6);
+}
+
+[data-theme="light"] .rc-subtitle {
+  color: rgba(176, 109, 32, 0.35);
+}
+
+[data-theme="light"] body.ramadan-active::before {
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(201, 123, 42, 0.03) 0%,
+    transparent 60%
+  );
+}
+
+/* ===== Beige theme adjustments ===== */
+[data-theme="beige"] .ramadan-lantern {
+  filter: drop-shadow(0 4px 12px rgba(180, 120, 40, 0.2));
+}
+
+[data-theme="beige"] .ramadan-ribbon-text {
+  background: linear-gradient(135deg, #a0651a 0%, #c4920a 50%, #b87a22 100%);
+}
+
+[data-theme="beige"] .ramadan-countdown-widget {
+  background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(245, 235, 218, 0.85));
+  border-color: rgba(180, 120, 40, 0.15);
+}
+
+[data-theme="beige"] .rc-title {
+  color: #a0651a;
+  text-shadow: none;
+}
+
+[data-theme="beige"] .rc-ring-value {
+  color: #3d2e1a;
+}
+
+[data-theme="beige"] .rc-ring-label {
+  color: rgba(160, 101, 26, 0.6);
+}
+
+[data-theme="beige"] .rc-subtitle {
+  color: rgba(160, 101, 26, 0.35);
+}
+
+/* ===== Midnight theme — brighter glow ===== */
+[data-theme="midnight"] .ramadan-lantern {
+  filter: drop-shadow(0 6px 16px rgba(245, 200, 66, 0.4));
+}
+
+[data-theme="midnight"] .ramadan-star {
+  text-shadow: 0 0 10px rgba(245, 200, 66, 0.7);
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ramadan-lantern {
+    animation: none;
+  }
+
+  .ramadan-star {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .ramadan-bottom-glow {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .ramadan-lantern ellipse animate,
+  .ramadan-lantern ellipse[opacity] {
+    animation: none;
+  }
+
+  .ramadan-countdown-widget::before {
+    animation: none;
+  }
+}

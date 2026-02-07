@@ -264,19 +264,39 @@ export function useNetwork() {
   const [connectionType, setConnectionType] = useState('unknown');
 
   useEffect(() => {
-    Network.getStatus().then(status => {
-      setIsConnected(status.connected);
-      setConnectionType(status.connectionType);
-    });
+    // For native apps, use Capacitor's Network API
+    if (isNative) {
+      Network.getStatus().then(status => {
+        setIsConnected(status.connected);
+        setConnectionType(status.connectionType);
+      }).catch(error => {
+        logger.warn('Network.getStatus failed, falling back to navigator.onLine:', error);
+        setIsConnected(navigator.onLine);
+      });
 
-    const listener = Network.addListener('networkStatusChange', (status) => {
-      setIsConnected(status.connected);
-      setConnectionType(status.connectionType);
-    });
+      const listener = Network.addListener('networkStatusChange', (status) => {
+        setIsConnected(status.connected);
+        setConnectionType(status.connectionType);
+      });
 
-    return () => {
-      listener.then(l => l.remove());
-    };
+      return () => {
+        listener.then(l => l.remove()).catch(err => logger.warn('Failed to remove network listener:', err));
+      };
+    } else {
+      // For web/desktop browsers, use standard browser API
+      setIsConnected(navigator.onLine);
+
+      const handleOnline = () => setIsConnected(true);
+      const handleOffline = () => setIsConnected(false);
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
   return { isConnected, connectionType };

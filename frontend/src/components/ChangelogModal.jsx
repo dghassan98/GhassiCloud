@@ -2,6 +2,17 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.10.0': {
+    date: 'February 8, 2026',
+    changes: [
+      'feat: add Ramadan countdown and overlay components with styles',
+      '- Implemented RamadanCountdownCard component for displaying a countdown to Ramadan.',
+      '- Created RamadanOverlay component featuring decorative lanterns and ribbons.',
+      '- Introduced RamadanContext for managing Ramadan theme state and settings.',
+      '- Added CSS styles for Ramadan theme, including lantern animations, ribbons, and countdown widget.',
+      '- Enhanced dashboard and reporting styles with new group count badge and event QR card adjustments.',
+    ],
+  },
   '1.9.11': {
     date: 'February 7, 2026',
     changes: [
@@ -453,7 +464,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.9.11';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.10.0';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

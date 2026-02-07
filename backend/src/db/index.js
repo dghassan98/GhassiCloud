@@ -125,6 +125,16 @@ export async function initDatabase() {
     logger.warn('Failed to initialize event QR settings:', e)
   }
 
+  // Ramadan theme defaults — enabled by default, ends March 31, users can toggle
+  try {
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('ramadanEnabled', 'true')
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('ramadanStartDate', `${new Date().getFullYear()}-02-18`)
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('ramadanEndDate', `${new Date().getFullYear()}-03-31`)
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('ramadanShowPreference', 'true')
+  } catch (e) {
+    logger.warn('Failed to initialize Ramadan settings:', e)
+  }
+
   // deprecated: navidrome_credentials table
   // db.exec(`
   //   CREATE TABLE IF NOT EXISTS navidrome_credentials (

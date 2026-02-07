@@ -7,6 +7,7 @@ import { LogoProvider } from './context/LogoContext'
 import { AccentProvider } from './context/AccentContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { ToastProvider } from './context/ToastContext'
+import { RamadanProvider } from './context/RamadanContext'
 import './styles/globals.css'
 import { isPWA } from './hooks/useCapacitor'
 import logger from './logger'
@@ -78,7 +79,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <AuthProvider>
               {/* LanguageProvider reads user language when AuthProvider finishes loading */}
               <LanguageProvider>
-                <App />
+                <RamadanProvider>
+                  <App />
+                </RamadanProvider>
               </LanguageProvider>
             </AuthProvider>
           </ToastProvider>

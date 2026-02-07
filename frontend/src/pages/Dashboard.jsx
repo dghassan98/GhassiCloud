@@ -17,6 +17,7 @@ import ServicesStatusCard from '../components/ServicesStatusCard'
 import AddServiceModal from '../components/AddServiceModal'
 import EditServiceModal from '../components/EditServiceModal'
 import EventQRCard from '../components/EventQRCard'
+import RamadanCountdownCard from '../components/RamadanCountdownCard'
 import { isNative, isPWA, isMobile } from '../hooks/useCapacitor'
 import { useWebview } from '../context/WebviewContext'
 import '../styles/dashboard.css'
@@ -689,17 +690,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-
-      <a href="https://ghassi.cloud" target="_blank" rel="noopener noreferrer" className="qr-code-widget" onClick={(e) => { e.preventDefault(); if (isPWA() && !isMobile()) { openWebview('https://ghassi.cloud','GhassiCloud-2Go') } else { window.open('https://ghassi.cloud', '_blank', 'noopener,noreferrer') } }}>
-        <img 
-          src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://ghassi.cloud&bgcolor=1a1f2e&color=ffffff" 
-          alt="Scan to open GhassiCloud Mobile"
-        />
-        <div className="qr-code-text">
-          <Smartphone size={14} />
-          <span>GhassiCloud-2Go</span>
-        </div>
-      </a>
       
       {/* Hero Section */}
       <motion.section 
@@ -713,6 +703,7 @@ export default function Dashboard() {
         </div>
         <div className="hero-widgets">
           {showWeather && <WeatherWidget />}
+          <RamadanCountdownCard />
           {!isMobile() && <EventQRCard />}
           <QuickTips />
         </div>

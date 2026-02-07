@@ -284,6 +284,12 @@ router.get('/stats', authenticateToken, (req, res) => {
       LIMIT 5
     `).all(startDateStr)
     
+    const activeUsersCount = db.prepare(`
+      SELECT COUNT(DISTINCT user_id) as count
+      FROM audit_logs
+      WHERE created_at >= ? AND user_id IS NOT NULL
+    `).get(startDateStr)
+
     const recentFailures = db.prepare(`
       SELECT * FROM audit_logs 
       WHERE status = 'failure' AND created_at >= ?
@@ -306,6 +312,7 @@ router.get('/stats', authenticateToken, (req, res) => {
     res.json({
       period: { days: daysNum, startDate: startDateStr },
       total: totalResult?.total || 0,
+      activeUsers: activeUsersCount?.count || 0,
       byCategory,
       byAction,
       byStatus,

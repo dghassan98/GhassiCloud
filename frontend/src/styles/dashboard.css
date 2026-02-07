@@ -1867,6 +1867,12 @@
     margin-bottom: 1.25rem;
   }
 
+  .hero-widgets .event-qr-card {
+    max-width: 100%;
+    min-width: unset;
+    width: 100%;
+  }
+
   .weather-widget {
     min-width: unset;
     padding: 0.9rem 1.1rem;

@@ -20,7 +20,9 @@ import {
   useNetwork 
 } from './hooks/useCapacitor'
 import { WebviewProvider } from './context/WebviewContext'
+import { useRamadan } from './context/RamadanContext'
 import WebViewModal from './components/WebViewModal'
+import RamadanOverlay from './components/RamadanOverlay'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -52,6 +54,17 @@ function App() {
   const { user } = useAuth()
   const { isConnected } = useNetwork()
   const { showUpdateModal, showChangelog, updateNow, dismissUpdate, dismissChangelog } = usePWAUpdate()
+  const { isRamadanActive } = useRamadan()
+
+  // Toggle body class for the Ramadan ambient effect
+  useEffect(() => {
+    if (isRamadanActive) {
+      document.body.classList.add('ramadan-active')
+    } else {
+      document.body.classList.remove('ramadan-active')
+    }
+    return () => document.body.classList.remove('ramadan-active')
+  }, [isRamadanActive])
 
   useEffect(() => {
     const statusBarColor = theme === 'dark' ? '#0f172a' : '#ffffff'
@@ -98,6 +111,7 @@ function App() {
     <BrowserRouter>
       <WebviewProvider>
         {!isConnected && <OfflineBanner />}
+        <RamadanOverlay />
         
         {/* PWA Update Notifications */}
         {showUpdateModal && (
