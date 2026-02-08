@@ -60,31 +60,64 @@ function WeatherWidget() {
   const [city, setCity] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [permissionBlocked, setPermissionBlocked] = useState(false)
 
-  const fetchWeather = async () => {
+  const checkAndRequestLocation = async () => {
     setLoading(true)
     setError(null)
+    setPermissionBlocked(false)
+    
     try {
-      /* 1. Get coords from browser or fall back to IP geolocation */
-      let lat, lon
+      /* Check permission state first if API is available */
+      if (navigator.permissions) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          if (result.state === 'denied') {
+            setPermissionBlocked(true)
+            setError('location')
+            setLoading(false)
+            return
+          }
+        } catch (err) {
+          /* Permissions API might not be fully supported, continue anyway */
+        }
+      }
+      
+      /* Try to get location - this will prompt if state is 'prompt' */
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000, maximumAge: 0 })
+      )
+      
+      /* If we got here, permission was granted! Fetch weather */
+      await fetchWeatherData(pos.coords.latitude, pos.coords.longitude)
+    } catch (geoError) {
+      /* If permission was explicitly denied (code 1), show permission error */
+      if (geoError?.code === 1) {
+        setPermissionBlocked(true)
+        setError('location')
+        setLoading(false)
+        return
+      }
+      /* Otherwise, fallback: IP-based location via open API */
       try {
-        const pos = await new Promise((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000, maximumAge: 600000 })
-        )
-        lat = pos.coords.latitude
-        lon = pos.coords.longitude
-      } catch {
-        /* Fallback: IP-based location via open API */
         const ipRes = await fetch('https://ipapi.co/json/')
         if (ipRes.ok) {
           const ipData = await ipRes.json()
-          lat = ipData.latitude
-          lon = ipData.longitude
           if (!city) setCity(ipData.city || '')
+          await fetchWeatherData(ipData.latitude, ipData.longitude)
         } else {
-          throw new Error('location')
+          setError('location')
+          setLoading(false)
         }
+      } catch {
+        setError('location')
+        setLoading(false)
       }
+    }
+  }
+
+  const fetchWeatherData = async (lat, lon) => {
+    try {
 
       /* 2. Reverse geocode for city name (Open-Meteo geocoding) */
       if (!city) {
@@ -103,26 +136,42 @@ function WeatherWidget() {
       if (!res.ok) throw new Error('api')
       const data = await res.json()
       setWeather(data.current)
+      setLoading(false)
     } catch (err) {
-      logger.debug('Weather fetch error', err)
+      logger.debug('Weather data fetch error', err)
       setError(err.message === 'location' ? 'location' : 'api')
-    } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchWeather()
-    const id = setInterval(fetchWeather, 15 * 60 * 1000) // refresh every 15 min
+    checkAndRequestLocation()
+    const id = setInterval(checkAndRequestLocation, 15 * 60 * 1000) // refresh every 15 min
     return () => clearInterval(id)
   }, [])
 
   if (error === 'location') {
     return (
       <motion.div className="weather-widget weather-error" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <MapPin size={20} />
-        <span className="weather-error-text">{t('weather.locationDenied') || 'Enable location for weather'}</span>
-        <button className="weather-retry" onClick={fetchWeather}><RefreshIcon size={14} /></button>
+        <div className="weather-error-content">
+          <div className="weather-error-header">
+            <MapPin size={20} />
+            <span className="weather-error-title">{t('weather.locationDenied') || 'Location permission needed'}</span>
+          </div>
+          <p className="weather-error-info">
+            {permissionBlocked 
+              ? (t('weather.locationBlockedInfo') || 'Location access is blocked. Please enable it in your browser settings (usually in the address bar or site settings).')
+              : (t('weather.locationPermissionInfo') || 'To show local weather, please allow location access in your browser.')
+            }
+          </p>
+          <button className="weather-permission-btn" onClick={checkAndRequestLocation}>
+            <MapPin size={16} />
+            {permissionBlocked 
+              ? (t('weather.openSettings') || 'Check Again') 
+              : (t('weather.requestPermission') || 'Allow Location')
+            }
+          </button>
+        </div>
       </motion.div>
     )
   }

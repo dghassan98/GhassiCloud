@@ -2,6 +2,13 @@ import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = {
+  '1.10.1': {
+    date: 'February 8, 2026',
+    changes: [
+      'feat: enhance location permission handling and improve weather widget error states',
+      'feat: enhance RamadanOverlay with internationalization support and update styles',
+    ],
+  },
   '1.10.0': {
     date: 'February 8, 2026',
     changes: [
@@ -464,7 +471,7 @@ const CHANGELOG = {
 };
 
 export default function ChangelogModal({ onClose }) {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.10.0';
+  const currentVersion = import.meta.env.VITE_APP_VERSION || '1.10.1';
   const changelog = CHANGELOG[currentVersion];
 
   if (!changelog) {

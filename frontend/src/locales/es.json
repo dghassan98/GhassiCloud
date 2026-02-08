@@ -72,7 +72,11 @@
     "snowShowers": "Chubascos de nieve",
     "thunderstorm": "Tormenta",
     "feelsLike": "Sensación",
-    "locationDenied": "Activa la ubicación para el clima"
+    "locationDenied": "Se requiere permiso de ubicación",
+    "locationPermissionInfo": "Para mostrar el clima local, permite el acceso a la ubicación en tu navegador.",
+    "locationBlockedInfo": "El acceso a la ubicación está bloqueado. Por favor, actívalo en la configuración de tu navegador (normalmente en la barra de direcciones o configuración del sitio).",
+    "requestPermission": "Permitir ubicación",
+    "openSettings": "Comprobar de nuevo"
   },
   "eventQr": {
     "featured": "Destacado",
@@ -455,7 +459,10 @@
     "minutes": "Min",
     "seconds": "Seg",
     "startDateLabel": "Fecha de inicio del Ramadán",
-    "startDateDesc": "La fecha en que comienza el Ramadán. Se mostrará una cuenta regresiva hasta esta fecha."
+    "startDateDesc": "La fecha en que comienza el Ramadán. Se mostrará una cuenta regresiva hasta esta fecha.",
+    "ribbonSoon": "Ramadán pronto",
+    "ribbonTomorrow": "¡Ramadán mañana!",
+    "ribbonDaysTo": "{0} días hasta Ramadán"
   },
   "common": {
     "cancel": "Cancelar",

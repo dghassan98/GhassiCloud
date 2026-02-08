@@ -371,12 +371,58 @@
 
 /* Error & loading states */
 .weather-widget.weather-error {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
   color: var(--text-muted);
 }
-.weather-error-text { font-size: 0.85rem; flex: 1; }
+.weather-error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+}
+.weather-error-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+.weather-error-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.weather-error-info {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+.weather-permission-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+.weather-permission-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+  filter: brightness(1.1);
+}
+.weather-permission-btn:active {
+  transform: translateY(0);
+}
 .weather-retry {
   background: none; border: none; cursor: pointer;
   color: var(--text-muted); padding: 0.3rem; border-radius: 6px;

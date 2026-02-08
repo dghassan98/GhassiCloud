@@ -78,14 +78,23 @@ function App() {
   // PWA mobile
   useEffect(() => {
     const lockOrientation = async () => {
+      // Only attempt orientation lock on mobile devices and in native apps
       const isTablet = window.innerWidth >= 768
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
-      if (!isTablet && screen.orientation && screen.orientation.lock) {
+      if (!isTablet && isMobileDevice && screen.orientation && screen.orientation.lock) {
         try {
-          await screen.orientation.lock('portrait')
-          logger.info('Orientation locked to portrait')
+          // Check if document is in fullscreen (required for web browsers)
+          const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement
+          
+          // Only lock if in fullscreen or likely a PWA/native app
+          if (isFullscreen || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+            await screen.orientation.lock('portrait')
+            logger.info('Orientation locked to portrait')
+          }
         } catch (err) {
-          logger.info('Orientation lock not supported:', err)
+          // Silently fail - orientation lock isn't critical functionality
+          logger.debug('Orientation lock not available:', err.message)
         }
       }
     }

@@ -72,7 +72,11 @@
     "snowShowers": "Averses de neige",
     "thunderstorm": "Orage",
     "feelsLike": "Ressenti",
-    "locationDenied": "Activez la localisation pour la météo"
+    "locationDenied": "Autorisation de localisation requise",
+    "locationPermissionInfo": "Pour afficher la météo locale, veuillez autoriser l'accès à la localisation dans votre navigateur.",
+    "locationBlockedInfo": "L'accès à la localisation est bloqué. Veuillez l'activer dans les paramètres de votre navigateur (généralement dans la barre d'adresse ou les paramètres du site).",
+    "requestPermission": "Autoriser la localisation",
+    "openSettings": "Vérifier à nouveau"
   },
   "eventQr": {
     "featured": "À la Une",
@@ -457,7 +461,10 @@
     "minutes": "Min",
     "seconds": "Sec",
     "startDateLabel": "Date de début du Ramadan",
-    "startDateDesc": "La date de début du Ramadan. Un compte à rebours sera affiché jusqu'à cette date."
+    "startDateDesc": "La date de début du Ramadan. Un compte à rebours sera affiché jusqu'à cette date.",
+    "ribbonSoon": "Ramadan bientôt",
+    "ribbonTomorrow": "Ramadan demain !",
+    "ribbonDaysTo": "{0} jours jusqu'au Ramadan"
   },
   "common": {
     "cancel": "Annuler",

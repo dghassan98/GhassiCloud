@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRamadan } from '../context/RamadanContext'
+import { useLanguage } from '../context/LanguageContext'
 import { isMobile, isNative } from '../hooks/useCapacitor'
 import '../styles/ramadan.css'
 
@@ -93,14 +94,14 @@ function Star({ style, delay = 0 }) {
 /**
  * Helper: short label for ribbon showing days until Ramadan
  */
-function timeUntilLabel(startDateStr) {
-  if (!startDateStr) return 'Ramadan Soon'
+function timeUntilLabel(startDateStr, t) {
+  if (!startDateStr) return t('ramadan.ribbonSoon')
   const now = new Date()
   const start = new Date(startDateStr + 'T00:00:00')
   const diff = start.getTime() - now.getTime()
-  if (diff <= 0) return 'Ramadan Mubarak'
+  if (diff <= 0) return t('ramadan.greeting')
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
-  return days === 1 ? 'Ramadan Tomorrow!' : `${days} Days to Ramadan`
+  return days === 1 ? t('ramadan.ribbonTomorrow') : t('ramadan.ribbonDaysTo').replace('{0}', days)
 }
 
 /**
@@ -109,6 +110,7 @@ function timeUntilLabel(startDateStr) {
  */
 export default function RamadanOverlay() {
   const { isRamadanActive, isPreRamadan, adminStartDate } = useRamadan()
+  const { t } = useLanguage()
   const [mounted, setMounted] = useState(false)
   const mobile = isMobile()
 
@@ -131,7 +133,7 @@ export default function RamadanOverlay() {
       {/* Corner ribbon — show greeting only when Ramadan has started, countdown text before */}
       <CornerRibbon
         position="top-right"
-        text={isPreRamadan ? (timeUntilLabel(adminStartDate)) : 'Ramadan Mubarak'}
+        text={isPreRamadan ? (timeUntilLabel(adminStartDate, t)) : t('ramadan.greeting')}
       />
 
       {/* Hanging lanterns — top of viewport */}

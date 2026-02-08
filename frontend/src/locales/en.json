@@ -82,7 +82,11 @@
     "snowShowers": "Snow showers",
     "thunderstorm": "Thunderstorm",
     "feelsLike": "Feels",
-    "locationDenied": "Enable location for weather"
+    "locationDenied": "Location permission needed",
+    "locationPermissionInfo": "To show local weather, please allow location access in your browser.",
+    "locationBlockedInfo": "Location access is blocked. Please enable it in your browser settings (usually in the address bar or site settings).",
+    "requestPermission": "Allow Location",
+    "openSettings": "Check Again"
   },
   "eventQr": {
     "featured": "Featured",
@@ -434,7 +438,10 @@
     "minutes": "Min",
     "seconds": "Sec",
     "startDateLabel": "Ramadan Start Date",
-    "startDateDesc": "The date Ramadan begins. A countdown will be displayed until this date."
+    "startDateDesc": "The date Ramadan begins. A countdown will be displayed until this date.",
+    "ribbonSoon": "Ramadan Soon",
+    "ribbonTomorrow": "Ramadan Tomorrow!",
+    "ribbonDaysTo": "{0} Days to Ramadan"
   },
   "common": {
     "cancel": "Cancel",
